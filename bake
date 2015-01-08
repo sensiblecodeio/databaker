@@ -3,20 +3,46 @@
 Databaker
 
 Usage:
-  bake <spreadsheet> with <recipe>
+  bake [options] <recipe> <spreadsheets>...
   bake -h | --help | --version
+
+Options:
+  --log=<log_level>
 """
 __version__ = '0.0.0'
 
 from docopt import docopt
 import os
 import logging
-logging.basicConfig(level=logging.INFO)
+import sys
 
-def bake(spreadsheet_filename, recipe_filename, raw_options):
-    print spreadsheet_filename, recipe_filename
+def fatal(message, error_code=1):
+    logging.fatal(message)
+    print message
+    exit(error_code)
+
+def set_log(log_level):
+    """Disable logging if --log isn't set or is invalid.
+       Crash in the latter case."""
+    # TODO: log to file
+    if log_level is None:
+        logging.basicConfig(level=logging.FATAL + 1)
+        return
+    level = getattr(logging, log_level.upper(), None)
+    if level is None:
+        logging.basicConfig(level=logging.FATAL + 1)
+        fatal("Didn't understand --log={}".format(log_level))
+    logging.basicConfig(level=level)
+    logging.info("Log level set to {} ({})".format(log_level, level))
+
+def bake(spreadsheet_filename):
+    logging.info("Baking {!r} with {!r}".format(spreadsheet_filename, options['<recipe>']))
+    
 
 if __name__ == '__main__':
     options = docopt(__doc__, version='databaker {}'.format(__version__))
-    if options['with']:
-        bake(options['<spreadsheet>'], options['<recipe>'], options)
+    set_log(options['--log'])
+    logging.debug("Arguments passed: {!r}".format(sys.argv))
+    logging.debug("Parsed as {!r}".format(options))
+    for spreadsheet in options['<spreadsheets>']:
+        bake(spreadsheet)
