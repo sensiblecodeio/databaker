@@ -1,0 +1,22 @@
+#! /usr/bin/env python
+"""
+Databaker
+
+Usage:
+  bake <spreadsheet> with <recipe>
+  bake -h | --help | --version
+"""
+__version__ = '0.0.0'
+
+from docopt import docopt
+import os
+import logging
+logging.basicConfig(level=logging.INFO)
+
+def bake(spreadsheet_filename, recipe_filename, raw_options):
+    print spreadsheet_filename, recipe_filename
+
+if __name__ == '__main__':
+    options = docopt(__doc__, version='databaker {}'.format(__version__))
+    if options['with']:
+        bake(options['<spreadsheet>'], options['<recipe>'], options)
