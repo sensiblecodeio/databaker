@@ -7,17 +7,12 @@ class Chain(object):
         chain.append([__sw_name, args, kwargs])
         return Chain(self.target, chain=chain) # TODO
 
-    def missing(self, name):
-        # chain.append(name)
-        return functools.partial(self.invoke, name)
-
     def __init__(self, target, chain=None):
         self.target = target
         self.chain = chain or []
 
     def __getattr__(self,name):
-        print "name", name
-        return self.missing(name)
+        return functools.partial(self.invoke, name)
 
     def __repr__(self):
         return "Chain({}, {!r})".format(self.target.__name__, self.chain)
