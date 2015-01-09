@@ -1,11 +1,3 @@
-class memo(object):
-    def getattr():
-        
-
-
-
-
-
 
 from databaker.utils import *
 
@@ -27,11 +19,9 @@ import databaker
 values = Obs(databaker.sheets.blah())
 
 all_genders = sheet.blah()
-
-values.label(genderLabel) <== is magical
-
 def genderLabel(cell):
     cell.lookup(all_genders, above)
+values.label(genderLabel) <== is magical
 
 #values.label('Gender', lambda cell: cell.lookup(all_genders, above))
 
