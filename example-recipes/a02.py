@@ -50,12 +50,15 @@ indicators = sheet.filter("Total economically active").fill(LEFT).fill(RIGHT)
 showtime("indicators")
 
 def for_loop():
-    for i, ob in enumerate(obs.unordered_cells):
+    for i in obs.unordered_cells:
         out = {}
         out['ob'] = ob
 
         out['gender'] = ob.lookup(genders, UP)
-        out['time'] = ob.lookup(times, LEFT, strict=True)
+        try:
+            out['time'] = ob.lookup(times, LEFT, strict=True)
+        except xypath.xypath.NoLookupError:
+            continue
         out['age'] = ob.lookup(ages, UP)
         out['indicator'] = ob.lookup(indicators, UP, strict=True)
         #out['geographic'] = 'UK'
