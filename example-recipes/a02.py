@@ -5,6 +5,13 @@ import xypath
 
 # NOTE shim
 
+def is_header(bag, name, *args, **kwargs):
+    if getattr(bag.table, 'headers', None) is None:
+        bag.table.headers = {}
+    print name, "cell.lookup({}, *{}, **{}".format(bag, args, kwargs)
+    bag.table.headers[name] = lambda cell: cell.lookup(bag, *args, **kwargs)
+xypath.Bag.is_header = is_header
+
 from xypath import DOWN, RIGHT, UP, LEFT
 xypath.Bag.regex = lambda self, x: self.filter(re.compile(x))
 
@@ -33,55 +40,31 @@ import xypath
 sheet = xypath.Table.from_filename('resource/table-a02.xls', table_name='seasonally adjusted')
 showtime("file imported")
 
-obs = sheet.filter("MGSL").assert_one().shift(DOWN).fill(RIGHT).fill(DOWN).filter(is_number)
-# note: this is MUCH faster than DOWN/RIGHT
-showtime("got obs")
+def per_sheet(sheet):
+    obs = sheet.filter("MGSL").assert_one().shift(DOWN).fill(RIGHT).fill(DOWN).filter(is_number)
+    # note: this is MUCH faster than DOWN/RIGHT
+    showtime("got obs")
 
-genders = sheet.col('A').one_of(['Male', 'Female', 'All Persons'])
-showtime("got genders")
-
-times = sheet.col('A').fill(DOWN).regex("...-... (?:19|20)\d\d")
-showtime("got times")
-
-ages = sheet.regex("All aged .*") # surprised this is fast!
-showtime("all_age_labels")
-
-indicators = sheet.filter("Total economically active").fill(LEFT).fill(RIGHT)
-showtime("indicators")
-
-def for_loop():
-    for i in obs.unordered_cells:
-        out = {}
-        out['ob'] = ob
-
-        out['gender'] = ob.lookup(genders, UP)
-        try:
-            out['time'] = ob.lookup(times, LEFT, strict=True)
-        except xypath.xypath.NoLookupError:
-            continue
-        out['age'] = ob.lookup(ages, UP)
-        out['indicator'] = ob.lookup(indicators, UP, strict=True)
-        #out['geographic'] = 'UK'
-        #out['statistical_unit'] = 'People'
-        mystical_output_function(out)
-
-def mystical_output_function(p):
-    for item in p:
-        print p[item].value,
-    print
-
-for_loop()
-
-def magic_loop():
-    presto = Magic(obs)
-    presto.label("genders", UP)
-    presto.evaluate()
-
-def single_iteration(ob):
+    sheet.col('A').one_of(['Male', 'Female', 'All Persons']).is_header('gender', UP)
+    sheet.col('A').fill(DOWN).regex("...-... (?:19|20)\d\d").is_header('time', LEFT, strict=True)
+    sheet.regex("All aged .*").is_header('ages', UP)
+    sheet.filter("Total economically active").fill(LEFT).fill(RIGHT).is_header('indicator', UP, strict=True)
+    showtime("got headers")
+    return obs
+# ================================
+def single_iteration(ob, **foo):
     out = {}
-    out['ob'] = ob.value
-    out['gender'] = ob.lookup(genders, UP)
-    out['time'] = ob.lookup(times, LEFT, strict=True)
-    out['age'] = ob.lookup(ages, UP)
-    out['indicator'] = ob.lookup(indicators, UP, strict=True)
+    obj = ob._cell
+    out['ob'] = obj
+    for name, function in ob.table.headers.items():
+        #try:
+            out[name] = function(obj)
+        #except xypath.xypath.NoLookupError:
+        #    print "no lookup for", name
+            #raise
     return out
+
+obs = per_sheet(sheet)
+for ob in obs:
+    output_row=single_iteration(ob)
+    print output_row
