@@ -1,9 +1,14 @@
+#!/usr/bin/python
+"""
+Usage:
+  a02.py <filenames>...
+"""
+from docopt import docopt
 import re
 from timeit import default_timer as timer
 import atexit
 import xypath
 import xypath.loader
-
 # NOTE shim
 
 def is_header(bag, name, *args, **kwargs):
@@ -37,10 +42,9 @@ atexit.register(onexit)
 start = timer()
 last = start
 
-filenames = ['resource/table-a02.xls']  # will have come from command line glob
 # =================================
 def per_file(tableset):
-    return 0
+    return [0, 1]
 
 def per_sheet(sheet):
     obs = sheet.filter("MGSL").assert_one().shift(DOWN).fill(RIGHT).fill(DOWN).filter(is_number)
@@ -65,12 +69,17 @@ def single_iteration(ob, **foo):
             #raise
     return out
 
-for fn in filenames:
-    print fn
-    tableset = xypath.loader.table_set(fn)
-    showtime("file imported")
-    for sheet in xypath.loader.get_sheets(tableset, per_file(tableset)):
-        showtime("sheet imported")
-        obs = per_sheet(sheet)
-        for ob in obs:
-            output_row=single_iteration(ob)
+if __name__ == '__main__':
+    __version__ = "0.0.0"
+    options = docopt(__doc__, version='databaker {}'.format(__version__))
+    filenames = options['<filenames>']
+    #filenames = ['resource/table-a02.xls']  # will have come from command line glob
+    for fn in filenames:
+        print fn
+        tableset = xypath.loader.table_set(fn)
+        showtime("file imported")
+        for sheet in xypath.loader.get_sheets(tableset, per_file(tableset)):
+            showtime("sheet imported")
+            obs = per_sheet(sheet)
+            for ob in obs:
+                output_row=single_iteration(ob)
