@@ -2,6 +2,7 @@ import re
 from timeit import default_timer as timer
 import atexit
 import xypath
+import xypath.loader
 
 # NOTE shim
 
@@ -10,6 +11,7 @@ def is_header(bag, name, *args, **kwargs):
         bag.table.headers = {}
     print name, "cell.lookup({}, *{}, **{}".format(bag, args, kwargs)
     bag.table.headers[name] = lambda cell: cell.lookup(bag, *args, **kwargs)
+    showtime("got header {}".format(name))
 xypath.Bag.is_header = is_header
 
 from xypath import DOWN, RIGHT, UP, LEFT
@@ -34,11 +36,11 @@ def is_number(cell):
 atexit.register(onexit)
 start = timer()
 last = start
-# =================================
-import xypath
 
-sheet = xypath.Table.from_filename('resource/table-a02.xls', table_name='seasonally adjusted')
-showtime("file imported")
+filenames = ['resource/table-a02.xls']  # will have come from command line glob
+# =================================
+def per_file(tableset):
+    return 0
 
 def per_sheet(sheet):
     obs = sheet.filter("MGSL").assert_one().shift(DOWN).fill(RIGHT).fill(DOWN).filter(is_number)
@@ -49,7 +51,6 @@ def per_sheet(sheet):
     sheet.col('A').fill(DOWN).regex("...-... (?:19|20)\d\d").is_header('time', LEFT, strict=True)
     sheet.regex("All aged .*").is_header('ages', UP)
     sheet.filter("Total economically active").fill(LEFT).fill(RIGHT).is_header('indicator', UP, strict=True)
-    showtime("got headers")
     return obs
 # ================================
 def single_iteration(ob, **foo):
@@ -64,7 +65,12 @@ def single_iteration(ob, **foo):
             #raise
     return out
 
-obs = per_sheet(sheet)
-for ob in obs:
-    output_row=single_iteration(ob)
-    print output_row
+for fn in filenames:
+    print fn
+    tableset = xypath.loader.table_set(fn)
+    showtime("file imported")
+    for sheet in xypath.loader.get_sheets(tableset, per_file(tableset)):
+        showtime("sheet imported")
+        obs = per_sheet(sheet)
+        for ob in obs:
+            output_row=single_iteration(ob)
