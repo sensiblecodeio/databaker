@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 Usage:
-  bake.py <filenames>...
+  bake.py <recipe> <filenames>...
 """
 import imp
 from docopt import docopt
@@ -10,7 +10,6 @@ from timeit import default_timer as timer
 import atexit
 import xypath
 import xypath.loader
-# NOTE shim
 
 def is_header(bag, name, *args, **kwargs):
     if getattr(bag.table, 'headers', None) is None:
@@ -20,7 +19,6 @@ def is_header(bag, name, *args, **kwargs):
     showtime("got header {}".format(name))
 xypath.Bag.is_header = is_header
 
-from xypath import DOWN, RIGHT, UP, LEFT
 xypath.Bag.regex = lambda self, x: self.filter(re.compile(x))
 
 def one_of(bag, options):
@@ -43,21 +41,6 @@ atexit.register(onexit)
 start = timer()
 last = start
 
-# =================================
-def per_file(tableset):
-    return [0, 1]
-
-def per_sheet(sheet):
-    obs = sheet.filter("MGSL").assert_one().shift(DOWN).fill(RIGHT).fill(DOWN).filter(is_number)
-    # note: this is MUCH faster than DOWN/RIGHT
-    showtime("got obs")
-
-    sheet.col('A').one_of(['Male', 'Female', 'All Persons']).is_header('gender', UP)
-    sheet.col('A').fill(DOWN).regex("...-... (?:19|20)\d\d").is_header('time', LEFT, strict=True)
-    sheet.regex("All aged .*").is_header('ages', UP)
-    sheet.filter("Total economically active").fill(LEFT).fill(RIGHT).is_header('indicator', UP, strict=True)
-    return obs
-# ================================
 def single_iteration(ob, **foo):
     out = {}
     obj = ob._cell
@@ -74,7 +57,8 @@ if __name__ == '__main__':
     __version__ = "0.0.0"
     options = docopt(__doc__, version='databaker {}'.format(__version__))
     filenames = options['<filenames>']
-    recipe = imp.load_source("recipe", "a02.py")
+    recipe_file = options['<recipe>']
+    recipe = imp.load_source("recipe", recipe_file)
     #filenames = ['resource/table-a02.xls']  # will have come from command line glob
     for fn in filenames:
         print fn
