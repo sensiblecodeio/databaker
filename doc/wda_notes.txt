@@ -1,0 +1,21 @@
+.CSV extension
+UTF-8 encoded
+
+Final row =
+*********, <observation count>
+
+Where there are multiple sets of dimensions one set must come first
+
+e.g.
+
+4,x=5,y=6
+7,x=12,y=25
+0,x=6,z=0
+12,x=9,z=99
+
+note all x/y before any x/z
+
+Likewise if some obs are counts, and some are percentages
+
+Likewise keep together obs with the same number of dimensions
+
