@@ -11,6 +11,11 @@ import atexit
 import xypath
 import xypath.loader
 
+def cell_repr(cell):
+    column = xypath.contrib.excel.excel_column_label(cell.x+1)
+    return "<{}{!r} {}>".format(column, cell.y+1, cell.value)
+xypath.xypath._XYCell.__repr__ = cell_repr
+
 def is_header(bag, name, *args, **kwargs):
     if getattr(bag.table, 'headers', None) is None:
         bag.table.headers = {}
