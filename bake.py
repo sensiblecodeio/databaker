@@ -46,7 +46,25 @@ def is_header(bag, name, direction, dim=None, *args, **kwargs):
     showtime("got header {}".format(name))
 xypath.Bag.is_header = is_header
 
+def set_header(bag, name, text, dim=None):
+    if dim:
+        bake.update_dim(name, dim)
+    if getattr(bag.table, 'headers', None) is None:
+        bag.table.headers = {}
+    bag.table.headers[name] = lambda foo: text
+xypath.Bag.set_header = set_header
 xypath.Bag.regex = lambda self, x: self.filter(re.compile(x))
+
+def group(bag, regex):
+    """get the text"""
+    bag.assert_one()
+    match = re.search(regex, bag.value)
+    if not match:
+        return None
+    matchtext = match.groups(0)[0]
+    assert matchtext
+    return matchtext
+xypath.Bag.group = group
 
 def one_of(bag, options):
     return bag.filter(lambda cell: cell.value in options)#
