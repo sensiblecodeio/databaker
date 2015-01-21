@@ -22,7 +22,7 @@ class FakeCell(object):
     value = ''  # cell isn't there
 
 csv_filehandle = None
-dims = {'time': 19, 'indicator': 5, 'ob': 1}
+dims = {'time': 19, 'indicator': 5, 'ob': 1, 'datamarker': 2}
 maxcol = 43
 revdims = None
 def cell_repr(cell):
@@ -71,7 +71,10 @@ last = start
 def single_iteration(ob, **foo):
     out = {}
     obj = ob._cell
-    out['ob'] = obj
+    if isinstance(obj.value, basestring) and obj.value and not 'datamarker' in ob.table.headers.items():
+        out['datamarker'] = obj
+    else:
+        out['ob'] = obj
     for name, function in ob.table.headers.items():
         #try:
             out[name] = function(obj)
