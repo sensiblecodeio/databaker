@@ -3,6 +3,11 @@
 Usage:
   bake.py <recipe> <filenames>...
 """
+
+import codecs
+import sys
+sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
+
 import imp
 from docopt import docopt
 import re
@@ -22,16 +27,14 @@ maxcol = 43
 revdims = None
 def cell_repr(cell):
     column = xypath.contrib.excel.excel_column_label(cell.x+1)
-    return "<{}{!r} {}>".format(column, cell.y+1, cell.value)
+    return "<{}{} {!r}>".format(column, cell.y+1, cell.value)
 xypath.xypath._XYCell.__repr__ = cell_repr
 
 def update_dim(name, col):
-    print name, col
     global dims, maxcol
     assert isinstance(col, int)
     dims[name] = 29 + (col*8)
     maxcol = max(maxcol, (35+col*8))
-    print dims
 
 def is_header(bag, name, direction, dim=None, *args, **kwargs):
     if dim:
@@ -99,6 +102,7 @@ if __name__ == '__main__':
             print fn
             tableset = xypath.loader.table_set(fn)
             showtime("file imported")
+            # TODO print sheet name
             for sheet in xypath.loader.get_sheets(tableset, recipe.per_file(tableset)):
                 showtime("sheet imported")
                 obs = recipe.per_sheet(sheet)
