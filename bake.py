@@ -72,12 +72,16 @@ def single_iteration(ob, **foo):
     out = {}
     obj = ob._cell
     if isinstance(obj.value, basestring) and obj.value and not 'datamarker' in ob.table.headers.items():
-        out['datamarker'] = obj
+        out['datamarker'] = obj.value
     else:
-        out['ob'] = obj
+        out['ob'] = obj.value  # TODO make more like other dims
     for name, function in ob.table.headers.items():
         #try:
-            out[name] = function(obj)
+            cell = function(obj)
+            if isinstance(cell, basestring) or isinstance(cell, float):
+                out[name] = cell
+            else:
+                out[name] = cell.value
         #except xypath.xypath.NoLookupError:
         #    print "no lookup for", name
             #raise
@@ -85,11 +89,11 @@ def single_iteration(ob, **foo):
 
 
 def rooooow(row):
-    return [row.get(revdims.get(i, None), FakeCell) for i in range(1, bake.maxcol+1)]
+    return [row.get(revdims.get(i, None), '') for i in range(1, bake.maxcol+1)]
 
 
 def csv_output(row):
-    csv_writer.writerow([unicode(outcell.value) for outcell in rooooow(row)])
+    csv_writer.writerow([unicode(outcell) for outcell in rooooow(row)])
 
 
 if __name__ == '__main__':
