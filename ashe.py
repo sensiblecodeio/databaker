@@ -1,8 +1,9 @@
 from constants import *
 
 def per_file(tableset):
-    tablelist = [x.name for x in tableset.tables] # TODO
-    tablelist.remove('Notes')
+    tablelist = set(x.name for x in tableset.tables) # TODO
+    tablelist.discard('Notes')
+    tablelist.discard('CV notes')
     return tablelist
 
 def per_sheet(sheet):
@@ -12,7 +13,9 @@ def per_sheet(sheet):
     showtime("got obs")
 
     code.fill(DOWN).is_header("code", LEFT, strict=True, dim=1)
-    sheet.filter("Description").assert_one().fill(DOWN).is_header("description", LEFT, strict=True, dim=2) # feels like this'd make more sense with junction
+    descriptions = sheet.filter("Description").assert_one().fill(DOWN)
+    descriptions.is_header("description", LEFT, strict=True, dim=2) # feels like this'd make more sense with junction
+    descriptions.filter(lambda cell: cell.properties['bold']).is_header("category", UP, dim=3)
     bottom_header = code.fill(RIGHT)
     for header in bottom_header:
         if isinstance(header.value, float):  # is a percentile
@@ -21,10 +24,9 @@ def per_sheet(sheet):
                              unicode(header.shift(UP).value) + u' ' + \
                              unicode(header.value)
         header._cell.value = header.value.strip()
-    code.fill(RIGHT).is_header('header1', UP, strict=True, dim=3)  # TODO allow arithmetic on direction tuples
+    code.fill(RIGHT).is_header('indicator', UP, strict=True)  # TODO allow arithmetic on direction tuples
 
     # TODO complicated parsing of A1 -> dimensions
-    # TODO pre-mangling of ':', '..'
-    # TODO mangling of vertical cells together
+    # TODO complicated parsing of left hand - e.g. age + profession vs. region + constituency
 
     return obs
