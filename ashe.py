@@ -15,10 +15,12 @@ def per_sheet(sheet):
     sheet.filter("Description").assert_one().fill(DOWN).is_header("description", LEFT, strict=True, dim=2) # feels like this'd make more sense with junction
     bottom_header = code.fill(RIGHT)
     for header in bottom_header:
-        header.value = header.shift(UP).shift(UP).value + ' ' + \
-                       header.shift(UP).value + ' ' + \
-                       header.value
-        header.value = header.value.strip()
+        if isinstance(header.value, float):  # is a percentile
+            continue  # don't modify it.
+        header._cell.value = unicode(header.shift(UP).shift(UP).value) + u' ' + \
+                             unicode(header.shift(UP).value) + u' ' + \
+                             unicode(header.value)
+        header._cell.value = header.value.strip()
     code.fill(RIGHT).is_header('header1', UP, strict=True, dim=3)  # TODO allow arithmetic on direction tuples
 
     # TODO complicated parsing of A1 -> dimensions
