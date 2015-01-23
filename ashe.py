@@ -20,6 +20,7 @@ def per_file(tableset):
 def per_sheet(sheet):
     a1 = sheet.get_at(0, 0)  # TODO 'A1'
     # TODO ensure that there's no issues with richtext
+    # TODO do something about geography!
     sheet.set_header('time', a1.group("United Kingdom, (20\d\d)"))
     sheet.set_header('tablename', a1.group("Table [^ ]*   ([^-]*) -"), dim=3)
     sheet.set_header('descriptor', a1.group(" - ([^-]*) - "), dim=4)  # TODO sometimes returns None
@@ -36,13 +37,13 @@ def per_sheet(sheet):
     code.fill(DOWN).is_header("code", LEFT, strict=True, dim=1)
     descriptions = sheet.filter("Description").assert_one().fill(DOWN)
     descriptions.is_header("description", LEFT, strict=True, dim=2) # feels like this'd make more sense with junction
-    descriptions.filter(lambda cell: cell.properties['bold']).is_header("category", UP, dim=3)
-    # TODO improve filter to is_bold or similar.
+    descriptions.is_bold.is_header("category", UP, dim=3)
     bottom_header = code.fill(RIGHT)
     for header in bottom_header:  # this is hacky
         if isinstance(header.value, float):  # is a percentile
             continue  # don't modify it.
         # TODO allow arithmetic on UP, DOWN etc.
+        # TODO do with richtext to purge superscripts
         header._cell.value = unicode(header.shift(UP).shift(UP).value) + u' ' + \
                              unicode(header.shift(UP).value) + u' ' + \
                              unicode(header.value)
