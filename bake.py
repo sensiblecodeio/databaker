@@ -17,6 +17,7 @@ import xypath
 import xypath.loader
 from utf8csv import UnicodeWriter
 import bake
+import messytables
 
 class FakeCell(object):
     value = ''  # cell isn't there
@@ -25,10 +26,16 @@ csv_filehandle = None
 dims = {'time': 19, 'indicator': 5, 'ob': 1, 'datamarker': 2}
 maxcol = 43
 revdims = None
+
 def cell_repr(cell):
     column = xypath.contrib.excel.excel_column_label(cell.x+1)
     return "<{}{} {!r}>".format(column, cell.y+1, cell.value)
 xypath.xypath._XYCell.__repr__ = cell_repr
+
+@property
+def tabnames(tableset):
+    return set(x.name for x in tableset.tables)
+messytables.TableSet.names = tabnames
 
 def update_dim(name, col):
     global dims, maxcol

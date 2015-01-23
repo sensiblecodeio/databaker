@@ -1,5 +1,7 @@
 from constants import *
 
+"""we could write a complicated script to split these words up, but
+   it's easier just to have a lookup"""
 DEMOGRAPHIC_LOOKUP = {
     "all": ["all", "all"],
     "male": ["male", "all"],
@@ -11,11 +13,12 @@ DEMOGRAPHIC_LOOKUP = {
     "female part-time": ["female", "part-time"],
     "female full-time": ["female", "part-time"]}
 
-def per_file(tableset):
-    tablelist = set(x.name for x in tableset.tables) # TODO
-    tablelist.discard('Notes')
-    tablelist.discard('CV notes')
-    return tablelist
+def per_file(tabs):
+    "ignore tables named Notes or CV Notes"
+    tablist = tabs.names  # get a list of names
+    tablist.discard('Notes')
+    tablist.discard('CV notes')
+    return tablist
 
 def per_sheet(sheet):
     a1 = sheet.get_at(0, 0)  # TODO 'A1'
