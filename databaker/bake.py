@@ -18,15 +18,20 @@ from utf8csv import UnicodeWriter
 import bake
 
 csv_filehandle = None
-dims = {'time': 19, 'ob': 1, 'datamarker': 2}
-maxcol = 43
-revdims = None
 
-def update_dim(name, col):
-    global dims, maxcol
-    assert isinstance(col, int)
-    dims[name] = 29 + (col*8)
-    maxcol = max(maxcol, (35+col*8))
+OBS = -4
+DATAMARKER = -3
+GEOG = -2
+TIME = -1
+TIMEUNIT = 0
+DIMENSION = 1
+DIMENSIONLABEL = 2
+
+skip_after = {OBS: 0,  # 1..2
+              DATAMARKER: 12,  # 2..15
+              GEOG: 2,  # 15..18/19
+              TIME: 0,  # 18/19..20
+              TIMEUNIT: 15}  # 20..36/37
 
 def showtime(msg='unspecified'):
     global last
@@ -44,31 +49,60 @@ last = start
 def single_iteration(ob, **foo):
     out = {}
     obj = ob._cell
-    if isinstance(obj.value, basestring) and obj.value and not 'datamarker' in ob.table.headers.items():
-        out['datamarker'] = obj.value
+    keys = ob.table.headers.keys()
+
+    if isinstance(obj.value, float):
+        yield obj.value
     else:
-        out['ob'] = obj.value  # TODO make more like other dims
-    for name, function in ob.table.headers.items():
+        yield ''
+
+    assert len(keys) == max(keys) - min(keys)
+    for dimension in range(DATAMARKER, TIMEUNIT + 1):  # do fixed headers
         try:
-            cell = function(obj)
-            if isinstance(cell, basestring) or isinstance(cell, float):
-                out[name] = cell
+            cell = obj.table.headers.get(dimension, lambda _: None)(obj)
+            if cell is None:  # TODO special handling per dimension, eg datamarker
+                if dimension == DATAMARKER and not isinstance(obj.value, float):
+                    value = obj.value
+                elif dimension == TIMEUNIT:
+                    value = 'quarter [TODO]'
+                else:
+                    value = ''
+            elif isinstance(cell, basestring) or isinstance(cell, float):
+                value = cell
             else:
-                out[name] = cell.value
+                value = cell.value
         except xypath.xypath.NoLookupError:
-            print "no lookup for", name
-            out[name] = "NoLookupError"
-    return out
+            print "no lookup for dimension ", dimension
+            value = "NoLookupError"
+        yield value
+        if dimension == TIME:  # lets do the timewarp again
+            yield value
+        for i in range(0, skip_after[dimension]):
+            yield ''
 
-
-def rooooow(row):
-    return [row.get(revdims.get(i, None), '') for i in range(1, bake.maxcol+1)]
-
+    for dimension in range(1, obj.table.max_header+1):
+        name = obj.table.headernames[dimension]
+        try:
+            cell = obj.table.headers[dimension](obj)
+            if isinstance(cell, basestring) or isinstance(cell, float):
+                value = cell
+            else:
+                value = cell.value
+        except xypath.xypath.NoLookupError:
+            print "no lookup for dimension ", dimension
+            value = "NoLookupError"
+        yield name
+        yield name
+        yield ''
+        yield value
+        yield value
+        yield ''
+        yield ''
+        yield ''  # NOTE eight yields per loop
 
 def main():
     def csv_output(row):
         csv_writer.writerow([unicode(outcell) for outcell in rooooow(row)])
-
     __version__ = "0.0.0"
     options = docopt(__doc__, version='databaker {}'.format(__version__))
     filenames = options['<filenames>']
@@ -85,8 +119,7 @@ def main():
             for tab in xypath.loader.get_sheets(tableset, recipe.per_file(tableset)):
                 showtime("tab imported")
                 obs = recipe.per_tab(tab)
-                revdims = {pos: name for name, pos in bake.dims.items()}
-                for ob in obs:
+                for ob in obs:  # TODO use const
                     output_row=single_iteration(ob)
                     csv_output(output_row)
 
