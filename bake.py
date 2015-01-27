@@ -87,7 +87,10 @@ if __name__ == '__main__':
                 showtime("tab imported")
                 obs = recipe.per_tab(tab)
                 revdims = {pos: name for name, pos in bake.dims.items()}
-                for ob in obs:
+                count = len(obs)
+                for i, ob in enumerate(obs):
                     output_row=single_iteration(ob)
                     csv_output(output_row)
-
+                    if i % int(count/100) == 0:
+                        print "\b"*6, int((100.0*(i+1))/count), "%",
+                        sys.stdout.flush()
