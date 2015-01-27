@@ -18,7 +18,7 @@ from utf8csv import UnicodeWriter
 import bake
 
 csv_filehandle = None
-dims = {'time': 19, 'indicator': 5, 'ob': 1, 'datamarker': 2}
+dims = {'time': 19, 'ob': 1, 'datamarker': 2}
 maxcol = 43
 revdims = None
 

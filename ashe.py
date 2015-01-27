@@ -14,7 +14,7 @@ def per_file(tabs):
 
 def per_tab(tab):
     # TODO tab.get_at("A1")
-    tab.set_header("A1", tab.get_at(0, 0).value, dim=3)
+    tab.set_header("A1", tab.get_at(0, 0).value, dim=1)
     # TODO do something about geography!
 
     code = tab.filter("Code").assert_one()
@@ -22,10 +22,10 @@ def per_tab(tab):
     # note: this is MUCH faster than DOWN/RIGHT
     showtime("got obs")
 
-    code.fill(DOWN).is_header("code", LEFT, strict=True, dim=1)
+    code.fill(DOWN).is_header("code", LEFT, strict=True, dim=2)
     descriptions = tab.filter("Description").assert_one().fill(DOWN)
-    descriptions.is_header("description", LEFT, strict=True, dim=2) # feels like this'd make more sense with junction
-    descriptions.is_bold.is_header("category", UP, dim=3)
+    descriptions.is_header("description", LEFT, strict=True, dim=3) # feels like this'd make more sense with junction
+    descriptions.is_bold.is_header("category", UP, dim=4)
     bottom_header = code.fill(RIGHT)
     for header in bottom_header:  # this is hacky
         if isinstance(header.value, float):  # is a percentile
@@ -35,6 +35,6 @@ def per_tab(tab):
                              unicode(header.shift(UP).value) + u' ' + \
                              unicode(header.value)
         header._cell.value = header.value.strip()
-    code.fill(RIGHT).is_header('indicator', UP, strict=True)
+    code.fill(RIGHT).is_header('indicator', UP, strict=True, dim=5)
 
     return obs
