@@ -49,15 +49,15 @@ def single_iteration(ob, **foo):
     else:
         out['ob'] = obj.value  # TODO make more like other dims
     for name, function in ob.table.headers.items():
-        #try:
+        try:
             cell = function(obj)
             if isinstance(cell, basestring) or isinstance(cell, float):
                 out[name] = cell
             else:
                 out[name] = cell.value
-        #except xypath.xypath.NoLookupError:
-        #    print "no lookup for", name
-            #raise
+        except xypath.xypath.NoLookupError:
+            print "no lookup for", name
+            out[name] = "NoLookupError"
     return out
 
 
@@ -83,9 +83,9 @@ if __name__ == '__main__':
             tableset = xypath.loader.table_set(fn)
             showtime("file imported")
             # TODO print sheet name
-            for sheet in xypath.loader.get_sheets(tableset, recipe.per_file(tableset)):
-                showtime("sheet imported")
-                obs = recipe.per_sheet(sheet)
+            for tab in xypath.loader.get_sheets(tableset, recipe.per_file(tableset)):
+                showtime("tab imported")
+                obs = recipe.per_tab(tab)
                 revdims = {pos: name for name, pos in bake.dims.items()}
                 for ob in obs:
                     output_row=single_iteration(ob)
