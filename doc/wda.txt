@@ -1,0 +1,43 @@
+Observation
+Data Marking
+Statistical Unit Eng
+Statistical Unit Cym
+Measure Type Eng
+Measure Type Cym
+Observation Type Code
+
+Obs Type Value
+Unit Multiplier
+Unit of Measure Eng
+Unit of Measure Cym
+Confidentiality
+
+Geographic Area
+
+
+Time Dim Item ID
+Time Dim Item Label Eng
+Time Dim Item Label Cym
+Time Type
+
+Statistical Population ID
+Statistical Population Label Eng
+Statistical Population Label Cym
+CDID
+CDID Description
+
+
+
+
+
+
+
+
+Dim ID 1
+Dimension Label Eng 1
+Dimension Label Cym 1
+Dim Item ID 1
+Dimension Item Label Eng 1
+Dimenion Item Label Cym 1
+Is Total 1
+Is Subtotal 1

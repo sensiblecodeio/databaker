@@ -1,0 +1,38 @@
+HAS HEADERS!
+
+.CSV extension
+UTF-8 encoded
+
+Final row =
+*********, <observation count>
+
+Where there are multiple sets of dimensions one set must come first
+
+e.g.
+
+4,x=5,y=6
+7,x=12,y=25
+0,x=6,z=0
+12,x=9,z=99
+
+note all x/y before any x/z
+
+Likewise if some obs are counts, and some are percentages
+
+Likewise keep together obs with the same number of dimensions
+
+
+We only care about:
+
+1 obs
+2 datamarking  -- if obs isn't a number, make it a datamarking
+? geography -- if not E-code, stick it in anyway.
+18 time value -- will recieve a msg
+19 copy 18
+21 time type -- eg "year"
+36+8n dim name -- eg "gender"
+37+8n copy 36
+39+8n dim value -- eg "male"
+40+8n copy 40
+
+-- discussion with Rob 2015-01-20
