@@ -15,17 +15,12 @@ import atexit
 import xypath
 import xypath.loader
 from utf8csv import UnicodeWriter
+
 import bake
+from constants import *
+import overrides
 
 csv_filehandle = None
-
-OBS = -4
-DATAMARKER = -3
-GEOG = -2
-TIME = -1
-TIMEUNIT = 0
-DIMENSION = 1
-DIMENSIONLABEL = 2
 
 skip_after = {OBS: 0,  # 1..2
               DATAMARKER: 12,  # 2..15

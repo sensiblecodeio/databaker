@@ -1,6 +1,4 @@
 from xypath import DOWN, UP, LEFT, RIGHT
-from bake import showtime
-import overrides
 
 OBS = -4
 DATAMARKER = -3
