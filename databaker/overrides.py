@@ -40,6 +40,10 @@ def is_header(bag, name, direction, dim=None, *args, **kwargs):
 xypath.Bag.is_header = is_header
 
 def set_header(bag, name, text, dim=None):
+    if getattr(bag.table, 'headers', None) is None:
+        bag.table.headers = {}
+        bag.table.max_header = 0
+        bag.table.headernames = [None]
     if dim:
         bake.update_dim(name, dim)
     if getattr(bag.table, 'headers', None) is None:
