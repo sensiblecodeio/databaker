@@ -80,7 +80,7 @@ if __name__ == '__main__':
         csv_writer = UnicodeWriter(csv_filehandle)
         for fn in filenames:
             print fn
-            tableset = xypath.loader.table_set(fn)
+            tableset = xypath.loader.table_set(fn, extension='xls')
             showtime("file imported")
             # TODO print sheet name
             for tab in xypath.loader.get_sheets(tableset, recipe.per_file(tableset)):
