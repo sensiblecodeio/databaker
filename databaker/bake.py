@@ -51,7 +51,6 @@ def single_iteration(ob, **foo):
     else:
         yield ''
 
-    assert len(keys) == max(keys) - min(keys)
     for dimension in range(DATAMARKER, TIMEUNIT + 1):  # do fixed headers
         try:
             cell = obj.table.headers.get(dimension, lambda _: None)(obj)

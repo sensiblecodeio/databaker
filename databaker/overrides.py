@@ -36,13 +36,7 @@ def tabnames(tableset):
 messytables.TableSet.names = tabnames
 
 def is_header(bag, name, direction, dim=None, *args, **kwargs):
-    if dim:
-        bake.update_dim(name, dim) # dim given is one-indexed - see ONS CSV spec.
-    if getattr(bag.table, 'headers', None) is None:
-        bag.table.headers = {}
-    print name, "cell.lookup({}, {}, dim={}, *{}, **{}".format(bag, direction, dim, args, kwargs)
-    bag.table.headers[name] = lambda cell: cell.lookup(bag, direction, *args, **kwargs)
-    bake.showtime("got header {}".format(name))
+    bag.with_direction(direction, *args, **kwargs).dimension(name)
 xypath.Bag.is_header = is_header
 
 def set_header(bag, name, text, dim=None):
