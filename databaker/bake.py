@@ -86,14 +86,16 @@ def single_iteration(ob, **foo):
         except xypath.xypath.NoLookupError:
             print "no lookup for dimension ", dimension
             value = "NoLookupError"
-        yield name
-        yield name
-        yield ''
-        yield value
-        yield value
-        yield ''
-        yield ''
-        yield ''  # NOTE eight yields per loop
+
+        # Eight yields per loop - they are the parameters of an ONS dimension:
+        yield name  # Dimension Id
+        yield name  # Dimension Label English
+        yield ''    # Dimension Label Welsh
+        yield value # Dimension Item Id
+        yield value # Dimension Item Label English
+        yield ''    # Dimension Item Label Welsh
+        yield ''    # Is Total
+        yield ''    # Is Subtotal
 
 def main():
     def csv_output(row):
