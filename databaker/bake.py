@@ -19,6 +19,7 @@ from utf8csv import UnicodeWriter
 import bake
 from constants import *
 import overrides
+import header
 
 csv_filehandle = None
 
@@ -99,12 +100,20 @@ def single_iteration(ob, **foo):
 def main():
     def csv_output(row):
         csv_writer.writerow([unicode(outcell) for outcell in rooooow(row)])
+
+    def write_header(tab):
+        row = header.start.split(',')
+        for i in range(tab.max_header):
+            row.extend(header.repeat.format(num=i+1).split(','))
+        csv_writer.writerow(row)
+
     __version__ = "0.0.0"
     options = docopt(__doc__, version='databaker {}'.format(__version__))
     filenames = options['<filenames>']
     recipe_file = options['<recipe>']
     recipe = imp.load_source("recipe", recipe_file)
     #filenames = ['resource/table-a02.xls']  # will have come from command line glob
+    header_written = False
     with open("out.csv", "w") as csv_filehandle:
         csv_writer = UnicodeWriter(csv_filehandle)
         for fn in filenames:
@@ -115,6 +124,9 @@ def main():
             for tab in xypath.loader.get_sheets(tableset, recipe.per_file(tableset)):
                 showtime("tab imported")
                 obs = recipe.per_tab(tab)
+                if not header_written:
+                    write_header(tab)  # NOTE: assumes same number of dimensions total!
+                    header_written=True
                 for ob in obs:  # TODO use const
                     output_row=single_iteration(ob)
                     csv_output(output_row)
