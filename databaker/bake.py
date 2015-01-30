@@ -107,6 +107,10 @@ def main():
             row.extend(header.repeat.format(num=i+1).split(','))
         csv_writer.writerow(row)
 
+    def write_footer(row_count):
+        csv_writer.writerow(["*"*9, str(row_count)])
+
+
     __version__ = "0.0.0"
     options = docopt(__doc__, version='databaker {}'.format(__version__))
     filenames = options['<filenames>']
@@ -114,6 +118,7 @@ def main():
     recipe = imp.load_source("recipe", recipe_file)
     #filenames = ['resource/table-a02.xls']  # will have come from command line glob
     header_written = False
+    row_count = 0
     with open("out.csv", "w") as csv_filehandle:
         csv_writer = UnicodeWriter(csv_filehandle)
         for fn in filenames:
@@ -128,8 +133,10 @@ def main():
                     write_header(tab)  # NOTE: assumes same number of dimensions total!
                     header_written=True
                 for ob in obs:  # TODO use const
-                    output_row=single_iteration(ob)
+                    output_row = single_iteration(ob)
                     csv_output(output_row)
+                    row_count = row_count + 1
+        write_footer(row_count)
 
 if __name__ == '__main__':
     main()
