@@ -126,16 +126,24 @@ def main():
             tableset = xypath.loader.table_set(fn, extension='xls')
             showtime("file imported")
             # TODO print sheet name
-            for tab in xypath.loader.get_sheets(tableset, recipe.per_file(tableset)):
+            tabs = xypath.loader.get_sheets(tableset, recipe.per_file(tableset))
+            for tab_num, tab in enumerate(tabs):
                 showtime("tab imported")
                 obs = recipe.per_tab(tab)
+                obs_count = len(obs)
                 if not header_written:
                     write_header(tab)  # NOTE: assumes same number of dimensions total!
                     header_written=True
-                for ob in obs:  # TODO use const
+                for ob_num, ob in enumerate(obs):  # TODO use const
                     output_row = single_iteration(ob)
                     csv_output(output_row)
                     row_count = row_count + 1
+                    if ob_num % int(obs_count / 100) == 0:
+                        percent = 1 + 100 * ob_num / obs_count
+                        progress = percent / 5
+                        print "\b"*50, "Tab {} - {:3d}% - [{}{}]".format(tab_num + 1, percent, '='*progress, " "*(20-progress)),
+                    sys.stdout.flush()
+                print
         write_footer(row_count)
 
 if __name__ == '__main__':
