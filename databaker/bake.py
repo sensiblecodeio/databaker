@@ -25,11 +25,11 @@ import header
 
 csv_filehandle = None
 
-skip_after = {OBS: 0,  # 1..2
-              DATAMARKER: 12,  # 2..15
-              GEOG: 2,  # 15..18/19
-              TIME: 0,  # 18/19..20
-              TIMEUNIT: 15}  # 20..36/37
+skip_after = {OBS: 0,           # 1..2
+              DATAMARKER: 12,   # 2..15
+              GEOG: 2,          # 15..18/19
+              TIME: 0,          # 18/19..20
+              TIMEUNIT: 15}     # 20..36/37
 
 def showtime(msg='unspecified'):
     global last
