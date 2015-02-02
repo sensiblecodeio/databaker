@@ -25,7 +25,7 @@ import header
 
 csv_filehandle = None
 
-skip_after = {OBS: 0,           # 1..2
+SKIP_AFTER = {OBS: 0,           # 1..2
               DATAMARKER: 12,   # 2..15
               GEOG: 2,          # 15..18/19
               TIME: 0,          # 18/19..20
@@ -73,7 +73,7 @@ def single_iteration(ob, **foo):
         yield value
         if dimension == TIME:  # lets do the timewarp again
             yield value
-        for i in range(0, skip_after[dimension]):
+        for i in range(0, SKIP_AFTER[dimension]):
             yield ''
 
     for dimension in range(1, obj.table.max_header+1):
