@@ -1,11 +1,11 @@
 @echo OFF
+if [%3] == [] goto :needmoreargs
+
 echo okfn/messytables@%1
 echo scraperwiki/xypath@%2
 echo scraperwiki/databaker@%3
-
-if [%3] == [] exit /b
-
 pause
+
 pip uninstall -y xypath
 pip uninstall -y messytables
 rmdir /s /q databaker
@@ -17,5 +17,10 @@ python unzip_from_web.py %3 || goto :error
 echo Success!
 exit /b 0
 
+:needmoreargs
+echo "Usage: fetch <messytables-branch> <xypath-branch> <databaker-branch>"
+exit /b 1
+
 :error
 echo Stopped. Either pip or unzip failed.
+exit /b 2
