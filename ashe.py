@@ -1,8 +1,5 @@
 from constants import *
 
-# TODO
-# this in output is a bug: <A654 u'a  Employees on adult rates whose pay for the survey pay-period was not affected by absence.'>,
-
 def per_file(tabs):
     "ignore tables named Notes or CV Notes"
     tablist = tabs.names  # get a list of names
@@ -15,7 +12,7 @@ def per_tab(tab):
     tab.set_header("A1", tab.get_at(0, 0).value)
 
     code = tab.filter("Code").assert_one()
-    obs = code.shift(DOWN).shift(RIGHT).fill(RIGHT).fill(DOWN) # TODO exclude key
+    obs = code.shift(DOWN).shift(RIGHT).fill(RIGHT).fill(DOWN) # TODO exclude keys at right and below
 
     code.fill(DOWN).is_header(GEOG, LEFT, strict=True)
     descriptions = tab.filter("Description").assert_one().fill(DOWN)
