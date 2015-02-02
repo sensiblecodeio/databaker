@@ -120,7 +120,7 @@ def main():
     filenames = options['<filenames>']
     recipe_file = options['<recipe>']
     recipe = imp.load_source("recipe", recipe_file)
-    #filenames = ['resource/table-a02.xls']  # will have come from command line glob
+
     header_written = False
     row_count = 0
     with open("out.csv", "w") as csv_filehandle:
