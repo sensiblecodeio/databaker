@@ -65,7 +65,7 @@ def single_iteration(ob, **foo):
                     value = 'quarter [TODO]'
                 else:
                     value = ''
-            elif isinstance(cell, basestring) or isinstance(cell, float):
+            elif isinstance(cell, (basestring, float)):
                 value = cell
             else:
                 value = cell.value
@@ -82,7 +82,7 @@ def single_iteration(ob, **foo):
         name = obj.table.headernames[dimension]
         try:
             cell = obj.table.headers[dimension](obj)
-            if isinstance(cell, basestring) or isinstance(cell, float):
+            if isinstance(cell, (basestring, float)):
                 value = cell
             else:
                 value = cell.value
