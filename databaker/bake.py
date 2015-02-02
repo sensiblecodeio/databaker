@@ -34,7 +34,7 @@ SKIP_AFTER = {OBS: 0,           # 1..2
 def showtime(msg='unspecified'):
     global last
     t = timer()
-    print "{}: {:.0f} ms,  {:.0f} ms".format(msg, 1000*(t - last), 1000*(t - start))
+    print "{}: {:.3f}s,  {:.3f}s total".format(msg, t - last, t - start)
     last = t
 
 def onexit():
