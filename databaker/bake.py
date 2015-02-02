@@ -99,7 +99,7 @@ def single_iteration(ob, **foo):
 
 def main():
     def csv_output(row):
-        csv_writer.writerow([unicode(outcell) for outcell in rooooow(row)])
+        csv_writer.writerow([unicode(item) for item in row])
 
     def write_header(tab):
         row = header.start.split(',')
@@ -109,7 +109,6 @@ def main():
 
     def write_footer(row_count):
         csv_writer.writerow(["*"*9, str(row_count)])
-
 
     __version__ = "0.0.0"
     options = docopt(__doc__, version='databaker {}'.format(__version__))
