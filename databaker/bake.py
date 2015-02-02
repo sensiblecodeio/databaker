@@ -1,24 +1,26 @@
 #!/usr/bin/python
+
 """
 Usage:
   bake.py <recipe> <filenames>...
 """
 
+import atexit
 import codecs
+import imp
 import sys
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
-import imp
-from docopt import docopt
 from timeit import default_timer as timer
-import atexit
+
+from docopt import docopt
 import xypath
 import xypath.loader
 from utf8csv import UnicodeWriter
 
 import bake
 from constants import *
-import overrides
+import overrides        # warning: changes xypath and messytables
 import header
 
 csv_filehandle = None
