@@ -68,8 +68,7 @@ def rooooow(row):
 def csv_output(row):
     csv_writer.writerow([unicode(outcell) for outcell in rooooow(row)])
 
-
-if __name__ == '__main__':
+def main():
     __version__ = "0.0.0"
     options = docopt(__doc__, version='databaker {}'.format(__version__))
     filenames = options['<filenames>']
@@ -91,3 +90,5 @@ if __name__ == '__main__':
                     output_row=single_iteration(ob)
                     csv_output(output_row)
 
+if __name__ == '__main__':
+    main()
