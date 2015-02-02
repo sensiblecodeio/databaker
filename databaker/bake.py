@@ -53,10 +53,12 @@ def single_iteration(ob, **foo):
     else:
         yield ''
 
-    for dimension in range(DATAMARKER, TIMEUNIT + 1):  # do fixed headers
+    # Do fixed headers.
+    for dimension in range(DATAMARKER, TIMEUNIT + 1):
         try:
             cell = obj.table.headers.get(dimension, lambda _: None)(obj)
-            if cell is None:  # TODO special handling per dimension, eg datamarker
+            if cell is None:
+                # Special handling per dimension.
                 if dimension == DATAMARKER and not isinstance(obj.value, float):
                     value = obj.value
                 elif dimension == TIMEUNIT:
@@ -134,7 +136,8 @@ def main():
                 obs = recipe.per_tab(tab)
                 obs_count = len(obs)
                 if not header_written:
-                    write_header(tab)  # NOTE: assumes same number of dimensions total!
+                    # NOTE: assumes same number of dimensions total!
+                    write_header(tab)
                     header_written = True
                 for ob_num, ob in enumerate(obs):  # TODO use const
                     output_row = single_iteration(ob)
