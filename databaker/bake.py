@@ -40,7 +40,6 @@ def showtime(msg='unspecified'):
 def onexit():
     return showtime('exit')
 
-atexit.register(onexit)
 start = timer()
 last = start
 
@@ -111,6 +110,8 @@ def main():
 
     def write_footer(row_count):
         csv_writer.writerow(["*"*9, str(row_count)])
+
+    atexit.register(onexit)
 
     __version__ = "0.0.0"
     options = docopt(__doc__, version='databaker {}'.format(__version__))
