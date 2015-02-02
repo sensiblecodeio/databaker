@@ -8,12 +8,11 @@ pause
 
 pip uninstall -y xypath
 pip uninstall -y messytables
-rmdir /s /q databaker
+pip uninstall -y databaker
 
-pip install --user https://github.com/okfn/messytables/archive/%1.zip || goto :error
-pip install --user https://github.com/scraperwiki/xypath/archive/%2.zip || goto :error
-python unzip_from_web.py %3 || goto :error
-
+pip install https://github.com/okfn/messytables/archive/%1.zip || goto :error
+pip install https://github.com/scraperwiki/xypath/archive/%2.zip || goto :error
+pip install https://github.com/scraperwiki/databaker/archive/%3.zip || goto :error
 echo Success!
 exit /b 0
 
