@@ -139,15 +139,17 @@ def main():
                     # NOTE: assumes same number of dimensions total!
                     write_header(tab)
                     header_written = True
+                last_percent = None
                 for ob_num, ob in enumerate(obs):  # TODO use const
                     output_row = single_iteration(ob)
                     csv_output(output_row)
-                    row_count = row_count + 1
-                    if ob_num % int(obs_count / 100) == 0:
-                        percent = 1 + 100 * ob_num / obs_count
+                    row_count += 1
+                    percent = ((ob_num+1) * 100) // obs_count
+                    if percent != last_percent:
                         progress = percent / 5
                         print "\b"*50, "Tab {} - {:3d}% - [{}{}]".format(tab_num + 1, percent, '='*progress, " "*(20-progress)),
-                    sys.stdout.flush()
+                        sys.stdout.flush()
+                        last_percent = percent
                 print
         write_footer(row_count)
 
