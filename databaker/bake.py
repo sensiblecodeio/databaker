@@ -132,7 +132,7 @@ def main():
                 obs_count = len(obs)
                 if not header_written:
                     write_header(tab)  # NOTE: assumes same number of dimensions total!
-                    header_written=True
+                    header_written = True
                 for ob_num, ob in enumerate(obs):  # TODO use const
                     output_row = single_iteration(ob)
                     csv_output(output_row)
