@@ -1,6 +1,12 @@
+"""
+Patches xypath and messytables.
+"""
+
 import re
+
 import xypath
 import messytables
+
 import bake
 
 class DirBag(object):
