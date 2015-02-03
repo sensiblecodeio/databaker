@@ -75,7 +75,6 @@ class TechnicalCSV(object):
         for i in range(dimensions):
             header_row.extend(header.repeat.format(num=i+1).split(','))
         self.csv_writer.writerow(header_row)
-        self.header_written = True
 
     def footer(self):
         self.csv_writer.writerow(["*"*9, str(self.row_count)])
@@ -85,7 +84,7 @@ class TechnicalCSV(object):
         number_of_dimensions = ob.table.max_header + 1
         self.write_header_if_needed(number_of_dimensions)
         output_row = self.get_dimensions_for_ob(ob)
-        csv.output(output_row)
+        self.output(output_row)
 
     def output(self, row):
         self.csv_writer.writerow([unicode(item) for item in row])
@@ -151,6 +150,20 @@ class TechnicalCSV(object):
             yield ''    # Is Subtotal
 
 
+class Progress(object):
+    def __init__(self, max_count, msg="\rTab {} - {:3d}% - [{}{}]"):
+        self.last_percent = None
+        self.max_count = max_count
+        self.msg = msg
+
+    def update(self, count):
+        percent = (((count+1) * 100) // self.max_count)
+        if percent != self.last_percent:
+            progress = percent / 5
+            print self.msg.format("tab_num + 1", percent, '='*progress, " "*(20-progress)),
+            sys.stdout.flush()
+            self.last_percent = percent
+
 def per_file(fn, recipe, csv):
     tableset = xypath.loader.table_set(fn, extension='xls')
     showtime("file {} imported".format(fn))
@@ -160,16 +173,12 @@ def per_file(fn, recipe, csv):
         showtime("tab imported")
         obs = recipe.per_tab(tab)
         obs_count = len(obs)
-        last_percent = None
+        progress = Progress(obs_count)
         for ob_num, ob in enumerate(obs):  # TODO use const
             csv.handle_observation(ob)
-            percent = ((ob_num+1) * 100) // obs_count
-            if percent != last_percent:
-                progress = percent / 5
-                print "\r", "Tab {} - {:3d}% - [{}{}]".format(tab_num + 1, percent, '='*progress, " "*(20-progress)),
-                sys.stdout.flush()
-                last_percent = percent
+            progress.update(ob_num)
         print
+
 
 def main():
     atexit.register(onexit)
