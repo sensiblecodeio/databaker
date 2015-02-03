@@ -70,7 +70,7 @@ class TechnicalCSV(object):
                 raise DimensionError("Header had {} dimensions, but this row has {}.".format(self.header_dimensions, dimensions))
             return
 
-        self.header_dimensions=dimensions
+        self.header_dimensions = dimensions
         header_row = header.start.split(',')
         for i in range(dimensions):
             header_row.extend(header.repeat.format(num=i+1).split(','))
@@ -84,7 +84,8 @@ class TechnicalCSV(object):
     def handle_observation(self, ob):
         number_of_dimensions = ob.table.max_header + 1
         self.write_header_if_needed(number_of_dimensions)
-        row = self.get_dimensions_for_ob(ob)
+        output_row = self.get_dimensions_for_ob(ob)
+        csv.output(output_row)
 
     def output(self, row):
         self.csv_writer.writerow([unicode(item) for item in row])
@@ -162,8 +163,6 @@ def per_file(fn, recipe, csv):
         last_percent = None
         for ob_num, ob in enumerate(obs):  # TODO use const
             csv.handle_observation(ob)
-            output_row = csv.get_dimensions_for_ob(ob)
-            csv.output(output_row)
             percent = ((ob_num+1) * 100) // obs_count
             if percent != last_percent:
                 progress = percent / 5
