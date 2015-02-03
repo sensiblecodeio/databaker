@@ -151,29 +151,32 @@ class TechnicalCSV(object):
 
 
 class Progress(object):
-    def __init__(self, max_count, msg="\rTab {} - {:3d}% - [{}{}]"):
+    def __init__(self, max_count, prefix=None, msg="\r{}{:3d}% - [{}{}]"):
         self.last_percent = None
         self.max_count = max_count
         self.msg = msg
+        if prefix is not None:
+            self.prefix = prefix + ' - '
+        else:
+            self.prefix = ''
 
     def update(self, count):
         percent = (((count+1) * 100) // self.max_count)
         if percent != self.last_percent:
             progress = percent / 5
-            print self.msg.format("tab_num + 1", percent, '='*progress, " "*(20-progress)),
+            print self.msg.format(self.prefix, percent, '='*progress, " "*(20-progress)),
             sys.stdout.flush()
             self.last_percent = percent
 
 def per_file(fn, recipe, csv):
     tableset = xypath.loader.table_set(fn, extension='xls')
-    showtime("file {} imported".format(fn))
-    # TODO print sheet name
+    showtime("file {!r} imported".format(fn))
     tabs = xypath.loader.get_sheets(tableset, recipe.per_file(tableset))
     for tab_num, tab in enumerate(tabs):
-        showtime("tab imported")
+        showtime("tab {!r} imported".format(tab.name))
         obs = recipe.per_tab(tab)
         obs_count = len(obs)
-        progress = Progress(obs_count)
+        progress = Progress(obs_count, 'Tab {}'.format(tab_num + 1))
         for ob_num, ob in enumerate(obs):  # TODO use const
             csv.handle_observation(ob)
             progress.update(ob_num)
