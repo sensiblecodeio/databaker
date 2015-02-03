@@ -8,7 +8,6 @@ def per_file(tabs):
     return tablist
 
 def per_tab(tab):
-    # TODO tab.get_at("A1")
     tab.set_header("A1", tab.excel_ref("A1").value)
 
     code = tab.filter("Code").assert_one()
