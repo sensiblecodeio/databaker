@@ -9,7 +9,7 @@ def per_file(tabs):
 
 def per_tab(tab):
     # TODO tab.get_at("A1")
-    tab.set_header("A1", tab.get_at(0, 0).value)
+    tab.set_header("A1", tab.excel_ref("A1").value)
 
     code = tab.filter("Code").assert_one()
     obs = code.shift(DOWN).shift(RIGHT).fill(RIGHT).fill(DOWN) # TODO exclude keys at right and below

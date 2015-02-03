@@ -31,15 +31,28 @@ class DirBag(object):
         self.bag.table.headers[number] = lambda cell: cell.lookup(self.bag, self.direction, *self.args, **self.kwargs)
         bake.showtime("got header {}".format(label))
 
+# === Cell Overrides ======================================
+
 def cell_repr(cell):
     column = xypath.contrib.excel.excel_column_label(cell.x+1)
     return "<{}{} {!r}>".format(column, cell.y+1, cell.value)
 xypath.xypath._XYCell.__repr__ = cell_repr
 
+# === TableSet Overrides ==================================
+
 @property
 def tabnames(tableset):
     return set(x.name for x in tableset.tables)
 messytables.TableSet.names = tabnames
+
+# === Table Overrides =====================================
+
+def excel_ref(table, reference):
+    coord = xypath.contrib.excel.excel_address_coordinate(reference)
+    return table.get_at(*coord)
+xypath.Table.excel_ref = excel_ref
+
+# === Bag Overrides =======================================
 
 def is_header(bag, name, direction, dim=None, *args, **kwargs):
     bag.with_direction(direction, *args, **kwargs).dimension(name)
