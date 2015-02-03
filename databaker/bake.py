@@ -2,7 +2,10 @@
 
 """
 Usage:
-  bake.py <recipe> <filenames>...
+  bake.py [options] <recipe> <spreadsheets>...
+
+Options:
+  --timing    Show detailed timing information.
 """
 
 import atexit
@@ -32,6 +35,8 @@ SKIP_AFTER = {OBS: 0,           # 1..2
               TIMEUNIT: 15}     # 20..36/37
 
 def showtime(msg='unspecified'):
+    if not Opt.timing:
+        return
     global last
     t = timer()
     print "{}: {:.3f}s,  {:.3f}s total".format(msg, t - last, t - start)
@@ -44,6 +49,8 @@ start = timer()
 last = start
 
 def single_iteration(ob, **foo):
+    """For a single observation cell, provide all the
+       information for a single CSV row"""
     out = {}
     obj = ob._cell
     keys = ob.table.headers.keys()
@@ -100,6 +107,14 @@ def single_iteration(ob, **foo):
         yield ''    # Is Total
         yield ''    # Is Subtotal
 
+class Opt(object):
+    __version__ = "0.0.0"
+    options = docopt(__doc__, version='databaker {}'.format(__version__))
+    xls_files = options['<spreadsheets>']
+    recipe_file = options['<recipe>']
+    timing = options['--timing']
+    csv_file = 'out.csv'
+
 def main():
     def csv_output(row):
         csv_writer.writerow([unicode(item) for item in row])
@@ -115,17 +130,13 @@ def main():
 
     atexit.register(onexit)
 
-    __version__ = "0.0.0"
-    options = docopt(__doc__, version='databaker {}'.format(__version__))
-    filenames = options['<filenames>']
-    recipe_file = options['<recipe>']
-    recipe = imp.load_source("recipe", recipe_file)
+    recipe = imp.load_source("recipe", Opt.recipe_file)
 
     header_written = False
     row_count = 0
-    with open("out.csv", "w") as csv_filehandle:
+    with open(Opt.csv_file, "w") as csv_filehandle:
         csv_writer = UnicodeWriter(csv_filehandle)
-        for fn in filenames:
+        for fn in Opt.xls_files:
             print fn
             tableset = xypath.loader.table_set(fn, extension='xls')
             showtime("file imported")
