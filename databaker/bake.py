@@ -91,22 +91,12 @@ class TechnicalCSV(object):
         self.row_count += 1
 
     def get_dimensions_for_ob(self, ob):
-        # TODO not really 'self'y
-        """For a single observation cell, provide all the
-           information for a single CSV row"""
-        out = {}
-        obj = ob._cell
-        keys = ob.table.headers.keys()
-
-        if isinstance(obj.value, float):
-            yield obj.value
-        else:
-            yield ''
-
-        # Do fixed headers.
-        for dimension in range(DATAMARKER, TIMEUNIT + 1):
+        def value_for_dimension(dimension):
+            # implicit: obj
             try:
                 cell = obj.table.headers.get(dimension, lambda _: None)(obj)
+                # TODO: move this out so I can change these things depending
+                #       on other values easier
                 if cell is None:
                     # Special handling per dimension.
                     if dimension == DATAMARKER and not isinstance(obj.value, float):
@@ -122,6 +112,23 @@ class TechnicalCSV(object):
             except xypath.xypath.NoLookupError:
                 print "no lookup for dimension ", dimension
                 value = "NoLookupError"
+            return value
+
+        # TODO not really 'self'y
+        """For a single observation cell, provide all the
+           information for a single CSV row"""
+        out = {}
+        obj = ob._cell
+        keys = ob.table.headers.keys()
+
+        if isinstance(obj.value, float):
+            yield obj.value
+        else:
+            yield ''
+
+        # Do fixed headers.
+        for dimension in range(DATAMARKER, TIMEUNIT + 1):
+            value = value_for_dimension(dimension)
             yield value
             if dimension == TIME:  # lets do the timewarp again
                 yield value
@@ -130,15 +137,7 @@ class TechnicalCSV(object):
 
         for dimension in range(1, obj.table.max_header+1):
             name = obj.table.headernames[dimension]
-            try:
-                cell = obj.table.headers[dimension](obj)
-                if isinstance(cell, (basestring, float)):
-                    value = cell
-                else:
-                    value = cell.value
-            except xypath.xypath.NoLookupError:
-                print "no lookup for dimension ", dimension
-                value = "NoLookupError"
+            value = value_for_dimension(dimension)
 
             # Eight yields per loop - they are the parameters of an ONS dimension:
             yield name  # Dimension Id
@@ -179,7 +178,7 @@ def main():
     csvout = TechnicalCSV(Opt.csv_file)
     for fn in Opt.xls_files:
         per_file(fn, recipe, csvout)
-    csvout.write_footer()
+    csvout.footer()
 
 if __name__ == '__main__':
     main()
