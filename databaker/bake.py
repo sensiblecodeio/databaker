@@ -11,6 +11,7 @@ Options:
 import atexit
 import codecs
 import imp
+import re
 import sys
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
@@ -25,6 +26,7 @@ import bake
 from constants import *
 import overrides        # warning: changes xypath and messytables
 import header
+import warnings
 
 class DimensionError(Exception):
     pass
@@ -48,6 +50,20 @@ def onexit():
 
 start = timer()
 last = start
+
+def datematch(date):
+    """match mmm yyyy, mmm-mmm yyyy, yyyy Qn, yyyy"""
+    d = date.strip()
+    if re.match('\d{4}$', d):
+        return 'Year'
+    if re.match('\d{4} [Qq]\d$', d):
+        return 'Quarter'
+    if re.match('[A-Za-z]{3}-[A-Za-z]{3} \d{4}$', d):
+        return 'Quarter'
+    if re.match('[A-Za-z]{3} \d{4}$', d):
+        return 'Month'
+    warnings.warn("Couldn't identify date {!r}".format(date))
+    return ''
 
 class Opt(object):
     __version__ = "0.0.0"
@@ -139,7 +155,7 @@ class TechnicalCSV(object):
             # we've not actually been given a timeunit, but we have a time
             # determine the timeunit from the time
             #
-            values[TIMEUNIT] = 'quarter [TODO]'  # TODO
+            values[TIMEUNIT] = datematch(values[TIME])
 
         for dimension in range(OBS, TIMEUNIT + 1):
             yield values[dimension]
