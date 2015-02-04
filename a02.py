@@ -11,6 +11,5 @@ def per_tab(tab):
     tab.regex("All aged .*").is_header('ages', UP)
     tab.filter("Total economically active").fill(LEFT).fill(RIGHT).is_not_blank.is_header('indicator', UP, strict=True)
 
-    # TODO tabname not trivially available :(
-    # tab.set_header('adjusted_yn', tab.name+"foo", dim=4)
+    tab.set_header('adjusted_yn', tab.name)
     return obs
