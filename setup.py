@@ -24,9 +24,7 @@ conf = dict(
     namespace_packages=[],
     include_package_data=False,
     zip_safe=False,
-    install_requires=['docopt',
-      # 'xypath' # Required, but not on PyPI yet.
-      ],
+    install_requires=['docopt', 'xypath'],
     tests_require=[],
     entry_points={
         'console_scripts': [
