@@ -17,19 +17,8 @@ class DirBag(object):
         self.kwargs = kwargs
 
     def dimension(self, label):
-        if getattr(self.bag.table, 'headers', None) is None:
-            self.bag.table.headers = {}
-            self.bag.table.max_header = 0
-            self.bag.table.headernames = [None]
-        if isinstance(label, basestring):
-            number = self.bag.table.max_header + 1
-            self.bag.table.max_header = number
-            self.bag.table.headernames.append(label)
-        else:
-            assert isinstance(label, int)
-            number = label
-        self.bag.table.headers[number] = lambda cell: cell.lookup(self.bag, self.direction, *self.args, **self.kwargs)
-        bake.showtime("got header {}".format(label))
+        f = lambda cell: cell.lookup(self.bag, self.direction, *self.args, **self.kwargs)
+        self.bag.table.append_dimension(label, f)
 
 # === Cell Overrides ======================================
 
@@ -52,23 +41,30 @@ def excel_ref(table, reference):
     return table.get_at(*coord)
 xypath.Table.excel_ref = excel_ref
 
+def append_dimension(table, label, func):
+    if getattr(table, 'headers', None) is None:
+        table.headers = {}
+        table.max_header = 0
+        table.headernames = [None]
+    if isinstance(label, basestring):
+        table.max_header += 1
+        number = table.max_header
+        table.headernames.append(label)
+    else:
+        assert isinstance(label, int)
+        number = label
+    table.headers[number] = func
+    bake.showtime("got header {}".format(label))
+xypath.Table.append_dimension = append_dimension
+
+def set_header(table, dimension, dimensionitem):
+    table.append_dimension(dimension, lambda cell: dimensionitem)
+xypath.Table.set_header = set_header
 # === Bag Overrides =======================================
 
 def is_header(bag, name, direction, dim=None, *args, **kwargs):
     bag.with_direction(direction, *args, **kwargs).dimension(name)
 xypath.Bag.is_header = is_header
-
-def set_header(bag, name, text, dim=None):
-    if getattr(bag.table, 'headers', None) is None:
-        bag.table.headers = {}
-        bag.table.max_header = 0
-        bag.table.headernames = [None]
-    if dim:
-        bake.update_dim(name, dim)
-    if getattr(bag.table, 'headers', None) is None:
-        bag.table.headers = {}
-    bag.table.headers[name] = lambda foo: text
-xypath.Bag.set_header = set_header
 
 xypath.Bag.regex = lambda self, x: self.filter(re.compile(x))
 
