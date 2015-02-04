@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/py  # TODOthon
 
 """
 Usage:
@@ -81,7 +81,7 @@ class TechnicalCSV(object):
         self.filehandle.close()
 
     def handle_observation(self, ob):
-        number_of_dimensions = ob.table.max_header + 1
+        number_of_dimensions = ob.table.max_header
         self.write_header_if_needed(number_of_dimensions)
         output_row = self.get_dimensions_for_ob(ob)
         self.output(output_row)
@@ -98,13 +98,7 @@ class TechnicalCSV(object):
                 # TODO: move this out so I can change these things depending
                 #       on other values easier
                 if cell is None:
-                    # Special handling per dimension.
-                    if dimension == DATAMARKER and not isinstance(obj.value, float):
-                        value = obj.value
-                    elif dimension == TIMEUNIT:
-                        value = 'quarter [TODO]'
-                    else:
-                        value = ''
+                    value = ''
                 elif isinstance(cell, (basestring, float)):
                     value = cell
                 else:
@@ -121,17 +115,36 @@ class TechnicalCSV(object):
         obj = ob._cell
         keys = ob.table.headers.keys()
 
-        if isinstance(obj.value, float):
-            yield obj.value
-        else:
-            yield ''
 
-        # Do fixed headers.
+        # Get fixed headers.
+        values = {}
+        values[OBS] = obj.value
+
         for dimension in range(DATAMARKER, TIMEUNIT + 1):
-            value = value_for_dimension(dimension)
-            yield value
+            values[dimension] = value_for_dimension(dimension)
+
+        # Mutate values
+        # Special handling per dimension.
+
+        if not isinstance(values[OBS], float):  # NOTE xls specific!
+            # the observation is not actually a number
+            # store it as a datamarker and nuke the observation field
+            if values[DATAMARKER] == '':
+                values[DATAMARKER] = values[OBS]
+            else:
+                pass  # TODO warn that we've lost data!
+            values[OBS] = ''
+
+        if values[TIMEUNIT] == '' and values[TIME] != '':
+            # we've not actually been given a timeunit, but we have a time
+            # determine the timeunit from the time
+            #
+            values[TIMEUNIT] = 'quarter [TODO]'  # TODO
+
+        for dimension in range(OBS, TIMEUNIT + 1):
+            yield values[dimension]
             if dimension == TIME:  # lets do the timewarp again
-                yield value
+                yield values[dimension]
             for i in range(0, SKIP_AFTER[dimension]):
                 yield ''
 

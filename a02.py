@@ -9,7 +9,7 @@ def per_tab(tab):
     tab.col('A').one_of(['Male', 'Female', 'All Persons']).is_header('gender', UP)
     tab.col('A').regex("...-... (?:19|20)\d\d").is_header(TIME, LEFT, strict=True)
     tab.regex("All aged .*").is_header('ages', UP)
-    tab.filter("Total economically active").fill(LEFT).fill(RIGHT).is_not_blank.is_header('indicator_', UP, strict=True)
+    tab.filter("Total economically active").fill(LEFT).fill(RIGHT).is_not_blank.is_header('indicator', UP, strict=True)
 
     # TODO tabname not trivially available :(
     # tab.set_header('adjusted_yn', tab.name+"foo", dim=4)
