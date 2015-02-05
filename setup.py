@@ -13,6 +13,7 @@ conf = dict(
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Programming Language :: Python",
+        "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
     ],
     keywords='',
     author='ScraperWiki Ltd',
