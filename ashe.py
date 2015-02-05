@@ -1,4 +1,4 @@
-from constants import *
+from databaker.constants import *
 
 def per_file(tabs):
     "ignore tables named Notes or CV Notes"

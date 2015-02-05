@@ -1,4 +1,4 @@
-from constants import *
+from databaker.constants import *
 
 def per_file(tableset):
     return "*"
