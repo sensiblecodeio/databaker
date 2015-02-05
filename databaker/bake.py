@@ -75,7 +75,7 @@ class Opt(object):
 
 class TechnicalCSV(object):
     def __init__(self, filename):
-        self.filehandle = open(filename, "w")
+        self.filehandle = open(filename, "wb")
         self.csv_writer = UnicodeWriter(self.filehandle)
         self.row_count = 0
         self.header_dimensions = None
