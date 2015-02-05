@@ -18,7 +18,7 @@ conf = dict(
     author='ScraperWiki Ltd',
     author_email='feedback@scraperwiki.com',
     url='http://github.com/scraperwiki/databaker',
-    #license='BSD',
+    license='AGPL',
     packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
     namespace_packages=[],
     include_package_data=False,
