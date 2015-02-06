@@ -1,4 +1,4 @@
-from constants import *
+from databaker.constants import *
 
 def per_file(tabs):
     "ignore tables named Notes or CV Notes"
@@ -20,12 +20,12 @@ def per_tab(tab):
 
     # Merges three cells vertically together to make the one they really are
     bottom_header = code.fill(RIGHT)
-    for header in bottom_header:
+    for i, header in enumerate(bottom_header):
         if isinstance(header.value, float):  # is a percentile
             continue  # don't modify it.
         header._cell.value = unicode(header.shift(UP).shift(UP).value) + u' ' + \
                              unicode(header.shift(UP).value) + u' ' + \
-                             unicode(header.value)
+                             unicode(header.value) + str(i)
         header._cell.value = header.value.strip()
     code.fill(RIGHT).is_header('indicator', UP, strict=True)
 
