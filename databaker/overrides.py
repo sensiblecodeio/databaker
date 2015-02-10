@@ -9,6 +9,39 @@ import messytables
 
 import bake
 
+class Dimension(object):
+
+# TODO string signature: (dimself, bag, label, label item)
+# TODO bag signature:    (dimself, bag, label, direction, striict)
+
+    def __init__(self, bag, label, selector=None, strict=False):
+        """bag: a bag - either a dimension bag or a table (in the case of a string)
+           label: dimension label
+           selector: either a direction+strictness for a bag or a literal string TODO
+           strict: vestigal (soon)"""
+
+        self.bag = bag
+        self.selector = selector
+        self.strict = strict
+        self.bag.table.append_dimension(label, self)
+
+    def __call__(self, cell):
+        if isinstance(self.selector, basestring):
+            return self.selector
+        else:
+            return cell.lookup(self.bag, self.selector, self.strict)
+
+    def bag(self):
+        return self.bag
+
+def is_header(*args, **kwargs):
+    Dimension(*args, **kwargs)
+
+xypath.Bag.is_header = is_header # is this ok?
+xypath.Table.set_header = is_header
+
+# ======
+
 class DirBag(object):
     def __init__(self, bag, direction, *args, **kwargs):
         self.bag = bag
@@ -57,14 +90,7 @@ def append_dimension(table, label, func):
     bake.showtime("got header {}".format(label))
 xypath.Table.append_dimension = append_dimension
 
-def set_header(table, dimension, dimensionitem):
-    table.append_dimension(dimension, lambda cell: dimensionitem)
-xypath.Table.set_header = set_header
 # === Bag Overrides =======================================
-
-def is_header(bag, name, direction, dim=None, *args, **kwargs):
-    bag.with_direction(direction, *args, **kwargs).dimension(name)
-xypath.Bag.is_header = is_header
 
 xypath.Bag.regex = lambda self, x: self.filter(re.compile(x))
 
