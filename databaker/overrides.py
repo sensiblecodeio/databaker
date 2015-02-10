@@ -31,9 +31,6 @@ class Dimension(object):
         else:
             return cell.lookup(self.bag, self.selector, self.strict)
 
-    def bag(self):
-        return self.bag
-
 def is_header(*args, **kwargs):
     Dimension(*args, **kwargs)
 
