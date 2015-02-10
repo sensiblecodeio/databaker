@@ -221,6 +221,19 @@ def preview(fn, recipe):
     except pywintypes.com_error as e:
         print "Error loading workbook into Excel: maybe needs absolute name?\n{!r}".format(e)
         exit(60)
+    tableset = xypath.loader.table_set(fn, extension='xls')
+    showtime("file {!r} imported".format(fn))
+    tabs = xypath.loader.get_sheets(tableset, recipe.per_file(tableset))
+    for tab_num, tab in enumerate(tabs):
+        # todo: set sheet
+        showtime("tab {!r} imported".format(tab.name))
+        obs = recipe.per_tab(tab)
+        for i, header in enumerate(tab.headers.values()):
+            if not isinstance(header.bag, xypath.Table):
+                for bag in header.bag:
+                    Range(bag._cell.excel_name()).color = (50*i,200*i,250-(50*i))
+        exit()
+
 
 def main():
     atexit.register(onexit)
