@@ -6,6 +6,7 @@ Usage:
 
 Options:
   --timing    Show detailed timing information.
+  --preview   Preview selected cells in Excel.
 """
 
 import atexit
@@ -71,6 +72,7 @@ class Opt(object):
     xls_files = options['<spreadsheets>']
     recipe_file = options['<recipe>']
     timing = options['--timing']
+    preview = options['--preview']
     csv_file = 'out.csv'
 
 class TechnicalCSV(object):
@@ -211,14 +213,26 @@ def per_file(fn, recipe, csv):
             progress.update(ob_num)
         print
 
+def preview(fn, recipe):
+    from xlwings import Workbook, Sheet, Range
+    import pywintypes
+    try:
+        wb = Workbook(fn)
+    except pywintypes.com_error as e:
+        print "Error loading workbook into Excel: maybe needs absolute name?\n{!r}".format(e)
+        exit(60)
 
 def main():
     atexit.register(onexit)
     recipe = imp.load_source("recipe", Opt.recipe_file)
-    csvout = TechnicalCSV(Opt.csv_file)
-    for fn in Opt.xls_files:
-        per_file(fn, recipe, csvout)
-    csvout.footer()
+    if Opt.preview:
+        for fn in Opt.xls_files:
+            preview(fn, recipe)
+    else:
+        csvout = TechnicalCSV(Opt.csv_file)
+        for fn in Opt.xls_files:
+            per_file(fn, recipe, csvout)
+        csvout.footer()
 
 if __name__ == '__main__':
     main()
