@@ -5,8 +5,9 @@ Usage:
   bake.py [options] <recipe> <spreadsheets>...
 
 Options:
-  --timing    Show detailed timing information.
+  --notiming  Suppress timing information.
   --preview   Preview selected cells in Excel.
+  --nocsv     Don't produce CSV file.
 """
 
 import atexit
@@ -71,9 +72,10 @@ class Opt(object):
     options = docopt(__doc__, version='databaker {}'.format(__version__))
     xls_files = options['<spreadsheets>']
     recipe_file = options['<recipe>']
-    timing = options['--timing']
+    timing = not options['--notiming']
     preview = options['--preview']
     csv_file = 'out.csv'
+    csv = not options['--nocsv']
 
 class TechnicalCSV(object):
     def __init__(self, filename):
