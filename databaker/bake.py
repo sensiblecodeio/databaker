@@ -76,8 +76,8 @@ class Opt(object):
     recipe_file = options['<recipe>']
     timing = not options['--notiming']
     preview = options['--preview']
-    preview_filename = "preview-{fn}-{recipe}.xls"
-    csv_filename = "data-{fn}-{recipe}.csv"
+    preview_filename = "preview-{spreadsheet}-{recipe}.xls"
+    csv_filename = "data-{spreadsheet}-{recipe}.csv"
     csv = not options['--nocsv']
 
 class TechnicalCSV(object):
@@ -204,11 +204,11 @@ class Progress(object):
             sys.stdout.flush()
             self.last_percent = percent
 
-def per_file(fn, recipe):
-    filename_params = {"fn": fn.split('.')[0],
+def per_file(spreadsheet, recipe):
+    filename_params = {"spreadsheet": spreadsheet.split('.')[0],
                        "recipe": Opt.recipe_file.split('.')[0]}
-    tableset = xypath.loader.table_set(fn, extension='xls')
-    showtime("file {!r} imported".format(fn))
+    tableset = xypath.loader.table_set(spreadsheet, extension='xls')
+    showtime("file {!r} imported".format(spreadsheet))
     if Opt.preview:
         writer = xlutils.copy.copy(tableset.workbook)
     if Opt.csv:
@@ -242,20 +242,21 @@ def per_file(fn, recipe):
     if Opt.csv:
         csv.footer()
 
+"https://github.com/python-excel/xlwt/blob/master/xlwt/Style.py#L307"
 
 colourlist = {OBS: "blue",
               DATAMARKER: "blue_gray",
               TIME: "bright_green",
               TIMEUNIT: "cyan_ega",
               GEOG: "coral",
-              0: "brown",
               1: "dark_purple",
               2: "dark_green",
               3: "dark_red",
               4: "dark_teal",
               5: "dark_yellow",
               6: "dark_blue",
-              7: "gold"}
+              7: "gold",
+              8: "brown"}
 
 def main():
     atexit.register(onexit)
