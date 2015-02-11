@@ -4,3 +4,4 @@
 venv
 xypath
 .~lock*
+*.egg-info
