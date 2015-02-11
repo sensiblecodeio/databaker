@@ -29,6 +29,8 @@ from constants import *
 import overrides        # warning: changes xypath and messytables
 import header
 import warnings
+import xlutils.copy
+import xlwt
 
 class DimensionError(Exception):
     pass
@@ -204,16 +206,33 @@ class Progress(object):
 def per_file(fn, recipe, csv):
     tableset = xypath.loader.table_set(fn, extension='xls')
     showtime("file {!r} imported".format(fn))
+    if Opt.preview:
+        writer = xlutils.copy.copy(tableset.workbook)
     tabs = xypath.loader.get_sheets(tableset, recipe.per_file(tableset))
     for tab_num, tab in enumerate(tabs):
         showtime("tab {!r} imported".format(tab.name))
         obs = recipe.per_tab(tab)
-        obs_count = len(obs)
-        progress = Progress(obs_count, 'Tab {}'.format(tab_num + 1))
-        for ob_num, ob in enumerate(obs):  # TODO use const
-            csv.handle_observation(ob)
-            progress.update(ob_num)
-        print
+        if Opt.preview:
+            for i, header in tab.headers.items():
+                if not isinstance(header.bag, xypath.Table):
+                    for bag in header.bag:
+                        writer.get_sheet(tab.index).write(bag.y, bag.x, bag.value,
+                            xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[i])))
+                    for ob in obs:
+                        writer.get_sheet(tab.index).write(ob.y, ob.x, ob.value,
+                            xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[OBS])))
+
+
+        if Opt.csv:
+            obs_count = len(obs)
+            progress = Progress(obs_count, 'Tab {}'.format(tab_num + 1))
+            for ob_num, ob in enumerate(obs):  # TODO use const
+                csv.handle_observation(ob)
+                progress.update(ob_num)
+            print
+
+    if Opt.preview:
+        writer.save('out.xls')
 
 colourlist = {OBS: "blue",
               DATAMARKER: "blue_gray",
@@ -229,43 +248,13 @@ colourlist = {OBS: "blue",
               6: "dark_blue",
               7: "gold"}
 
-def preview(fn, recipe):
-    from xlutils.copy import copy
-    import xlwt
-    tableset = xypath.loader.table_set(fn, extension='xls')
-    writer = copy(tableset.workbook)
-    showtime("file {!r} imported".format(fn))
-    tabs = xypath.loader.get_sheets(tableset, recipe.per_file(tableset))
-    for tab_num, tab in enumerate(tabs):
-        showtime("tab {!r} imported".format(tab.name))
-        obs = recipe.per_tab(tab)
-
-        for i, header in tab.headers.items():
-            if not isinstance(header.bag, xypath.Table):
-                for bag in header.bag:
-                    writer.get_sheet(tab.index).write(bag.y, bag.x, bag.value,
-                        xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[i])))
-                for ob in obs:
-                    writer.get_sheet(tab.index).write(ob.y, ob.x, ob.value,
-                        xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[OBS])))
-                    # above: tab_num is incorrect if not all tabs TODO
-
-    writer.save('out.xls')
-
-
-
-
 def main():
     atexit.register(onexit)
     recipe = imp.load_source("recipe", Opt.recipe_file)
-    if Opt.preview:
-        for fn in Opt.xls_files:
-            preview(fn, recipe)
-    else:
-        csvout = TechnicalCSV(Opt.csv_file)
-        for fn in Opt.xls_files:
-            per_file(fn, recipe, csvout)
-        csvout.footer()
+    csvout = TechnicalCSV(Opt.csv_file)
+    for fn in Opt.xls_files:
+        per_file(fn, recipe, csvout)
+    csvout.footer()
 
 if __name__ == '__main__':
     main()
