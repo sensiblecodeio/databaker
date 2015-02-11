@@ -5,7 +5,9 @@ Usage:
   bake.py [options] <recipe> <spreadsheets>...
 
 Options:
-  --timing    Show detailed timing information.
+  --notiming  Suppress timing information.
+  --preview   Preview selected cells in Excel.
+  --nocsv     Don't produce CSV file.
 """
 
 import atexit
@@ -27,6 +29,8 @@ from constants import *
 import overrides        # warning: changes xypath and messytables
 import header
 import warnings
+import xlutils.copy
+import xlwt
 
 class DimensionError(Exception):
     pass
@@ -70,8 +74,11 @@ class Opt(object):
     options = docopt(__doc__, version='databaker {}'.format(__version__))
     xls_files = options['<spreadsheets>']
     recipe_file = options['<recipe>']
-    timing = options['--timing']
-    csv_file = 'out.csv'
+    timing = not options['--notiming']
+    preview = options['--preview']
+    preview_filename = "preview-{spreadsheet}-{recipe}.xls"
+    csv_filename = "data-{spreadsheet}-{recipe}.csv"
+    csv = not options['--nocsv']
 
 class TechnicalCSV(object):
     def __init__(self, filename):
@@ -197,28 +204,65 @@ class Progress(object):
             sys.stdout.flush()
             self.last_percent = percent
 
-def per_file(fn, recipe, csv):
-    tableset = xypath.loader.table_set(fn, extension='xls')
-    showtime("file {!r} imported".format(fn))
+def per_file(spreadsheet, recipe):
+    filename_params = {"spreadsheet": spreadsheet.split('.')[0],
+                       "recipe": Opt.recipe_file.split('.')[0]}
+    tableset = xypath.loader.table_set(spreadsheet, extension='xls')
+    showtime("file {!r} imported".format(spreadsheet))
+    if Opt.preview:
+        writer = xlutils.copy.copy(tableset.workbook)
+    if Opt.csv:
+        csv_file = Opt.csv_filename.format(**filename_params)
+        csv = TechnicalCSV(csv_file)
     tabs = xypath.loader.get_sheets(tableset, recipe.per_file(tableset))
     for tab_num, tab in enumerate(tabs):
         showtime("tab {!r} imported".format(tab.name))
         obs = recipe.per_tab(tab)
-        obs_count = len(obs)
-        progress = Progress(obs_count, 'Tab {}'.format(tab_num + 1))
-        for ob_num, ob in enumerate(obs):  # TODO use const
-            csv.handle_observation(ob)
-            progress.update(ob_num)
-        print
+        if Opt.preview:
+            for i, header in tab.headers.items():
+                if not isinstance(header.bag, xypath.Table):
+                    for bag in header.bag:
+                        writer.get_sheet(tab.index).write(bag.y, bag.x, bag.value,
+                            xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[i])))
+                    for ob in obs:
+                        writer.get_sheet(tab.index).write(ob.y, ob.x, ob.value,
+                            xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[OBS])))
 
+
+        if Opt.csv:
+            obs_count = len(obs)
+            progress = Progress(obs_count, 'Tab {}'.format(tab_num + 1))
+            for ob_num, ob in enumerate(obs):  # TODO use const
+                csv.handle_observation(ob)
+                progress.update(ob_num)
+            print
+
+    if Opt.preview:
+        writer.save(Opt.preview_filename.format(**filename_params))
+    if Opt.csv:
+        csv.footer()
+
+"https://github.com/python-excel/xlwt/blob/master/xlwt/Style.py#L307"
+
+colourlist = {OBS: "blue",
+              DATAMARKER: "blue_gray",
+              TIME: "bright_green",
+              TIMEUNIT: "cyan_ega",
+              GEOG: "coral",
+              1: "dark_purple",
+              2: "dark_green",
+              3: "dark_red",
+              4: "dark_teal",
+              5: "dark_yellow",
+              6: "dark_blue",
+              7: "gold",
+              8: "brown"}
 
 def main():
     atexit.register(onexit)
     recipe = imp.load_source("recipe", Opt.recipe_file)
-    csvout = TechnicalCSV(Opt.csv_file)
     for fn in Opt.xls_files:
-        per_file(fn, recipe, csvout)
-    csvout.footer()
+        per_file(fn, recipe)
 
 if __name__ == '__main__':
     main()
