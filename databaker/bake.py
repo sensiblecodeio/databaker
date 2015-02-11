@@ -76,7 +76,8 @@ class Opt(object):
     recipe_file = options['<recipe>']
     timing = not options['--notiming']
     preview = options['--preview']
-    csv_file = 'out.csv'
+    preview_filename = "preview-{fn}-{recipe}.xls"
+    csv_filename = "data-{fn}-{recipe}.csv"
     csv = not options['--nocsv']
 
 class TechnicalCSV(object):
@@ -203,11 +204,16 @@ class Progress(object):
             sys.stdout.flush()
             self.last_percent = percent
 
-def per_file(fn, recipe, csv):
+def per_file(fn, recipe):
+    filename_params = {"fn": fn.split('.')[0],
+                       "recipe": Opt.recipe_file.split('.')[0]}
     tableset = xypath.loader.table_set(fn, extension='xls')
     showtime("file {!r} imported".format(fn))
     if Opt.preview:
         writer = xlutils.copy.copy(tableset.workbook)
+    if Opt.csv:
+        csv_file = Opt.csv_filename.format(**filename_params)
+        csv = TechnicalCSV(csv_file)
     tabs = xypath.loader.get_sheets(tableset, recipe.per_file(tableset))
     for tab_num, tab in enumerate(tabs):
         showtime("tab {!r} imported".format(tab.name))
@@ -232,7 +238,10 @@ def per_file(fn, recipe, csv):
             print
 
     if Opt.preview:
-        writer.save('out.xls')
+        writer.save(Opt.preview_filename.format(**filename_params))
+    if Opt.csv:
+        csv.footer()
+
 
 colourlist = {OBS: "blue",
               DATAMARKER: "blue_gray",
@@ -251,10 +260,8 @@ colourlist = {OBS: "blue",
 def main():
     atexit.register(onexit)
     recipe = imp.load_source("recipe", Opt.recipe_file)
-    csvout = TechnicalCSV(Opt.csv_file)
     for fn in Opt.xls_files:
-        per_file(fn, recipe, csvout)
-    csvout.footer()
+        per_file(fn, recipe)
 
 if __name__ == '__main__':
     main()
