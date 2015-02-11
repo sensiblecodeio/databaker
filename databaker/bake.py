@@ -213,26 +213,44 @@ def per_file(fn, recipe, csv):
             progress.update(ob_num)
         print
 
+colourlist = {OBS: "blue",
+              DATAMARKER: "blue_gray",
+              TIME: "bright_green",
+              TIMEUNIT: "cyan_ega",
+              GEOG: "coral",
+              0: "brown",
+              1: "dark_purple",
+              2: "dark_green",
+              3: "dark_red",
+              4: "dark_teal",
+              5: "dark_yellow",
+              6: "dark_blue",
+              7: "gold"}
+
 def preview(fn, recipe):
-    from xlwings import Workbook, Sheet, Range
-    import pywintypes
-    try:
-        wb = Workbook(fn)
-    except pywintypes.com_error as e:
-        print "Error loading workbook into Excel: maybe needs absolute name?\n{!r}".format(e)
-        exit(60)
+    from xlutils.copy import copy
+    import xlwt
     tableset = xypath.loader.table_set(fn, extension='xls')
+    writer = copy(tableset.workbook)
     showtime("file {!r} imported".format(fn))
     tabs = xypath.loader.get_sheets(tableset, recipe.per_file(tableset))
     for tab_num, tab in enumerate(tabs):
-        # todo: set sheet
         showtime("tab {!r} imported".format(tab.name))
         obs = recipe.per_tab(tab)
-        for i, header in enumerate(tab.headers.values()):
+
+        for i, header in tab.headers.items():
             if not isinstance(header.bag, xypath.Table):
                 for bag in header.bag:
-                    Range(bag._cell.excel_name()).color = (50*i,200*i,250-(50*i))
-        exit()
+                    writer.get_sheet(tab.index).write(bag.y, bag.x, bag.value,
+                        xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[i])))
+                for ob in obs:
+                    writer.get_sheet(tab.index).write(ob.y, ob.x, ob.value,
+                        xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[OBS])))
+                    # above: tab_num is incorrect if not all tabs TODO
+
+    writer.save('out.xls')
+
+
 
 
 def main():
