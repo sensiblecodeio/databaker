@@ -14,28 +14,34 @@ class Dimension(object):
 # TODO string signature: (dimself, bag, label, label item)
 # TODO bag signature:    (dimself, bag, label, direction, striict)
 
-    def __init__(self, bag, label, selector=None, strict=False):
+    def __init__(self, bag, label, param1, direction=None):
         """bag: a bag - either a dimension bag or a table (in the case of a string)
            label: dimension label
            selector: either a direction+strictness for a bag or a literal string TODO
            strict: vestigal (soon)"""
 
         self.bag = bag
-        self.selector = selector
-        self.strict = strict
+        self.strict = None
+        self.string = None
+        if isinstance(param1, basestring):
+            self.string = param1
+        else:
+            self.strict = param1
+        self.direction = direction  # direction
         self.bag.table.append_dimension(label, self)
 
     def __call__(self, cell):
-        if isinstance(self.selector, basestring):
-            return self.selector
+        if self.string is not None:
+            return self.string
         else:
-            return cell.lookup(self.bag, self.selector, self.strict)
+            return cell.lookup(self.bag, self.direction, self.strict)
 
-def is_header(*args, **kwargs):
+def dimension(*args, **kwargs):
     Dimension(*args, **kwargs)
 
-xypath.Bag.is_header = is_header # is this ok?
-xypath.Table.set_header = is_header
+xypath.Bag.dimension = dimension
+
+
 
 # ======
 
