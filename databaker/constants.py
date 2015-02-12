@@ -6,8 +6,11 @@ GEOG = -2
 TIME = -1
 TIMEUNIT = 0
 
-class STRICT(object):
-    pass
+ABOVE = UP
+BELOW = DOWN
+
+DIRECTLY = True
+CLOSEST = False
 
 def is_number(cell):
     return type(cell.value) in [int, float, long]
