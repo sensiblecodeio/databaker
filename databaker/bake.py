@@ -23,6 +23,7 @@ from docopt import docopt
 import xypath
 import xypath.loader
 from utf8csv import UnicodeWriter
+import os.path
 
 import bake
 from constants import *
@@ -205,8 +206,12 @@ class Progress(object):
             self.last_percent = percent
 
 def per_file(spreadsheet, recipe):
-    filename_params = {"spreadsheet": spreadsheet.split('.')[0],
-                       "recipe": Opt.recipe_file.split('.')[0]}
+    def get_base(path):
+        filename = os.path.basename(path)
+        return os.path.splitext(filename)[0]
+
+    filename_params = {"spreadsheet": get_base(spreadsheet),
+                       "recipe": get_base(Opt.recipe_file)}
     tableset = xypath.loader.table_set(spreadsheet, extension='xls')
     showtime("file {!r} imported".format(spreadsheet))
     if Opt.preview:
