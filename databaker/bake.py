@@ -56,8 +56,12 @@ def onexit():
 start = timer()
 last = start
 
-def datematch(date):
+def datematch(date, silent=False):
     """match mmm yyyy, mmm-mmm yyyy, yyyy Qn, yyyy"""
+    if not isinstance(date, basestring):
+        if not silent:
+            warnings.warn("Couldn't identify date {!r}".format(date))
+        return ''
     d = date.strip()
     if re.match('\d{4}$', d):
         return 'Year'
@@ -67,11 +71,12 @@ def datematch(date):
         return 'Quarter'
     if re.match('[A-Za-z]{3} \d{4}$', d):
         return 'Month'
-    warnings.warn("Couldn't identify date {!r}".format(date))
+    if not silent:
+        warnings.warn("Couldn't identify date {!r}".format(date))
     return ''
 
 class Opt(object):
-    __version__ = "0.0.0"
+    __version__ = "0.0.6"
     options = docopt(__doc__, version='databaker {}'.format(__version__))
     xls_files = options['<spreadsheets>']
     recipe_file = options['<recipe>']
