@@ -97,6 +97,10 @@ xypath.Table.append_dimension = append_dimension
 
 xypath.Bag.regex = lambda self, x: self.filter(re.compile(x))
 
+def is_date(bag):
+    return bag.filter(lambda cell: bake.datematch(cell.value, silent=True))
+xypath.Bag.is_date = is_date
+
 def with_direction(bag, direction, *args, **kwargs):
     return DirBag(bag, direction, *args, **kwargs)
 xypath.Bag.with_direction = with_direction
