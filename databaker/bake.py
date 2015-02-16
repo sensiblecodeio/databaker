@@ -211,18 +211,28 @@ class Progress(object):
             self.last_percent = percent
 
 def per_file(spreadsheet, recipe):
-    def get_base(path):
-        filename = os.path.basename(path)
-        return os.path.splitext(filename)[0]
+    def filenames():
+        get_base = lambda filename: os.path.splitext(os.path.basename(filename))[0]
+        xls_directory = os.path.dirname(spreadsheet)
+        xls_base = get_base(spreadsheet)
+        recipe_base = get_base(Opt.recipe_file)
 
-    filename_params = {"spreadsheet": get_base(spreadsheet),
-                       "recipe": get_base(Opt.recipe_file)}
+        csv_filename = Opt.csv_filename.format(spreadsheet=xls_base,
+                                               recipe=recipe_base)
+        csv_path = os.path.join(xls_directory, csv_filename)
+
+        preview_filename = Opt.preview_filename.format(spreadsheet=xls_base,
+                                                       recipe=recipe_base)
+        preview_path = os.path.join(xls_directory, preview_filename)
+        return {'csv': csv_path, 'preview': preview_path}
+
+
     tableset = xypath.loader.table_set(spreadsheet, extension='xls')
     showtime("file {!r} imported".format(spreadsheet))
     if Opt.preview:
         writer = xlutils.copy.copy(tableset.workbook)
     if Opt.csv:
-        csv_file = Opt.csv_filename.format(**filename_params)
+        csv_file = filenames()['csv']
         csv = TechnicalCSV(csv_file)
     tabs = xypath.loader.get_sheets(tableset, recipe.per_file(tableset))
     for tab_num, tab in enumerate(tabs):
@@ -248,7 +258,7 @@ def per_file(spreadsheet, recipe):
             print
 
     if Opt.preview:
-        writer.save(Opt.preview_filename.format(**filename_params))
+        writer.save(filenames()['preview'])
     if Opt.csv:
         csv.footer()
 
