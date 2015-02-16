@@ -73,8 +73,8 @@ messytables.TableSet.names = tabnames
 # === Table Overrides =====================================
 
 def excel_ref(table, reference):
-    coord = xypath.contrib.excel.excel_address_coordinate(reference)
-    return table.get_at(*coord)
+    (col, row) = xypath.contrib.excel.excel_address_coordinate(reference, partial=True)
+    return table.get_at(col, row)
 xypath.Table.excel_ref = excel_ref
 
 def append_dimension(table, label, func):
