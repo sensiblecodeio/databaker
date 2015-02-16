@@ -11,7 +11,3 @@ BELOW = DOWN
 
 DIRECTLY = True
 CLOSEST = False
-
-def is_number(cell):
-    return type(cell.value) in [int, float, long]
-
