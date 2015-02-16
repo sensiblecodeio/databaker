@@ -76,7 +76,7 @@ def datematch(date, silent=False):
     return ''
 
 class Opt(object):
-    __version__ = "0.0.6"
+    __version__ = "0.0.7"
     options = docopt(__doc__, version='databaker {}'.format(__version__))
     xls_files = options['<spreadsheets>']
     recipe_file = options['<recipe>']
