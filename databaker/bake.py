@@ -240,7 +240,7 @@ def per_file(spreadsheet, recipe):
         obs = recipe.per_tab(tab)
         if Opt.preview:
             for i, header in tab.headers.items():
-                if not isinstance(header.bag, xypath.Table):
+                if hasattr(header, 'bag') and not isinstance(header.bag, xypath.Table):
                     for bag in header.bag:
                         writer.get_sheet(tab.index).write(bag.y, bag.x, bag.value,
                             xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[i])))

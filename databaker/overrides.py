@@ -93,6 +93,12 @@ def append_dimension(table, label, func):
     bake.showtime("got header {}".format(label))
 xypath.Table.append_dimension = append_dimension
 
+def debug_dimensions(table):
+    table.append_dimension("ref", lambda cell: xypath.contrib.excel.excel_location(cell))
+    table.append_dimension("table", lambda cell: cell.table.name)
+
+xypath.Table.debug_dimensions = debug_dimensions
+
 # === Bag Overrides =======================================
 
 xypath.Bag.regex = lambda self, x: self.filter(re.compile(x))
