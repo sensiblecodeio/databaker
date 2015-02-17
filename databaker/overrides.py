@@ -115,3 +115,12 @@ def one_of(bag, options):
             output = output | bag.filter(option)
     return output
 xypath.Bag.one_of = one_of
+
+def parent(bag):
+    """for cell, get its top-left cell"""
+    output_bag = xypath.Bag(table = bag.table)
+    for cell in bag.unordered:
+        row, _, col, _ = cell.properties.raw_span(always=True)
+        output_bag.add(cell.table.get_at(col, row)._cell)
+    return output_bag
+xypath.Bag.parent = parent
