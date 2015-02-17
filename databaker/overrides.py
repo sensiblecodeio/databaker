@@ -107,5 +107,11 @@ def group(bag, regex):
 xypath.Bag.group = group
 
 def one_of(bag, options):
-    return bag.filter(lambda cell: cell.value in options)
+    output = None
+    for option in options:
+        if output is None:
+            output = bag.filter(option)
+        else:
+            output = output | bag.filter(option)
+    return output
 xypath.Bag.one_of = one_of
