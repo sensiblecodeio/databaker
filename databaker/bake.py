@@ -1,4 +1,4 @@
-#!/usr/bin/py  # TODOthon
+#!/usr/bin/python  # TODO
 
 """
 Usage:
