@@ -6,7 +6,6 @@ import re
 
 import xypath
 import messytables
-
 import bake
 
 class Dimension(object):
@@ -17,8 +16,8 @@ class Dimension(object):
     def __init__(self, bag, label, param1, direction=None):
         """bag: a bag - either a dimension bag or a table (in the case of a string)
            label: dimension label
-           selector: either a direction+strictness for a bag or a literal string TODO
-           strict: vestigal (soon)"""
+           param1: either a strictness for a bag or a literal string
+           direction: a direction for a bag"""
 
         self.bag = bag
         self.strict = None
@@ -40,21 +39,6 @@ def dimension(*args, **kwargs):
     Dimension(*args, **kwargs)
 
 xypath.Bag.dimension = dimension
-
-
-
-# ======
-
-class DirBag(object):
-    def __init__(self, bag, direction, *args, **kwargs):
-        self.bag = bag
-        self.direction = direction
-        self.args = args
-        self.kwargs = kwargs
-
-    def dimension(self, label):
-        f = lambda cell: cell.lookup(self.bag, self.direction, *self.args, **self.kwargs)
-        self.bag.table.append_dimension(label, f)
 
 # === Cell Overrides ======================================
 
@@ -111,10 +95,6 @@ def is_number(bag):
     return bag.filter(lambda cell: isinstance(cell.value, (int, float, long)))
 xypath.Bag.is_number = is_number
 
-def with_direction(bag, direction, *args, **kwargs):
-    return DirBag(bag, direction, *args, **kwargs)
-xypath.Bag.with_direction = with_direction
-
 def group(bag, regex):
     """get the text"""
     bag.assert_one()
@@ -127,5 +107,5 @@ def group(bag, regex):
 xypath.Bag.group = group
 
 def one_of(bag, options):
-    return bag.filter(lambda cell: cell.value in options)#
+    return bag.filter(lambda cell: cell.value in options)
 xypath.Bag.one_of = one_of
