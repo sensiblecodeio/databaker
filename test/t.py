@@ -14,6 +14,9 @@ def per_tab(tab):
     assert_equal(tab.filter('merged'), tab.filter('mergeanchor').shift(UP).parent())
     assert_equal(tab.filter('merged'), tab.excel_ref("F2"))
 
+    mergegroup = tab.filter('mergeanchor').shift(UP).children()
+    assert_equal(mergegroup, tab.filter('merged').extrude(*RIGHT).extrude(*DOWN))
+
     assert_equal(tab.excel_ref("A6"), tab.get_at(0,5))
     tab.excel_ref("A").filter("a3").assert_one()
     tab.excel_ref("3").filter("a3").assert_one()

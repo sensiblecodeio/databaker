@@ -139,3 +139,14 @@ def parent(bag):
         output_bag.add(cell.table.get_at(col, row)._cell)
     return output_bag
 xypath.Bag.parent = parent
+
+def children(bag):
+    """for top-left cell, get all cells it spans"""
+    outputbag = xypath.Bag(table=bag.table)
+    for parent in bag:
+        top, bottom, left, right = parent.properties.raw_span(always=True)
+        for row in xrange(top, bottom): # TODO does this have an off-by-one error?
+            for col in xrange(left, right):
+                outputbag = outputbag | bag.table.get_at(col, row)
+    return outputbag
+xypath.Bag.children = children
