@@ -33,6 +33,8 @@ import warnings
 import xlutils.copy
 import xlwt
 
+__version__ = "0.0.7"
+
 class DimensionError(Exception):
     pass
 
@@ -75,16 +77,16 @@ def datematch(date, silent=False):
         warnings.warn("Couldn't identify date {!r}".format(date))
     return ''
 
-class Opt(object):
-    __version__ = "0.0.7"
-    options = docopt(__doc__, version='databaker {}'.format(__version__))
-    xls_files = options['<spreadsheets>']
-    recipe_file = options['<recipe>']
-    timing = not options['--notiming']
-    preview = options['--preview']
-    preview_filename = "preview-{spreadsheet}-{recipe}.xls"
-    csv_filename = "data-{spreadsheet}-{recipe}.csv"
-    csv = not options['--nocsv']
+class Options(object):
+    def __init__(self):
+        options = docopt(__doc__, version='databaker {}'.format(__version__))
+        xls_files = options['<spreadsheets>']
+        recipe_file = options['<recipe>']
+        timing = not options['--notiming']
+        preview = options['--preview']
+        preview_filename = "preview-{spreadsheet}-{recipe}.xls"
+        csv_filename = "data-{spreadsheet}-{recipe}.csv"
+        csv = not options['--nocsv']
 
 class TechnicalCSV(object):
     def __init__(self, filename):
@@ -279,6 +281,8 @@ colourlist = {OBS: "blue",
               8: "brown"}
 
 def main():
+    global Opt
+    Opt = Options()
     atexit.register(onexit)
     recipe = imp.load_source("recipe", Opt.recipe_file)
     for fn in Opt.xls_files:
