@@ -36,6 +36,14 @@ import xlwt
 __version__ = "0.0.7"
 Opt = None
 
+def dim_name(dimension):
+    if isinstance(dimension, int):
+        return ['TIMEUNIT', 'TIME', 'GEOG', 'DATAMARKER', 'OBS'][-dimension]
+    else:
+        return dimension
+
+# should agree with constants.py
+
 class DimensionError(Exception):
     pass
 
@@ -136,7 +144,7 @@ class TechnicalCSV(object):
                 else:
                     value = cell.value
             except xypath.xypath.NoLookupError:
-                print "no lookup for dimension ", dimension
+                print "no lookup to dimension {} from cell {}".format(dim_name(dimension), repr(ob._cell))
                 value = "NoLookupError"
             return value
 

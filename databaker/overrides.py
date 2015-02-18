@@ -89,7 +89,7 @@ def append_dimension(table, label, func):
         assert isinstance(label, int)
         number = label
     table.headers[number] = func
-    bake.showtime("got header {}".format(label))
+    bake.showtime("got header {}".format(bake.dim_name(label)))
 xypath.Table.append_dimension = append_dimension
 
 def debug_dimensions(table):
