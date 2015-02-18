@@ -34,6 +34,7 @@ import xlutils.copy
 import xlwt
 
 __version__ = "0.0.7"
+Opt = None
 
 class DimensionError(Exception):
     pass
@@ -80,13 +81,13 @@ def datematch(date, silent=False):
 class Options(object):
     def __init__(self):
         options = docopt(__doc__, version='databaker {}'.format(__version__))
-        xls_files = options['<spreadsheets>']
-        recipe_file = options['<recipe>']
-        timing = not options['--notiming']
-        preview = options['--preview']
-        preview_filename = "preview-{spreadsheet}-{recipe}.xls"
-        csv_filename = "data-{spreadsheet}-{recipe}.csv"
-        csv = not options['--nocsv']
+        self.xls_files = options['<spreadsheets>']
+        self.recipe_file = options['<recipe>']
+        self.timing = not options['--notiming']
+        self.preview = options['--preview']
+        self.preview_filename = "preview-{spreadsheet}-{recipe}.xls"
+        self.csv_filename = "data-{spreadsheet}-{recipe}.csv"
+        self.csv = not options['--nocsv']
 
 class TechnicalCSV(object):
     def __init__(self, filename):
