@@ -1,4 +1,4 @@
-#!/usr/bin/py  # TODOthon
+#!/usr/bin/python  # TODO
 
 """
 Usage:
@@ -23,6 +23,7 @@ from docopt import docopt
 import xypath
 import xypath.loader
 from utf8csv import UnicodeWriter
+import os.path
 
 import bake
 from constants import *
@@ -31,6 +32,17 @@ import header
 import warnings
 import xlutils.copy
 import xlwt
+
+__version__ = "0.0.7"
+Opt = None
+
+def dim_name(dimension):
+    if isinstance(dimension, int):
+        return ['TIMEUNIT', 'TIME', 'GEOG', 'DATAMARKER', 'OBS'][-dimension]
+    else:
+        return dimension
+
+# should agree with constants.py
 
 class DimensionError(Exception):
     pass
@@ -55,8 +67,12 @@ def onexit():
 start = timer()
 last = start
 
-def datematch(date):
+def datematch(date, silent=False):
     """match mmm yyyy, mmm-mmm yyyy, yyyy Qn, yyyy"""
+    if not isinstance(date, basestring):
+        if not silent:
+            warnings.warn("Couldn't identify date {!r}".format(date))
+        return ''
     d = date.strip()
     if re.match('\d{4}$', d):
         return 'Year'
@@ -66,19 +82,20 @@ def datematch(date):
         return 'Quarter'
     if re.match('[A-Za-z]{3} \d{4}$', d):
         return 'Month'
-    warnings.warn("Couldn't identify date {!r}".format(date))
+    if not silent:
+        warnings.warn("Couldn't identify date {!r}".format(date))
     return ''
 
-class Opt(object):
-    __version__ = "0.0.0"
-    options = docopt(__doc__, version='databaker {}'.format(__version__))
-    xls_files = options['<spreadsheets>']
-    recipe_file = options['<recipe>']
-    timing = not options['--notiming']
-    preview = options['--preview']
-    preview_filename = "preview-{spreadsheet}-{recipe}.xls"
-    csv_filename = "data-{spreadsheet}-{recipe}.csv"
-    csv = not options['--nocsv']
+class Options(object):
+    def __init__(self):
+        options = docopt(__doc__, version='databaker {}'.format(__version__))
+        self.xls_files = options['<spreadsheets>']
+        self.recipe_file = options['<recipe>']
+        self.timing = not options['--notiming']
+        self.preview = options['--preview']
+        self.preview_filename = "preview-{spreadsheet}-{recipe}.xls"
+        self.csv_filename = "data-{spreadsheet}-{recipe}.csv"
+        self.csv = not options['--nocsv']
 
 class TechnicalCSV(object):
     def __init__(self, filename):
@@ -127,7 +144,7 @@ class TechnicalCSV(object):
                 else:
                     value = cell.value
             except xypath.xypath.NoLookupError:
-                print "no lookup for dimension ", dimension
+                print "no lookup to dimension {} from cell {}".format(dim_name(dimension), repr(ob._cell))
                 value = "NoLookupError"
             return value
 
@@ -205,14 +222,28 @@ class Progress(object):
             self.last_percent = percent
 
 def per_file(spreadsheet, recipe):
-    filename_params = {"spreadsheet": spreadsheet.split('.')[0],
-                       "recipe": Opt.recipe_file.split('.')[0]}
+    def filenames():
+        get_base = lambda filename: os.path.splitext(os.path.basename(filename))[0]
+        xls_directory = os.path.dirname(spreadsheet)
+        xls_base = get_base(spreadsheet)
+        recipe_base = get_base(Opt.recipe_file)
+
+        csv_filename = Opt.csv_filename.format(spreadsheet=xls_base,
+                                               recipe=recipe_base)
+        csv_path = os.path.join(xls_directory, csv_filename)
+
+        preview_filename = Opt.preview_filename.format(spreadsheet=xls_base,
+                                                       recipe=recipe_base)
+        preview_path = os.path.join(xls_directory, preview_filename)
+        return {'csv': csv_path, 'preview': preview_path}
+
+
     tableset = xypath.loader.table_set(spreadsheet, extension='xls')
     showtime("file {!r} imported".format(spreadsheet))
     if Opt.preview:
         writer = xlutils.copy.copy(tableset.workbook)
     if Opt.csv:
-        csv_file = Opt.csv_filename.format(**filename_params)
+        csv_file = filenames()['csv']
         csv = TechnicalCSV(csv_file)
     tabs = xypath.loader.get_sheets(tableset, recipe.per_file(tableset))
     for tab_num, tab in enumerate(tabs):
@@ -220,7 +251,7 @@ def per_file(spreadsheet, recipe):
         obs = recipe.per_tab(tab)
         if Opt.preview:
             for i, header in tab.headers.items():
-                if not isinstance(header.bag, xypath.Table):
+                if hasattr(header, 'bag') and not isinstance(header.bag, xypath.Table):
                     for bag in header.bag:
                         writer.get_sheet(tab.index).write(bag.y, bag.x, bag.value,
                             xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[i])))
@@ -238,7 +269,7 @@ def per_file(spreadsheet, recipe):
             print
 
     if Opt.preview:
-        writer.save(Opt.preview_filename.format(**filename_params))
+        writer.save(filenames()['preview'])
     if Opt.csv:
         csv.footer()
 
@@ -259,6 +290,8 @@ colourlist = {OBS: "blue",
               8: "brown"}
 
 def main():
+    global Opt
+    Opt = Options()
     atexit.register(onexit)
     recipe = imp.load_source("recipe", Opt.recipe_file)
     for fn in Opt.xls_files:
