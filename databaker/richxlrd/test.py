@@ -27,13 +27,22 @@ class Test_Foo(unittest.TestCase):
                 break
 
         self.sample = richxlrd.RichCell(self.sheet, 3, 2)
+        self.normal = richxlrd.RichCell(self.sheet, 4, 4)
+        self.alphabet = richxlrd.RichCell(self.sheet, 6, 4)
 
     def test_load(self):
         assert_equal(self.cells[(3, 2)].value, u'12015')
 
     def test_richcell_raw_fontlist(self):
-        assert_equal(self.sample.fontlist, [(1,0)])
+        assert_equal(self.sample.raw_fontlist, [(1,0)])
+        assert_equal(self.normal.raw_fontlist, [])
 
     def test_richcell_font_0(self):
-        print self.font_0
-        raise Exception
+        assert_equal(self.sample.first_font, 8)
+        assert_equal(self.normal.first_font, 0)
+
+    def test_richcell_fontlist(self):
+        assert_equal(len(self.sample.fontlist), 2)
+        assert_equal(len(self.normal.fontlist), 1)
+        assert_equal(len(self.alphabet.fontlist), len(self.alphabet.cell.value))
+        assert_equal(self.normal.fontlist[0][1], self.sample.fontlist[1][1])
