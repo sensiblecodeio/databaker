@@ -44,6 +44,13 @@ class Fragments(list):
     def from_rich_text(self, richtext):
         return richtext.fragments
 
+    def no_script(self):
+        return Fragments(frag for frag in self if not frag.font.escapement)
+
+    @property
+    def value(self):
+        return ''.join(x.text for x in self)
+
 class Fragment(object):
     def __init__(self, text, font):
         self.text = text

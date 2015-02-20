@@ -57,3 +57,11 @@ class Test_Foo(unittest.TestCase):
     def test_classy_fragments(self):
         assert isinstance(self.sample.fragments, richxlrd.Fragments)
         assert isinstance(self.sample.fragments[0], richxlrd.Fragment)
+
+    def test_noscript(self):
+        assert len(self.sample.fragments.no_script()) == 1
+
+    def test_value_noscript(self):
+        assert self.sample.fragments.no_script().value == '2015'
+        assert self.normal.fragments.no_script().value == '2015'
+        assert self.alphabet.fragments.no_script().value == 'abcdefgh'
