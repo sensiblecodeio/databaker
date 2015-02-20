@@ -26,5 +26,28 @@ class RichCell(object):
         full_fontlist.insert(0, (0, self.first_font))
         return list((pos, self.sheet.book.font_list[font]) for pos, font in full_fontlist)
 
-def foo():
-    print "foo"
+    @property
+    def fragments(self):
+        fontlist = self.fontlist
+        output = Fragments()
+        for i, (start, font) in enumerate(fontlist):
+            try:
+                end = fontlist[i+1][0]
+            except IndexError:
+                end = None
+            output.append(Fragment(self.cell.value[start:end], font))
+            start = end
+        return output
+
+class Fragments(list):
+    @classmethod
+    def from_rich_text(self, richtext):
+        return richtext.fragments
+
+class Fragment(object):
+    def __init__(self, text, font):
+        self.text = text
+        self.font = font
+
+    def __repr__(self):
+        return "<{!r}:{!r}>".format(self.text, self.font)

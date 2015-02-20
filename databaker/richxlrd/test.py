@@ -46,3 +46,14 @@ class Test_Foo(unittest.TestCase):
         assert_equal(len(self.normal.fontlist), 1)
         assert_equal(len(self.alphabet.fontlist), len(self.alphabet.cell.value))
         assert_equal(self.normal.fontlist[0][1], self.sample.fontlist[1][1])
+
+    def test_fragments(self):
+        frag = self.alphabet.fragments
+        assert_equal(len(frag), len(self.alphabet.cell.value))
+        assert frag[0].font == frag[2].font == frag[4].font
+        assert frag[1].font == frag[3].font == frag[5].font
+        assert frag[0].font != frag[1].font
+
+    def test_classy_fragments(self):
+        assert isinstance(self.sample.fragments, richxlrd.Fragments)
+        assert isinstance(self.sample.fragments[0], richxlrd.Fragment)
