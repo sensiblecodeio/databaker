@@ -8,6 +8,7 @@ Options:
   --notiming  Suppress timing information.
   --preview   Preview selected cells in Excel.
   --nocsv     Don't produce CSV file.
+  --debug     Debug Mode
 """
 
 import atexit
@@ -33,7 +34,7 @@ import warnings
 import xlutils.copy
 import xlwt
 
-__version__ = "0.0.7"
+__version__ = "0.0.9"
 Opt = None
 
 def dim_name(dimension):
@@ -96,6 +97,7 @@ class Options(object):
         self.preview_filename = "preview-{spreadsheet}-{recipe}.xls"
         self.csv_filename = "data-{spreadsheet}-{recipe}.csv"
         self.csv = not options['--nocsv']
+        self.debug = options['--debug']
 
 class TechnicalCSV(object):
     def __init__(self, filename):
@@ -249,6 +251,10 @@ def per_file(spreadsheet, recipe):
     for tab_num, tab in enumerate(tabs):
         showtime("tab {!r} imported".format(tab.name))
         obs = recipe.per_tab(tab)
+
+        if Opt.debug:
+            import pdb; pdb.set_trace()
+
         if Opt.preview:
             for i, header in tab.headers.items():
                 if hasattr(header, 'bag') and not isinstance(header.bag, xypath.Table):
@@ -258,7 +264,6 @@ def per_file(spreadsheet, recipe):
                     for ob in obs:
                         writer.get_sheet(tab.index).write(ob.y, ob.x, ob.value,
                             xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[OBS])))
-
 
         if Opt.csv:
             obs_count = len(obs)

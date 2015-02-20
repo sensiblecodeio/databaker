@@ -145,8 +145,8 @@ def children(bag):
     outputbag = xypath.Bag(table=bag.table)
     for parent in bag:
         top, bottom, left, right = parent.properties.raw_span(always=True)
-        for row in xrange(top, bottom): # TODO does this have an off-by-one error?
-            for col in xrange(left, right):
+        for row in xrange(top, bottom + 1):
+            for col in xrange(left, right + 1):
                 outputbag = outputbag | bag.table.get_at(col, row)
     return outputbag
 xypath.Bag.children = children
