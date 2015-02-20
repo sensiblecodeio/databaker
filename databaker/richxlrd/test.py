@@ -33,3 +33,7 @@ class Test_Foo(unittest.TestCase):
 
     def test_richcell_raw_fontlist(self):
         assert_equal(self.sample.fontlist, [(1,0)])
+
+    def test_richcell_font_0(self):
+        print self.font_0
+        raise Exception
