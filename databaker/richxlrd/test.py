@@ -60,6 +60,9 @@ class Test_Foo(unittest.TestCase):
 
     def test_noscript(self):
         assert len(self.sample.fragments.no_script()) == 1
+        assert len(self.normal.fragments.no_script()) == 1
+        alphafrag = self.alphabet.fragments
+        assert len(alphafrag) == len(alphafrag.no_script())
 
     def test_value_noscript(self):
         assert self.sample.fragments.no_script().value == '2015'
