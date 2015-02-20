@@ -34,7 +34,7 @@ import warnings
 import xlutils.copy
 import xlwt
 
-__version__ = "0.0.8"
+__version__ = "0.0.9"
 Opt = None
 
 def dim_name(dimension):
