@@ -26,8 +26,10 @@ class Test_Foo(unittest.TestCase):
             if y>10:
                 break
 
+        self.sample = richxlrd.RichCell(self.sheet, 3, 2)
+
     def test_load(self):
         assert_equal(self.cells[(3, 2)].value, u'12015')
 
-    def test_existance(self):
-        richxlrd.rich(self.cells[(3, 2)])
+    def test_richcell_raw_fontlist(self):
+        assert_equal(self.sample.fontlist, [(1,0)])
