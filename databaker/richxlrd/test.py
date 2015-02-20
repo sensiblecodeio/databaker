@@ -1,6 +1,7 @@
 import unittest
 import xlrd
 from nose.tools import assert_equal
+import richxlrd
 
 class Test_Foo(unittest.TestCase):
     @classmethod
@@ -28,4 +29,5 @@ class Test_Foo(unittest.TestCase):
     def test_load(self):
         assert_equal(self.cells[(3, 2)].value, u'12015')
 
-
+    def test_existance(self):
+        richxlrd.rich(self.cells[(3, 2)])
