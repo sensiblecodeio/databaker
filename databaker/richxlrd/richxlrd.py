@@ -1,3 +1,11 @@
+import xlrd
+
+"Horrid workaround! Can get 'no' every time from LibreOffice xls"
+@property
+def _bold(self):
+    return self.weight > 500
+xlrd.formatting.Font._bold = _bold
+
 class RichCell(object):
     def __init__(self, sheet, y, x):
         self.sheet = sheet
@@ -45,11 +53,25 @@ class Fragments(list):
         return richtext.fragments
 
     def no_script(self):
-        return Fragments(frag for frag in self if not frag.font.escapement)
+        return self.not_escapement
 
     @property
     def value(self):
         return ''.join(x.value for x in self)
+
+    def __getattr__(self, v):
+        if v.startswith('only_'):
+            sense = True
+            word = v[5:]
+        elif v.startswith('not_'):
+            sense = False
+            word = v[4:]
+        else:
+            raise AttributeError, "{!r} object has no attribute {!r}".format(self.__class__.__name__, v)
+        if word in ['bold']:
+            word = '_' + word
+        return Fragments(frag for frag in self if bool(getattr(frag.font, word)) == sense)
+
 
 class Fragment(object):
     def __init__(self, value, font):

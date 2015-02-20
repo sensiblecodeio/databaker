@@ -1,6 +1,6 @@
 import unittest
 import xlrd
-from nose.tools import assert_equal
+from nose.tools import assert_equal, assert_raises
 import richxlrd
 
 class Test_Foo(unittest.TestCase):
@@ -68,3 +68,9 @@ class Test_Foo(unittest.TestCase):
         assert self.sample.fragments.no_script().value == '2015'
         assert self.normal.fragments.no_script().value == '2015'
         assert self.alphabet.fragments.no_script().value == 'abcdefgh'
+
+    def test_filter(self):
+        print type(self.alphabet.fragments[0].font)
+        assert_equal(self.alphabet.fragments.only_bold.value, 'bdfh')
+        assert_equal(self.alphabet.fragments.not_bold.value, 'aceg')
+        assert self.sample.fragments.only_escapement.value == '1'
