@@ -49,12 +49,12 @@ class Fragments(list):
 
     @property
     def value(self):
-        return ''.join(x.text for x in self)
+        return ''.join(x.value for x in self)
 
 class Fragment(object):
-    def __init__(self, text, font):
-        self.text = text
+    def __init__(self, value, font):
+        self.value = value
         self.font = font
 
     def __repr__(self):
-        return "<{!r}:{!r}>".format(self.text, self.font)
+        return "<{!r}:{!r}>".format(self.value, self.font)
