@@ -133,21 +133,24 @@ class TechnicalCSV(object):
         self.row_count += 1
 
     def get_dimensions_for_ob(self, ob):
-        def value_for_dimension(dimension):
+        def cell_for_dimension(dimension):
             # implicit: obj
             try:
                 cell = obj.table.headers.get(dimension, lambda _: None)(obj)
-                # TODO: move this out so I can change these things depending
-                #       on other values easier
-                if cell is None:
-                    value = ''
-                elif isinstance(cell, (basestring, float)):
-                    value = cell
-                else:
-                    value = cell.value
             except xypath.xypath.NoLookupError:
                 print "no lookup to dimension {} from cell {}".format(dim_name(dimension), repr(ob._cell))
-                value = "NoLookupError"
+                cell = "NoLookupError"
+            return cell
+
+        def value_for_dimension(dimension):
+            # implicit: obj
+            cell = cell_for_dimension(dimension)
+            if cell is None:
+                value = ''
+            elif isinstance(cell, (basestring, float)):
+                value = cell
+            else:
+                value = cell.value
             return value
 
         # TODO not really 'self'y
