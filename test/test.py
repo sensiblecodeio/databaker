@@ -15,6 +15,7 @@ class Options(object):
         self.preview_filename = "t_out.xls"
         self.csv_filename = "t_out.csv"
         self.csv = True
+        self.debug = False
 
 class datematch(unittest.TestCase):
     def test_datematch(self):
@@ -51,10 +52,10 @@ class normal_run(unittest.TestCase):
         self.assertEqual(setdata[38+8], set(x.upper() for x in data[1]))
         self.assertEqual(setdata[38+8+8], set(["Sheet1"]))
 
-
-
-
-
-
-
-
+    def test_parse_ob(self):
+        bake.Opt = Options(recipe='obs.py', xls='rich.xls')
+        recipe = imp.load_source("recipe", bake.Opt.recipe_file)
+        bake.Opt.preview_filename = "t_rich.xls"
+        bake.Opt.csv_filename = "t_rich.csv"
+        for fn in bake.Opt.xls_files:
+            bake.per_file(fn, recipe)

@@ -6,6 +6,12 @@ def _bold(self):
     return self.weight > 500
 xlrd.formatting.Font._bold = _bold
 
+@property
+def _script(self):
+    return self.escapement
+xlrd.formatting.Font.script = _script
+
+
 class RichCell(object):
     def __init__(self, sheet, y, x):
         self.sheet = sheet
@@ -51,9 +57,6 @@ class Fragments(list):
     @classmethod
     def from_rich_text(self, richtext):
         return richtext.fragments
-
-    def no_script(self):
-        return self.not_escapement
 
     @property
     def value(self):
