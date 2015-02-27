@@ -150,3 +150,8 @@ def children(bag):
                 outputbag = outputbag | bag.table.get_at(col, row)
     return outputbag
 xypath.Bag.children = children
+
+def rich_text(bag):
+    r = bag.property.rich
+    return r
+xypath.Bag.rich_text = rich_text

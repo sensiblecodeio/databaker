@@ -33,6 +33,7 @@ import header
 import warnings
 import xlutils.copy
 import xlwt
+import richxlrd.richxlrd as richxlrd
 
 __version__ = "0.0.9"
 Opt = None
@@ -86,6 +87,18 @@ def datematch(date, silent=False):
     if not silent:
         warnings.warn("Couldn't identify date {!r}".format(date))
     return ''
+
+def parse_ob(ob):
+    if isinstance(ob.value, float):
+        return (ob.value, '')
+    if ob.properties['richtext']:
+        string = richxlrd.RichCell(ob.properties.cell.sheet, ob.y, ob.x).fragments.not_script.value
+    else:
+        string = ob.value
+    value, datamarker = re.match(r"([-+]?[0-9]?\.?[0-9]*)(.*)", string).groups()
+    return value.strip(), datamarker.strip()
+
+
 
 class Options(object):
     def __init__(self):
