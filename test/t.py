@@ -36,6 +36,12 @@ def per_tab(tab):
 
     assert_equal(len(tab.one_of(["rabbit", lambda x: x.value == "sir"])), 2)
 
+    #--
+    assert_equal(set(cell.value for cell in tab.excel_ref('R3:T4')),
+                 set(["Jan 2001"]))
+    assert_equal(tab.excel_ref("Q3").value, "2001 Q1")
+    assert_equal(tab.excel_ref("Q4").value, "2001")
+
     tab.debug_dimensions()
     return obs
 
