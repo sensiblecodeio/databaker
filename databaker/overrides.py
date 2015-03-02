@@ -3,11 +3,12 @@ Patches xypath and messytables.
 """
 
 import re
+import datetime
+import warnings
 
 import xypath
 import messytables
 import bake
-
 class Dimension(object):
 
 # TODO string signature: (dimself, bag, label, label item)
@@ -39,6 +40,35 @@ def dimension(*args, **kwargs):
     Dimension(*args, **kwargs)
 
 xypath.Bag.dimension = dimension
+
+# === XLSCell Overrides ===================================
+
+def text_date(cell):
+    xls_format = cell.properties['formatting_string']
+    quarter = int((cell.value.month -1 ) / 3) + 1  # TODO testme!
+    if 'Q' in xls_format:
+        py_format = "%Y Q{quarter}"
+    elif 'D' in xls_format:
+        warnings.warn("Day-of-month in date!")
+        return cell.value
+    elif 'M' in xls_format:
+        py_format = "%b %Y"
+    elif 'Y' in xls_format:
+        py_format = "%Y"
+    else:
+        warnings.warn("Unable to parse dateformat: {} in {!r}".format(xls_format, cell))
+        return cell.value
+    return cell.value.strftime(py_format).format(quarter=quarter)
+
+xypath.xypath.Table.from_messy_ = staticmethod(xypath.xypath.Table.from_messy)
+def new_from_messy(messy_rowset):
+    new_table = xypath.xypath.Table.from_messy_(messy_rowset)
+    for cell in new_table.unordered_cells:
+        if isinstance(cell.value, datetime.datetime):
+            # it was originally an excel date
+            cell.value = text_date(cell)
+    return new_table
+xypath.xypath.Table.from_messy = staticmethod(new_from_messy)
 
 # === Cell Overrides ======================================
 
