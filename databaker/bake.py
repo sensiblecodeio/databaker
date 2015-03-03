@@ -263,7 +263,10 @@ def per_file(spreadsheet, recipe):
     if Opt.csv:
         csv_file = filenames()['csv']
         csv = TechnicalCSV(csv_file)
-    tabs = xypath.loader.get_sheets(tableset, recipe.per_file(tableset))
+    tabs = list(xypath.loader.get_sheets(tableset, recipe.per_file(tableset)))
+    if not tabs:
+        print "No matching tabs found."
+        exit(1)
     for tab_num, tab in enumerate(tabs):
         showtime("tab {!r} imported".format(tab.name))
         obs = recipe.per_tab(tab)
