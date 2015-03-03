@@ -26,6 +26,20 @@ class datematch(unittest.TestCase):
         self.assertEqual(bake.datematch("Not A Date"), "")
         self.assertEqual(bake.datematch(4.0), "")
 
+class no_tab_run(unittest.TestCase):
+    def test_normal(self):
+        bake.Opt = Options(recipe='bail.py', xls='t.xls')
+        recipe = imp.load_source("recipe", bake.Opt.recipe_file)
+        try:
+            for fn in bake.Opt.xls_files:
+                bake.per_file(fn, recipe)
+        except SystemExit:
+            pass
+        else:
+            raise Exception, "Should have been System Exit"
+
+
+
 class normal_run(unittest.TestCase):
     def test_normal(self):
         bake.Opt = Options(recipe='t.py', xls='t.xls')
