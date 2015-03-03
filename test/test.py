@@ -54,6 +54,9 @@ class normal_run(unittest.TestCase):
         data = zip(*raw[1:-1])  # transpose
         setdata = [set(x) for x in data]
         print list(enumerate(setdata))
+        self.assertEqual(set([u'', '4']), setdata[0])
+        assert '(d)' in setdata[1]
+
         self.assertEqual(set(['Jan 2001', '2010', 'Jan-Mar 2005']), setdata[17])
         self.assertEqual(setdata[18], setdata[17])
         self.assertEqual(set(['Year', 'Quarter', 'Month']), setdata[19])
@@ -63,7 +66,7 @@ class normal_run(unittest.TestCase):
         self.assertEqual(set(["table"]), setdata[35+8+8])
 
         self.assertEqual(setdata[38], set(["static_value"]))
-        self.assertEqual(setdata[38+8], set(x.upper() for x in data[1]))
+        self.assertEqual(setdata[38+8], set(u'B2 B3 B4 C2 C3 C4 D2 D3 D4'.split(' ')))
         self.assertEqual(setdata[38+8+8], set(["Sheet1"]))
 
     def test_parse_ob(self):

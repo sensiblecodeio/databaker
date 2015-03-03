@@ -185,18 +185,18 @@ class TechnicalCSV(object):
         # Special handling per dimension.
 
         if not isinstance(values[OBS], float):  # NOTE xls specific!
+            ob_value, dm_value = parse_ob(ob)
+            values[OBS] = ob_value
             # the observation is not actually a number
             # store it as a datamarker and nuke the observation field
             if values[DATAMARKER] == '':
-                values[DATAMARKER] = values[OBS]
-            else:
-                pass  # TODO warn that we've lost data!
-            values[OBS] = ''
+                values[DATAMARKER] = dm_value
+            elif dm_value:
+                logging.warn("datamarker lost: {} on {!r}".format(dm_value, ob))
 
         if values[TIMEUNIT] == '' and values[TIME] != '':
             # we've not actually been given a timeunit, but we have a time
             # determine the timeunit from the time
-            #
             values[TIMEUNIT] = datematch(values[TIME])
 
         for dimension in range(OBS, TIMEUNIT + 1):
