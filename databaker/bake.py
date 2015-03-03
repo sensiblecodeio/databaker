@@ -299,19 +299,25 @@ def per_file(spreadsheet, recipe):
 
 "https://github.com/python-excel/xlwt/blob/master/xlwt/Style.py#L307"
 
-colourlist = {OBS: "blue",
-              DATAMARKER: "blue_gray",
-              TIME: "bright_green",
-              TIMEUNIT: "cyan_ega",
-              GEOG: "coral",
-              1: "dark_purple",
-              2: "dark_green",
-              3: "dark_red",
-              4: "dark_teal",
-              5: "dark_yellow",
-              6: "dark_blue",
-              7: "gold",
-              8: "brown"}
+colourlist = {OBS: "lavender",
+              DATAMARKER: "violet",
+              TIME: "pale_blue",
+              TIMEUNIT: "blue",
+              GEOG: "sea_green",
+              1: "rose",
+              2: "tan",
+              3: "light_yellow",
+              4: "light_green",
+              5: "light_turquoise",
+              6: "light_blue",
+              7: "sky_blue",
+              8: "plum",
+              9: "gold",
+              10: "lime",
+              11: "coral",
+              12: "periwinkle",
+              13: "ice_blue",
+              14: "aqua"}
 
 def main():
     global Opt
