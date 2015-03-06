@@ -278,28 +278,28 @@ def per_file(spreadsheet, recipe):
         exit(1)
     for tab_num, tab in enumerate(tabs):
         showtime("tab {!r} imported".format(tab.name))
-        obs = recipe.per_tab(tab)
+        for obs in recipe.per_tab(tab):
 
-        if Opt.debug:
-            import pdb; pdb.set_trace()
+            if Opt.debug:
+                import pdb; pdb.set_trace()
 
-        if Opt.preview:
-            for i, header in tab.headers.items():
-                if hasattr(header, 'bag') and not isinstance(header.bag, xypath.Table):
-                    for bag in header.bag:
-                        writer.get_sheet(tab.index).write(bag.y, bag.x, bag.value,
-                            xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[i])))
-                    for ob in obs:
-                        writer.get_sheet(tab.index).write(ob.y, ob.x, ob.value,
-                            xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[OBS])))
+            if Opt.preview:
+                for i, header in tab.headers.items():
+                    if hasattr(header, 'bag') and not isinstance(header.bag, xypath.Table):
+                        for bag in header.bag:
+                            writer.get_sheet(tab.index).write(bag.y, bag.x, bag.value,
+                                xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[i])))
+                        for ob in obs:
+                            writer.get_sheet(tab.index).write(ob.y, ob.x, ob.value,
+                                xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[OBS])))
 
-        if Opt.csv:
-            obs_count = len(obs)
-            progress = Progress(obs_count, 'Tab {}'.format(tab_num + 1))
-            for ob_num, ob in enumerate(obs):  # TODO use const
-                csv.handle_observation(ob)
-                progress.update(ob_num)
-            print
+            if Opt.csv:
+                obs_count = len(obs)
+                progress = Progress(obs_count, 'Tab {}'.format(tab_num + 1))
+                for ob_num, ob in enumerate(obs):  # TODO use const
+                    csv.handle_observation(ob)
+                    progress.update(ob_num)
+                print
 
     if Opt.preview:
         writer.save(filenames()['preview'])
