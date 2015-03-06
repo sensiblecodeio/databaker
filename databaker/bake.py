@@ -95,7 +95,9 @@ def parse_ob(ob):
         string = richxlrd.RichCell(ob.properties.cell.sheet, ob.y, ob.x).fragments.not_script.value
     else:
         string = ob.value
-    value, datamarker = re.match(r"([-+]?[0-9]+\.?[0-9]*)(.*)", string).groups()
+    value, datamarker = re.match(r"([-+]?[0-9]+\.?[0-9]*)?(.*)", string).groups()
+    if value is None:
+        value = ''
     return value.strip(), datamarker.strip()
 
 
