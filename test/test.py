@@ -59,7 +59,7 @@ class normal_run(unittest.TestCase):
 
         self.assertEqual(set(['Jan 2001', '2010', 'Jan-Mar 2005']), setdata[17])
         self.assertEqual(setdata[18], setdata[17])
-        self.assertEqual(set(['Year', 'Quarter', 'Month']), setdata[19])
+        self.assertEqual(set(['Year', 'Quarter', 'Month']), setdata[20])
 
         self.assertEqual(set(["header_1"]), setdata[35])
         self.assertEqual(set(["ref"]), setdata[35+8])
