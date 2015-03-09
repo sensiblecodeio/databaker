@@ -1,4 +1,5 @@
 from xypath import DOWN, UP, LEFT, RIGHT
+import bake
 
 OBS = -4
 DATAMARKER = -3
@@ -11,3 +12,5 @@ BELOW = DOWN
 
 DIRECTLY = True
 CLOSEST = False
+
+PARAMS = lambda: bake.Opt.params

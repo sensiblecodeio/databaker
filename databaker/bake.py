@@ -2,7 +2,7 @@
 
 """
 Usage:
-  bake.py [options] <recipe> <spreadsheets>...
+  bake.py [options] <recipe> <spreadsheet> [<params>...]
 
 Options:
   --notiming  Suppress timing information.
@@ -105,7 +105,7 @@ def parse_ob(ob):
 class Options(object):
     def __init__(self):
         options = docopt(__doc__, version='databaker {}'.format(__version__))
-        self.xls_files = options['<spreadsheets>']
+        self.xls_files = [options['<spreadsheet>']]
         self.recipe_file = options['<recipe>']
         self.timing = not options['--notiming']
         self.preview = options['--preview']
@@ -113,6 +113,7 @@ class Options(object):
         self.csv_filename = "data-{spreadsheet}-{recipe}.csv"
         self.csv = not options['--nocsv']
         self.debug = options['--debug']
+        self.params = options['<params>']
 
 class TechnicalCSV(object):
     def __init__(self, filename):
