@@ -52,8 +52,8 @@ class DimensionError(Exception):
 SKIP_AFTER = {OBS: 0,           # 1..2
               DATAMARKER: 12,   # 2..15
               GEOG: 2,          # 15..18/19
-              TIME: 0,          # 18/19..20
-              TIMEUNIT: 15}     # 20..36/37
+              TIME: 1,          # 18/19..21
+              TIMEUNIT: 14}     # 21..36/37
 
 def showtime(msg='unspecified'):
     if not Opt.timing:
