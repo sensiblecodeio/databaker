@@ -40,7 +40,7 @@ Opt = None
 
 def dim_name(dimension):
     if isinstance(dimension, int):
-        return ['TIMEUNIT', 'TIME', 'GEOG', 'DATAMARKER', 'OBS'][-dimension]
+        return ['STATPOP', 'TIMEUNIT', 'TIME', 'GEOG', 'UNITOFMEASURE', 'UNITMULTIPLIER', 'MEASURETYPE', 'STATUNIT', 'DATAMARKER', 'OBS'][-dimension]
     else:
         return dimension
 
@@ -49,11 +49,17 @@ def dim_name(dimension):
 class DimensionError(Exception):
     pass
 
-SKIP_AFTER = {OBS: 0,           # 1..2
-              DATAMARKER: 12,   # 2..15
-              GEOG: 2,          # 15..18/19
-              TIME: 1,          # 18/19..21
-              TIMEUNIT: 14}     # 21..36/37
+SKIP_AFTER = {OBS: 0,            # 1..2
+              DATAMARKER: 0,     # 2..3
+              STATUNIT: 1,       # 3..5
+              MEASURETYPE: 4,    # 5..10
+              UNITMULTIPLIER: 0, # 10..11
+              UNITOFMEASURE: 3,  # 11..15
+              GEOG: 2,           # 15..18/19
+              TIME: 1,           # 18/19..21
+              TIMEUNIT: 1,       # 21..23/24
+              STATPOP:11}        # 23/24..36/37
+LAST_METADATA = STATPOP
 
 def showtime(msg='unspecified'):
     if not Opt.timing:
@@ -181,7 +187,7 @@ class TechnicalCSV(object):
         values = {}
         values[OBS] = obj.value
 
-        for dimension in range(DATAMARKER, TIMEUNIT + 1):
+        for dimension in range(DATAMARKER, LAST_METADATA + 1):
             values[dimension] = value_for_dimension(dimension)
 
         # Mutate values
@@ -202,9 +208,9 @@ class TechnicalCSV(object):
             # determine the timeunit from the time
             values[TIMEUNIT] = datematch(values[TIME])
 
-        for dimension in range(OBS, TIMEUNIT + 1):
+        for dimension in range(OBS, LAST_METADATA + 1):
             yield values[dimension]
-            if dimension == TIME:  # lets do the timewarp again
+            if dimension in [TIME, STATPOP]:  # lets do the timewarp again
                 yield values[dimension]
             for i in range(0, SKIP_AFTER[dimension]):
                 yield ''
@@ -304,9 +310,14 @@ def per_file(spreadsheet, recipe):
 
 colourlist = {OBS: "lavender",
               DATAMARKER: "violet",
+              STATUNIT: "gray25",
+              MEASURETYPE: "gray25",
+              UNITMULTIPLIER: "gray25",
+              UNITOFMEASURE: "gray25",
+              GEOG: "sea_green",
               TIME: "pale_blue",
               TIMEUNIT: "blue",
-              GEOG: "sea_green",
+              STATPOP: "gray25",
               1: "rose",
               2: "tan",
               3: "light_yellow",
