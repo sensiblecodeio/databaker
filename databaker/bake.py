@@ -278,8 +278,11 @@ def per_file(spreadsheet, recipe):
         exit(1)
     for tab_num, tab in enumerate(tabs):
         showtime("tab {!r} imported".format(tab.name))
-        for obs in recipe.per_tab(tab):
+        pertab = recipe.per_tab(tab)
+        if isinstance(pertab, xypath.xypath.Bag):
+            pertab = [pertab]
 
+        for segment in pertab:
             if Opt.debug:
                 import pdb; pdb.set_trace()
 
@@ -289,17 +292,22 @@ def per_file(spreadsheet, recipe):
                         for bag in header.bag:
                             writer.get_sheet(tab.index).write(bag.y, bag.x, bag.value,
                                 xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[i])))
-                        for ob in obs:
+                        for ob in segment:
                             writer.get_sheet(tab.index).write(ob.y, ob.x, ob.value,
                                 xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[OBS])))
 
             if Opt.csv:
-                obs_count = len(obs)
+                obs_count = len(segment)
                 progress = Progress(obs_count, 'Tab {}'.format(tab_num + 1))
-                for ob_num, ob in enumerate(obs):  # TODO use const
+                for ob_num, ob in enumerate(segment):  # TODO use const
                     csv.handle_observation(ob)
                     progress.update(ob_num)
                 print
+        # hacky observation wiping
+        tab.headers = {}
+        tab.max_header = 0
+        tab.headernames = [None]
+
 
     if Opt.preview:
         writer.save(filenames()['preview'])
