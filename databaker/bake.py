@@ -35,7 +35,7 @@ import xlutils.copy
 import xlwt
 import richxlrd.richxlrd as richxlrd
 
-__version__ = "0.0.9"
+__version__ = "0.0.12"
 Opt = None
 
 def dim_name(dimension):

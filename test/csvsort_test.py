@@ -16,10 +16,10 @@ with open("test/t_csvsort.csv", "w") as f:
     for row in sample:
         csvout.writerow(row)
 
-subprocess.call(["python", "databaker/csvsort.py", "--header", "--footer", "4,3,2", "test/t_csvsort.csv"])
+subprocess.call(["python", "databaker/sortcsv.py", "--header", "--footer", "4,3,2", "test/t_csvsort.csv"])
 
 with open("test/t_csvsort.csv", "r") as f:
     csvin = list(UnicodeReader(f))
     body = csvin[1:-1]
     order = [x[1] for x in body]
-    assert order==sorted(order)
+    assert order==sorted(order), order

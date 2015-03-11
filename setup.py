@@ -7,7 +7,7 @@ Transform Excel spreadsheets
 
 conf = dict(
     name='databaker',
-    version='0.0.11',
+    version='0.0.12',
     description="Excel Output Transformation",
     long_description=long_desc,
     classifiers=[
@@ -29,6 +29,7 @@ conf = dict(
     entry_points={
         'console_scripts': [
             'bake = databaker.bake:main',
+            'sortcsv = databaker.sortcsv:main'
         ]
     })
 
