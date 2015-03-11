@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
 Usage:
+    csvsort.py --ons <files>...
     csvsort.py [options] <cols> <files>...
 
 Options:
@@ -24,6 +25,12 @@ columns = parse_columns(options['<cols>'])
 files = options['<files>']
 header = int(options['--header'])
 footer = int(options['--footer'])
+if options['--ons']:
+    header = 1
+    footer = 1
+    columns = [3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 23, 24, 25, 36, 36+8, 36+16, 36+24, 36+32, 36+40, 36+48, 36+56, 36+64, 36+72]
+    columns = [x-1 for x in columns]
+
 
 filename = files[0]
 
