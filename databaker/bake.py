@@ -1,4 +1,4 @@
-#!/usr/bin/python  # TODO
+#!/usr/bin/python
 
 """
 Usage:
@@ -303,10 +303,10 @@ def per_file(spreadsheet, recipe):
                     csv.handle_observation(ob)
                     progress.update(ob_num)
                 print
-        # hacky observation wiping
-        tab.headers = {}
-        tab.max_header = 0
-        tab.headernames = [None]
+            # hacky observation wiping
+            tab.headers = {}
+            tab.max_header = 0
+            tab.headernames = [None]
 
 
     if Opt.preview:
