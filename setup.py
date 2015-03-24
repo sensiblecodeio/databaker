@@ -7,7 +7,7 @@ Transform Excel spreadsheets
 
 conf = dict(
     name='databaker',
-    version='0.0.13',
+    version='0.0.14',
     description="Excel Output Transformation",
     long_description=long_desc,
     classifiers=[

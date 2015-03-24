@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
 Usage:
-    csvsort.py --ons <files>...
-    csvsort.py [options] <cols> <files>...
+    sortcsv.py --ons <files>...
+    sortcsv.py [options] <cols> <files>...
 
 Options:
     --header         Remove first row and replace
@@ -44,7 +44,7 @@ def main():
         all_data = list(UnicodeReader(f))
     central_data = all_data[header:-footer]
     central_data.sort(key=csv_key)
-    with open(filename, "w") as f:
+    with open(filename, "wb") as f:
         csvout = UnicodeWriter(f)
         if header:
             csvout.writerow(all_data[0])
