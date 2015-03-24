@@ -35,7 +35,7 @@ import xlutils.copy
 import xlwt
 import richxlrd.richxlrd as richxlrd
 
-__version__ = "0.0.14"
+__version__ = "0.0.15"
 Opt = None
 
 def dim_name(dimension):
@@ -130,8 +130,7 @@ class TechnicalCSV(object):
 
     def write_header_if_needed(self, dimensions):
         if self.header_dimensions is not None:
-            if dimensions != self.header_dimensions:
-                raise DimensionError("Header had {} dimensions, but this row has {}.".format(self.header_dimensions, dimensions))
+            # we've already written headers.
             return
 
         self.header_dimensions = dimensions
