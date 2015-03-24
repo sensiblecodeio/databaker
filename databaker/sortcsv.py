@@ -39,15 +39,19 @@ def csv_key(row):
     foo = list(row[x] for x in columns if x<l)
     return foo
 
-with open(filename, "r") as f:
-    all_data = list(UnicodeReader(f))
-central_data = all_data[header:-footer]
-central_data.sort(key=csv_key)
-with open(filename, "w") as f:
-    csvout = UnicodeWriter(f)
-    if header:
-        csvout.writerow(all_data[0])
-    for row in central_data:
-        csvout.writerow(row)
-    if footer:
-        csvout.writerow(all_data[-1])
+def main():
+    with open(filename, "r") as f:
+        all_data = list(UnicodeReader(f))
+    central_data = all_data[header:-footer]
+    central_data.sort(key=csv_key)
+    with open(filename, "w") as f:
+        csvout = UnicodeWriter(f)
+        if header:
+            csvout.writerow(all_data[0])
+        for row in central_data:
+            csvout.writerow(row)
+        if footer:
+            csvout.writerow(all_data[-1])
+
+if __name__ == '__main__':
+    main()

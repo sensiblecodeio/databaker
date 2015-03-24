@@ -7,7 +7,7 @@ Transform Excel spreadsheets
 
 conf = dict(
     name='databaker',
-    version='0.0.12',
+    version='0.0.13',
     description="Excel Output Transformation",
     long_description=long_desc,
     classifiers=[
@@ -24,7 +24,7 @@ conf = dict(
     namespace_packages=[],
     include_package_data=False,
     zip_safe=False,
-    install_requires=['docopt', 'xypath>=1.0.11', 'xlutils'],
+    install_requires=['docopt', 'xypath>=1.0.12', 'xlutils'],
     tests_require=[],
     entry_points={
         'console_scripts': [
