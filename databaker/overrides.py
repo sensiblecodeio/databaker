@@ -9,6 +9,11 @@ import warnings
 import xypath
 import messytables
 import bake
+
+class MatchNotFound(Exception):
+    """failed to find match in bag.group"""
+    pass
+
 class Dimension(object):
 
 # TODO string signature: (dimself, bag, label, label item)
@@ -146,7 +151,7 @@ def group(bag, regex):
     bag.assert_one()
     match = re.search(regex, bag.value)
     if not match:
-        return None
+        raise MatchNotFound("Can't find {!r} in {!r}".format(regex, bag.value))
     matchtext = match.groups(0)[0]
     assert matchtext
     return matchtext
