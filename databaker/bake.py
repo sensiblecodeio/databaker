@@ -78,6 +78,8 @@ last = start
 def datematch(date, silent=False):
     """match mmm yyyy, mmm-mmm yyyy, yyyy Qn, yyyy"""
     if not isinstance(date, basestring):
+        if isinstance(date, float) and date>=1000 and date<=9999 and int(date)==date:
+            return "Year"
         if not silent:
             warnings.warn("Couldn't identify date {!r}".format(date))
         return ''
