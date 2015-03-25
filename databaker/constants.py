@@ -1,6 +1,6 @@
 from xypath import DOWN, UP, LEFT, RIGHT
 import bake
-
+from hamcrest import *
 OBS = -9
 DATAMARKER = -8
 STATUNIT = -7
