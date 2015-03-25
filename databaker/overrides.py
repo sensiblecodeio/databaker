@@ -36,8 +36,9 @@ class Dimension(object):
         else:
             return cell.lookup(self.bag, self.direction, self.strict)
 
-def dimension(*args, **kwargs):
-    Dimension(*args, **kwargs)
+def dimension(self, *args, **kwargs):
+    Dimension(self, *args, **kwargs)
+    return self
 
 xypath.Bag.dimension = dimension
 
