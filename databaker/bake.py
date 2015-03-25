@@ -117,8 +117,8 @@ class Options(object):
         self.recipe_file = options['<recipe>']
         self.timing = not options['--notiming']
         self.preview = options['--preview']
-        self.preview_filename = "preview-{spreadsheet}-{recipe}.xls"
-        self.csv_filename = "data-{spreadsheet}-{recipe}.csv"
+        self.preview_filename = "preview-{spreadsheet}-{recipe}-{params}.xls"
+        self.csv_filename = "data-{spreadsheet}-{recipe}-{params}.csv"
         self.csv = not options['--nocsv']
         self.debug = options['--debug']
         self.params = options['<params>']
@@ -255,13 +255,16 @@ def per_file(spreadsheet, recipe):
         xls_directory = os.path.dirname(spreadsheet)
         xls_base = get_base(spreadsheet)
         recipe_base = get_base(Opt.recipe_file)
+        parsed_params = ','.join(Opt.params)
 
         csv_filename = Opt.csv_filename.format(spreadsheet=xls_base,
-                                               recipe=recipe_base)
+                                               recipe=recipe_base,
+                                               params=parsed_params)
         csv_path = os.path.join(xls_directory, csv_filename)
 
         preview_filename = Opt.preview_filename.format(spreadsheet=xls_base,
-                                                       recipe=recipe_base)
+                                                       recipe=recipe_base,
+                                                       params=parsed_params)
         preview_path = os.path.join(xls_directory, preview_filename)
         return {'csv': csv_path, 'preview': preview_path}
 
