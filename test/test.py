@@ -16,6 +16,7 @@ class Options(object):
         self.csv_filename = "t_out.csv"
         self.csv = True
         self.debug = False
+        self.params = []
 
 class datematch(unittest.TestCase):
     def test_datematch(self):

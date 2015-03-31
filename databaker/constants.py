@@ -1,6 +1,7 @@
 from xypath import DOWN, UP, LEFT, RIGHT
 import bake
 from hamcrest import *
+
 OBS = -9
 DATAMARKER = -8
 STATUNIT = -7
@@ -18,4 +19,14 @@ BELOW = DOWN
 DIRECTLY = True
 CLOSEST = False
 
-PARAMS = lambda: bake.Opt.params
+class NotEnoughParams(Exception):
+    pass
+
+def PARAMS(position=None):
+    if position is None:
+        return bake.Opt.params
+    else:
+        try:
+            return bake.Opt.params[position]
+        except IndexError:
+            raise NotEnoughParams("Unable to find PARAM({!r}). Only {!r} parameters were passed on the command line: {!r}".format(position, len(bake.Opt.params), bake.Opt.params))
