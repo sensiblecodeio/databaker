@@ -38,6 +38,7 @@ from datetime import datetime
 
 __version__ = "0.0.15"
 Opt = None
+crash_msg = []
 
 def dim_name(dimension):
     if isinstance(dimension, int):
@@ -271,6 +272,17 @@ def per_file(spreadsheet, recipe):
         preview_path = os.path.join(xls_directory, preview_filename)
         return {'csv': csv_path, 'preview': preview_path}
 
+    def make_preview():
+        # call for each segment
+        for i, header in tab.headers.items():
+            if hasattr(header, 'bag') and not isinstance(header.bag, xypath.Table):
+                for bag in header.bag:
+                    writer.get_sheet(tab.index).write(bag.y, bag.x, bag.value,
+                        xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[i])))
+                for ob in segment:
+                    writer.get_sheet(tab.index).write(ob.y, ob.x, ob.value,
+                        xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[OBS])))
+
 
     tableset = xypath.loader.table_set(spreadsheet, extension='xls')
     showtime("file {!r} imported".format(spreadsheet))
@@ -284,36 +296,42 @@ def per_file(spreadsheet, recipe):
         print "No matching tabs found."
         exit(1)
     for tab_num, tab in enumerate(tabs):
-        showtime("tab {!r} imported".format(tab.name))
-        pertab = recipe.per_tab(tab)
-        if isinstance(pertab, xypath.xypath.Bag):
-            pertab = [pertab]
+        try:
+            showtime("tab {!r} imported".format(tab.name))
+            pertab = recipe.per_tab(tab)
+            if isinstance(pertab, xypath.xypath.Bag):
+                pertab = [pertab]
 
-        for segment in pertab:
-            if Opt.debug:
-                import pdb; pdb.set_trace()
+            for seg_id, segment in enumerate(pertab):
+                try:
+                    if Opt.debug:
+                        print "tab and segment available for interrogation"
+                        import pdb; pdb.set_trace()
 
-            if Opt.preview:
-                for i, header in tab.headers.items():
-                    if hasattr(header, 'bag') and not isinstance(header.bag, xypath.Table):
-                        for bag in header.bag:
-                            writer.get_sheet(tab.index).write(bag.y, bag.x, bag.value,
-                                xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[i])))
-                        for ob in segment:
-                            writer.get_sheet(tab.index).write(ob.y, ob.x, ob.value,
-                                xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[OBS])))
+                    if Opt.preview:
+                        make_preview()
 
-            if Opt.csv:
-                obs_count = len(segment)
-                progress = Progress(obs_count, 'Tab {}'.format(tab_num + 1))
-                for ob_num, ob in enumerate(segment):  # TODO use const
-                    csv.handle_observation(ob)
-                    progress.update(ob_num)
-                print
-            # hacky observation wiping
-            tab.headers = {}
-            tab.max_header = 0
-            tab.headernames = [None]
+                    if Opt.csv:
+                        obs_count = len(segment)
+                        progress = Progress(obs_count, 'Tab {}'.format(tab_num + 1))
+                        for ob_num, ob in enumerate(segment):  # TODO use const
+                            try:
+                                csv.handle_observation(ob)
+                            except Exception:
+                                crash_msg.append("ob: {!r}".format(ob))
+                                raise
+                            progress.update(ob_num)
+                        print
+                    # hacky observation wiping
+                    tab.headers = {}
+                    tab.max_header = 0
+                    tab.headernames = [None]
+                except Exception:
+                    crash_msg.append("segment: {!r}".format(seg_id))
+                    raise
+        except Exception:
+            crash_msg.append("tab: {!r} {!r}".format(tab_num, tab.name))
+            raise
 
 
     if Opt.preview:
@@ -354,7 +372,15 @@ def main():
     atexit.register(onexit)
     recipe = imp.load_source("recipe", Opt.recipe_file)
     for fn in Opt.xls_files:
-        per_file(fn, recipe)
+        try:
+            per_file(fn, recipe)
+        except Exception:
+            crash_msg.append("fn: {!r}".format(fn))
+            crash_msg.append("recipe: {!r}".format(Opt.recipe_file))
+            print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+            print '\n'.join(crash_msg)
+            print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+            raise
 
 if __name__ == '__main__':
     main()
