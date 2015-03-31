@@ -334,10 +334,10 @@ def per_file(spreadsheet, recipe):
             raise
 
 
-    if Opt.preview:
-        writer.save(filenames()['preview'])
     if Opt.csv:
         csv.footer()
+    if Opt.preview:
+        writer.save(filenames()['preview'])
 
 "https://github.com/python-excel/xlwt/blob/master/xlwt/Style.py#L307"
 
