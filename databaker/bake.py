@@ -34,6 +34,7 @@ import warnings
 import xlutils.copy
 import xlwt
 import richxlrd.richxlrd as richxlrd
+from datetime import datetime
 
 __version__ = "0.0.15"
 Opt = None
@@ -97,6 +98,8 @@ def datematch(date, silent=False):
     return ''
 
 def parse_ob(ob):
+    if isinstance(ob.value, datetime):
+        return (ob.value, '')
     if isinstance(ob.value, float):
         return (ob.value, '')
     if ob.properties['richtext']:
