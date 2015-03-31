@@ -50,7 +50,7 @@ xypath.Bag.dimension = dimension
 # === XLSCell Overrides ===================================
 
 def text_date(cell):
-    xls_format = cell.properties['formatting_string']
+    xls_format = cell.properties['formatting_string'].upper()
     quarter = int((cell.value.month -1 ) / 3) + 1  # TODO testme!
     if 'Q' in xls_format:
         py_format = "%Y Q{quarter}"
