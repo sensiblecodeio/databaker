@@ -35,6 +35,7 @@ import xlutils.copy
 import xlwt
 import richxlrd.richxlrd as richxlrd
 from datetime import datetime
+import string
 
 __version__ = "0.0.15"
 Opt = None
@@ -156,7 +157,13 @@ class TechnicalCSV(object):
         self.output(output_row)
 
     def output(self, row):
-        self.csv_writer.writerow([unicode(item) for item in row])
+        def translator(s):
+            if not isinstance(s, basestring):
+                return unicode(s)
+            # this is slow. We can't just use translate because some of the
+            # strings are unicode. This adds 0.2 seconds to a 3.4 second run.
+            return unicode(s.replace('\n',' ').replace('\r', ' '))
+        self.csv_writer.writerow([translator(item) for item in row])
         self.row_count += 1
 
     def get_dimensions_for_ob(self, ob):
