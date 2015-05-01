@@ -36,7 +36,7 @@ import xlwt
 import richxlrd.richxlrd as richxlrd
 from datetime import datetime
 import string
-
+import traceback
 __version__ = "0.0.15"
 Opt = None
 crash_msg = []
@@ -382,12 +382,18 @@ def main():
         try:
             per_file(fn, recipe)
         except Exception:
+            traceback.print_exc(file=sys.stdout) # reproduce standard error
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            print "-"*30
+            for i in traceback.format_list(traceback.extract_tb(exc_traceback)):
+                 if ', in per_' in i:
+                     print i
+            print exc_type.__name__, ":", exc_value, "\n"
             crash_msg.append("fn: {!r}".format(fn))
             crash_msg.append("recipe: {!r}".format(Opt.recipe_file))
-            print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
             print '\n'.join(crash_msg)
-            print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-            raise
+            print "-"*30
+            exit(1)
 
 if __name__ == '__main__':
     main()
