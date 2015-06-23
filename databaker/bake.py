@@ -183,6 +183,8 @@ class TechnicalCSV(object):
                 value = ''
             elif isinstance(cell, (basestring, float)):
                 value = cell
+            elif cell.properties['richtext']:
+                value = richxlrd.RichCell(cell.properties.cell.sheet, cell.y, cell.x).fragments.not_script.value
             else:
                 value = cell.value
             return value

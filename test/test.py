@@ -39,6 +39,18 @@ class no_tab_run(unittest.TestCase):
         else:
             raise Exception, "Should have been System Exit"
 
+class super_sub_script(unittest.TestCase):
+    def test_header(self):
+        with open("test/t_out.csv", "w") as f:
+            f.write('blat')
+        bake.Opt = Options(recipe="supersub.py", xls="supersub.xls")
+        recipe = imp.load_source("recipe", bake.Opt.recipe_file)
+        for fn in bake.Opt.xls_files:
+            bake.per_file(fn, recipe)
+        with open("test/t_out.csv") as f:
+            raw = list(UnicodeReader(f))
+            assert "OB" in raw[1]
+            assert "HEADER" in raw[1]
 
 
 class normal_run(unittest.TestCase):
