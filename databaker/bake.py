@@ -42,7 +42,7 @@ Opt = None
 crash_msg = []
 
 def dim_name(dimension):
-    if isinstance(dimension, int):
+    if isinstance(dimension, int) and dimension <= 0:
         return ['STATPOP', 'TIMEUNIT', 'TIME', 'GEOG', 'UNITOFMEASURE', 'UNITMULTIPLIER', 'MEASURETYPE', 'STATUNIT', 'DATAMARKER', 'OBS'][-dimension]
     else:
         return dimension
