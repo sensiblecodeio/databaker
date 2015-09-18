@@ -10,6 +10,8 @@ import xypath
 import messytables
 import bake
 
+unicode = type(u'')
+
 class MatchNotFound(Exception):
     """failed to find match in bag.group"""
     pass
@@ -137,6 +139,22 @@ xypath.Table.debug_dimensions = debug_dimensions
 # === Bag Overrides =======================================
 
 xypath.Bag.regex = lambda self, x: self.filter(re.compile(x))
+
+def glue(bag, expand_function, join_function=None):
+    """Each cell in the bag is replaced with the content of a number of cells:
+       the cell in question and the cells specified by cell_bag.expand_function()
+       The other cells will be blanked.
+       The cells values will be concatenated with the join_function."""
+    if join_function is None:
+        join_function = ' '.join
+    for cell in bag:
+        target_cells = expand_function(cell)
+        value = join_function(unicode(value_cell.value).strip() for value_cell in target_cells)
+        for cell in target_cells:
+            cell._cell.value = ""
+        cell._cell.value = value
+    return bag
+xypath.Bag.glue = glue
 
 def is_date(bag):
     return bag.filter(lambda cell: bake.datematch(cell.value, silent=True))
