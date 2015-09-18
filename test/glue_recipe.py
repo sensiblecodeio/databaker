@@ -1,4 +1,5 @@
 import re
+from databaker.constants import *
 import databaker.bake
 from nose.tools import assert_equal
 
@@ -14,4 +15,7 @@ def per_tab(tab):
     for a,b in zip(expected, alls):
         assert a in b.value, [a, b]
     tab.dimension("foo", "bar")
-    return tab
+    alls.dimension("all", DIRECTLY, ABOVE)
+    year = tab.filter(lambda x: x.value == 2014)
+    year.dimension("year", DIRECTLY, LEFT)
+    return alls.waffle(year)

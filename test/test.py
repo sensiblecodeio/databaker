@@ -31,6 +31,15 @@ class glue(unittest.TestCase):
     def test_glue(self):
         bake.Opt = Options(recipe='glue_recipe.py', xls='glue.xls')
         recipe = imp.load_source("recipe", bake.Opt.recipe_file)
+        for fn in bake.Opt.xls_files:
+            bake.per_file(fn, recipe)
+        with open("test/t_out.csv") as f:
+            for row in UnicodeReader(f):
+                if row[0] == "8828.0":
+                    assert "All Work  " in row, row
+                    assert "2014.0" in row, row
+                    return
+        assert False, "No 8828 for 2014 All Work"
 
 class no_tab_run(unittest.TestCase):
     def test_normal(self):
