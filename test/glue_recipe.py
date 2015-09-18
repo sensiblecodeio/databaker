@@ -8,11 +8,10 @@ def per_file(tabs):
 def per_tab(tab):
     all_start = re.compile(".*All.*")
     glue_bag = tab.filter(all_start)
-    print ("alls:", glue_bag)
     glue_bag.glue(lambda cell: cell.extrude(0,3))
-    print ("glued:", glue_bag)
-    print ("alls post:", tab.filter(all_start))
-    print ("all start post:", tab.filter(all_start))
-
+    alls = tab.filter(all_start)
+    expected = ['All New Work', 'All Repair and Maintenance', 'All Work']
+    for a,b in zip(expected, alls):
+        assert a in b.value, [a, b]
     tab.dimension("foo", "bar")
     return tab

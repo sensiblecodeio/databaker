@@ -27,6 +27,11 @@ class datematch(unittest.TestCase):
         self.assertEqual(bake.datematch("Not A Date"), "")
         self.assertEqual(bake.datematch(4.0), "")
 
+class glue(unittest.TestCase):
+    def test_glue(self):
+        bake.Opt = Options(recipe='glue_recipe.py', xls='glue.xls')
+        recipe = imp.load_source("recipe", bake.Opt.recipe_file)
+
 class no_tab_run(unittest.TestCase):
     def test_normal(self):
         bake.Opt = Options(recipe='bail.py', xls='t.xls')
