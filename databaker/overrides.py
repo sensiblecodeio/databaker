@@ -16,6 +16,28 @@ class MatchNotFound(Exception):
     """failed to find match in bag.group"""
     pass
 
+def string_cell_value(cell):
+    # TODO hacky, based off value_for_dimension in bake.py
+    # might not all be needed
+    if cell is None:
+        value = ''
+    elif isinstance(cell, (str, unicode)):
+        value = unicode(cell)
+    elif isinstance(cell, float):
+        if int(cell) == cell:
+            value = str(int(cell))
+        else:
+            value = str(cell)
+    elif cell.properties['richtext']:
+        import richxlrd
+        value = richxlrd.RichCell(cell.properties.cell.sheet, cell.y, cell.x).fragments.not_script.value
+    elif isinstance(cell.value, (str, unicode, float)):
+        value = string_cell_value(cell.value)
+    else:
+        raise NotImplementedError("Tried to stringify {!r}, a {}".format(cell.value, type(cell.value)))
+    return value.strip()
+
+
 class Dimension(object):
 
 # string signature: table.Dimension(label, string_literal)
@@ -40,7 +62,7 @@ class Dimension(object):
             self.string = None
             self.subdim = []
         else:
-            assert isinstance(param1[0], Dimension)
+            assert isinstance(param1[0], Dimension), type(param1[0])
             self.strict = None
             self.string = None
             self.subdim = param1
@@ -53,18 +75,23 @@ class Dimension(object):
         if self.strict is not None:
             return cell.lookup(self.bag, self.direction, self.strict)
         if self.subdim != []:
-            for subdim in self.subdim:
-                return ' '.join(subdim(cell))
+            builder = [string_cell_value(subdim(cell)) for subdim in self.subdim]
+            print builder
+            return ' '.join(builder)
 
 def dimension(self, *args, **kwargs):
     Dimension(self, *args, **kwargs)
     return self
 
-xypath.Bag.dimension = dimension
+def subdim(self, *args, **kwargs):
+    return Dimension(self, *args, primary_dimension=False, **kwargs)
 
-class Subdimension(Dimension):
-    def __init__(self, *args):
-        Dimension.__init__(self, *args, primary_dimension=False)
+xypath.Bag.dimension = dimension
+xypath.Bag.subdim = subdim
+
+#class Subdimension(Dimension):
+#    def __init__(self, *args):
+#        Dimension.__init__(self, *args, primary_dimension=False)
 
 
 # === XLSCell Overrides ===================================
