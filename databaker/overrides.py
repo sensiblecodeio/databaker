@@ -18,36 +18,54 @@ class MatchNotFound(Exception):
 
 class Dimension(object):
 
-# TODO string signature: (dimself, bag, label, label item)
-# TODO bag signature:    (dimself, bag, label, direction, striict)
+# string signature: table.Dimension(label, string_literal)
+# bag signature:    bag.Dimension(label, direction, strictness)
+# multidimension signature: table.Dimension(label, [subdimensions])
 
-    def __init__(self, bag, label, param1, direction=None):
-        """bag: a bag - either a dimension bag or a table (in the case of a string)
+    def __init__(self, bag, label, param1, direction=None, primary_dimension=True):
+        """self: the dimension object because this is init
+           bag: a bag - either a dimension bag or a table (in the case of a string)
            label: dimension label
            param1: either a strictness for a bag or a literal string
            direction: a direction for a bag"""
 
         self.bag = bag
-        self.strict = None
-        self.string = None
-        if isinstance(param1, basestring):
-            self.string = param1
-        else:
-            self.strict = param1
         self.direction = direction  # direction
-        self.bag.table.append_dimension(label, self)
+        if isinstance(param1, basestring):
+            self.strict = None
+            self.string = param1
+            self.subdim = []
+        elif isinstance(param1, bool):
+            self.strict = param1
+            self.string = None
+            self.subdim = []
+        else:
+            assert isinstance(param1[0], Dimension)
+            self.strict = None
+            self.string = None
+            self.subdim = param1
+        if primary_dimension:
+            self.bag.table.append_dimension(label, self)
 
     def __call__(self, cell):
         if self.string is not None:
             return self.string
-        else:
+        if self.strict is not None:
             return cell.lookup(self.bag, self.direction, self.strict)
+        if self.subdim != []:
+            for subdim in self.subdim:
+                return ' '.join(subdim(cell))
 
 def dimension(self, *args, **kwargs):
     Dimension(self, *args, **kwargs)
     return self
 
 xypath.Bag.dimension = dimension
+
+class Subdimension(Dimension):
+    def __init__(self, *args):
+        Dimension.__init__(self, *args, primary_dimension=False)
+
 
 # === XLSCell Overrides ===================================
 
