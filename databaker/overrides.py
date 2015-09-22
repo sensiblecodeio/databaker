@@ -89,10 +89,6 @@ def subdim(self, *args, **kwargs):
 xypath.Bag.dimension = dimension
 xypath.Bag.subdim = subdim
 
-#class Subdimension(Dimension):
-#    def __init__(self, *args):
-#        Dimension.__init__(self, *args, primary_dimension=False)
-
 
 # === XLSCell Overrides ===================================
 
