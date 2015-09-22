@@ -12,6 +12,5 @@ def per_tab(tab):
     tab.dimension("KITTEN", [tab.subdim("-"),
                              quarters.subdim(DIRECTLY, LEFT),
                              years.subdim(CLOSEST, ABOVE)])
-    print quarters, years
     tab.dimension("foo", "bar")
     return tab

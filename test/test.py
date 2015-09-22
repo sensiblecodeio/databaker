@@ -27,8 +27,20 @@ class datematch(unittest.TestCase):
         self.assertEqual(bake.datematch("Not A Date"), "")
         self.assertEqual(bake.datematch(4.0), "")
 
-class glue(unittest.TestCase):
-    def test_glue(self):
+class subdim(unittest.TestCase):
+    def test_subdim(self):
+        bake.Opt = Options(recipe='subdim_recipe.py', xls='glue.xls')
+        recipe = imp.load_source("recipe", bake.Opt.recipe_file)
+        for fn in bake.Opt.xls_files:
+            bake.per_file(fn, recipe)
+        with open("test/t_out.csv") as f:
+            for row in UnicodeReader(f):
+                if '- Q1 1997' in row:
+                    return
+        assert False, "No '- Q1 1997' in subdim"
+
+class subdim(unittest.TestCase):
+    def test_subdim(self):
         bake.Opt = Options(recipe='glue_recipe.py', xls='glue.xls')
         recipe = imp.load_source("recipe", bake.Opt.recipe_file)
         for fn in bake.Opt.xls_files:

@@ -18,4 +18,10 @@ def per_tab(tab):
     alls.dimension("all", DIRECTLY, ABOVE)
     year = tab.filter(lambda x: x.value == 2014)
     year.dimension("year", DIRECTLY, LEFT)
+
+    # confirm that cells in indexes are still correct
+    for cell in alls:
+        assert cell == tab.get_at(cell.x, cell.y)
+
+    print alls
     return alls.waffle(year)
