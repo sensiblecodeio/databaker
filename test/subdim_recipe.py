@@ -9,9 +9,9 @@ def per_file(tabs):
 def per_tab(tab):
     quarters = tab.filter(re.compile("Q\d"))
     years = quarters.shift(LEFT).is_not_blank()
-    tab.dimension("KITTEN", [tab.subdim('NOPE', "-"),
-                             quarters.subdim("NOPE1", DIRECTLY, LEFT),
-                             years.subdim("NOPE2", CLOSEST, ABOVE)])
+    tab.dimension("KITTEN", [tab.subdim("-"),
+                             quarters.subdim(DIRECTLY, LEFT),
+                             years.subdim(CLOSEST, ABOVE)])
     print quarters, years
     tab.dimension("foo", "bar")
     return tab

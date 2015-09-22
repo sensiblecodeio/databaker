@@ -84,7 +84,7 @@ def dimension(self, *args, **kwargs):
     return self
 
 def subdim(self, *args, **kwargs):
-    return Dimension(self, *args, primary_dimension=False, **kwargs)
+    return Dimension(self, "--fakelabel--", *args, primary_dimension=False, **kwargs)
 
 xypath.Bag.dimension = dimension
 xypath.Bag.subdim = subdim
