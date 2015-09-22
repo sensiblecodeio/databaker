@@ -44,13 +44,16 @@ class Dimension(object):
 # bag signature:    bag.Dimension(label, direction, strictness)
 # multidimension signature: table.Dimension(label, [subdimensions])
 
-    def __init__(self, bag, label, param1, direction=None, primary_dimension=True):
+    def __init__(self, bag, label, param1, direction=None, primary_dimension=True, join_function=None):
         """self: the dimension object because this is init
            bag: a bag - either a dimension bag or a table (in the case of a string)
            label: dimension label
            param1: either a strictness for a bag or a literal string
            direction: a direction for a bag"""
-
+        if join_function is None:
+            self.join_function = ' '.join
+        else:
+            self.join_function = join_function
         self.bag = bag
         self.direction = direction  # direction
         if isinstance(param1, basestring):
@@ -76,8 +79,7 @@ class Dimension(object):
             return cell.lookup(self.bag, self.direction, self.strict)
         if self.subdim != []:
             builder = [string_cell_value(subdim(cell)) for subdim in self.subdim]
-            print builder
-            return ' '.join(builder)
+            return self.join_function(builder)
 
 def dimension(self, *args, **kwargs):
     Dimension(self, *args, **kwargs)
@@ -181,7 +183,7 @@ xypath.Table.debug_dimensions = debug_dimensions
 
 xypath.Bag.regex = lambda self, x: self.filter(re.compile(x))
 
-def glue(bag, expand_function, join_function=None):
+def glue(bag, expand_function, join_function=None, blank=True):
     """Each cell in the bag is replaced with the content of a number of cells:
        the cell in question and the cells specified by cell_bag.expand_function()
        The other cells will be blanked.
@@ -191,8 +193,9 @@ def glue(bag, expand_function, join_function=None):
     for cell in bag:
         target_cells = expand_function(cell)
         value = join_function(unicode(value_cell.value).strip() for value_cell in target_cells)
-        for cell in target_cells:
-            cell._cell.value = ""
+        if blank:
+            for t_cell in target_cells:
+                tcell._cell.value = ""
         cell._cell.value = value
     return bag
 xypath.Bag.glue = glue
