@@ -192,7 +192,7 @@ def glue(bag, expand_function, join_function=None, blank=True):
         join_function = ' '.join
     for cell in bag:
         target_cells = expand_function(cell)
-        value = join_function(unicode(value_cell.value).strip() for value_cell in target_cells)
+        value = join_function(string_cell_value(value_cell) for value_cell in target_cells)
         if blank:
             for tcell in target_cells:
                 tcell._cell.value = ""
