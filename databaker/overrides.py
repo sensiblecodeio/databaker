@@ -253,3 +253,34 @@ def rich_text(bag):
     r = bag.property.rich
     return r
 xypath.Bag.rich_text = rich_text
+
+def spaceprefix(bag, count):
+    """filter: cells starting with exactly count whitespace: no more, no less"""
+    return bag.filter(re.compile("^\s{%s}\S" % count))
+xypath.Bag.spaceprefix = spaceprefix
+
+def is_whitespace(bag):
+    """filter: cells which do not contain printable characters"""
+    return bag.filter(lambda cell: not unicode(cell.value).strip())
+xypath.Bag.is_whitespace = is_whitespace
+
+def is_not_whitespace(bag):
+    """filter: cells which do contain printable characters"""
+    return bag.filter(lambda cell: unicode(cell.value).strip())
+xypath.Bag.is_not_whitespace = is_not_whitespace
+
+def by_index(bag, items):
+    """filter: return numbered items from a bag.
+       Note that this is 1-indexed!
+       Items can be a list or a single number"""
+    if isinstance(items, int):
+        return bag.by_index([items])
+    new = xypath.Bag(table=bag.table)
+    for i, cell in enumerate(bag):
+        if i+1 in items:
+            new.add(cell._cell)
+            if i+1 == max(items):
+                return new
+    raise xypath.XYPathError("get_nth needed {} items, but bag only contained {}.\n{!r}".format(max(items), len(bag), bag))
+xypath.Bag.by_index = by_index
+
