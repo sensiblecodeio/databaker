@@ -5,10 +5,11 @@ Usage:
   bake.py [options] <recipe> <spreadsheet> [<params>...]
 
 Options:
-  --notiming  Suppress timing information.
-  --preview   Preview selected cells in Excel.
-  --nocsv     Don't produce CSV file.
-  --debug     Debug Mode
+  --notiming            Suppress timing information.
+  --preview             Preview selected cells in Excel.
+  --nocsv               Don't produce CSV file.
+  --debug               Debug Mode
+  --nolookuperrors      Dont output 'NoLookuperror' to final CSV.
 """
 
 import atexit
@@ -126,6 +127,7 @@ class Options(object):
         self.csv_filename = "data-{spreadsheet}-{recipe}-{params}.csv"
         self.csv = not options['--nocsv']
         self.debug = options['--debug']
+        self.no_lookup_error = not options['--nolookuperrors']
         self.params = options['<params>']
 
 class TechnicalCSV(object):
@@ -173,7 +175,10 @@ class TechnicalCSV(object):
                 cell = obj.table.headers.get(dimension, lambda _: None)(obj)
             except xypath.xypath.NoLookupError:
                 print "no lookup to dimension {} from cell {}".format(dim_name(dimension), repr(ob._cell))
-                cell = "NoLookupError"
+                if Opt.no_lookup_error: 
+                    cell = "NoLookupError"            # if user wants - output 'NoLookUpError' to CSV
+                else:
+                    cell = ''                         # Otherwise output a blanks
             return cell
 
         def value_for_dimension(dimension):
