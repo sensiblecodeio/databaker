@@ -1,17 +1,7 @@
 from xypath import DOWN, UP, LEFT, RIGHT
 import bake
+from template_csv_default import *        # Import tempalte so constants are availible to recipe
 from hamcrest import *
-
-OBS = -9
-DATAMARKER = -8
-STATUNIT = -7
-MEASURETYPE = -6
-UNITMULTIPLIER = -5
-UNITOFMEASURE = -4
-GEOG = -3
-TIME = -2
-TIMEUNIT = -1
-STATPOP = 0
 
 ABOVE = UP
 BELOW = DOWN

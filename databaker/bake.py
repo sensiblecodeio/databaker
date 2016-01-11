@@ -30,7 +30,10 @@ import os.path
 import bake
 from constants import *
 import overrides        # warning: changes xypath and messytables
+
 import template_csv_default as template
+from template_csv_default import *
+
 import warnings
 import xlutils.copy
 import xlwt
@@ -53,17 +56,7 @@ def dim_name(dimension):
 class DimensionError(Exception):
     pass
 
-SKIP_AFTER = {OBS: 0,            # 1..2
-              DATAMARKER: 0,     # 2..3
-              STATUNIT: 1,       # 3..5
-              MEASURETYPE: 4,    # 5..10
-              UNITMULTIPLIER: 0, # 10..11
-              UNITOFMEASURE: 3,  # 11..15
-              GEOG: 2,           # 15..18/19
-              TIME: 1,           # 18/19..21
-              TIMEUNIT: 1,       # 21..23/24
-              STATPOP:11}        # 23/24..36/37
-LAST_METADATA = STATPOP
+
 
 def showtime(msg='unspecified'):
     if not Opt.timing:
@@ -289,8 +282,8 @@ def per_file(spreadsheet, recipe):
     def make_preview():
         # call for each segment
         for i, header in tab.headers.items():
-            if hasattr(header, 'bag') and not isinstance(template.bag, xypath.Table):
-                for bag in template.bag:
+            if hasattr(header, 'bag') and not isinstance(header.bag, xypath.Table):
+                for bag in header.bag:
                     writer.get_sheet(tab.index).write(bag.y, bag.x, bag.value,
                         xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[i])))
                 for ob in segment:
