@@ -199,30 +199,33 @@ class TechnicalCSV(object):
         values = {}
         values[OBS] = obj.value
 
-        for dimension in range(DATAMARKER, LAST_METADATA + 1):
+        for dimension in range(OBS+1, LAST_METADATA + 1):
             values[dimension] = value_for_dimension(dimension)
 
         # Mutate values
         # Special handling per dimension.
+        # NOTE  - varibales beinging SH_ ... are ependant on user choices from the bottom of the template file
 
-        if not isinstance(values[OBS], float):  # NOTE xls specific!
-            ob_value, dm_value = parse_ob(ob)
-            values[OBS] = ob_value
-            # the observation is not actually a number
-            # store it as a datamarker and nuke the observation field
-            if values[DATAMARKER] == '':
-                values[DATAMARKER] = dm_value
-            elif dm_value:
-                logging.warn("datamarker lost: {} on {!r}".format(dm_value, ob))
+        if SH_Split_OBS:
+            if not isinstance(values[OBS], float):  # NOTE xls specific!
+                ob_value, dm_value = parse_ob(ob)
+                values[OBS] = ob_value
+                # the observation is not actually a number
+                # store it as a datamarker and nuke the observation field
+                if values[OBS+1] == '':
+                    values[OBS+1] = dm_value
+                elif dm_value:
+                    logging.warn("datamarker lost: {} on {!r}".format(dm_value, ob))
 
-        if values[TIMEUNIT] == '' and values[TIME] != '':
-            # we've not actually been given a timeunit, but we have a time
-            # determine the timeunit from the time
-            values[TIMEUNIT] = datematch(values[TIME])
+        if SH_Create_ONS_time:
+            if values[TIMEUNIT] == '' and values[TIME] != '':
+                # we've not actually been given a timeunit, but we have a time
+                # determine the timeunit from the time
+                values[TIMEUNIT] = datematch(values[TIME])
 
         for dimension in range(OBS, LAST_METADATA + 1):
             yield values[dimension]
-            if dimension in [TIME, STATPOP]:  # lets do the timewarp again
+            if dimension in SH_Repeat:         # Calls special handling - repeats
                 yield values[dimension]
             for i in range(0, SKIP_AFTER[dimension]):
                 yield ''
