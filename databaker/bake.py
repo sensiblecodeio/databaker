@@ -30,16 +30,21 @@ import os.path
 import bake
 from constants import *
 import overrides        # warning: changes xypath and messytables
-
-import template_csv_default as template
-from template_csv_default import *
-
 import warnings
 import xlutils.copy
 import xlwt
 import richxlrd.richxlrd as richxlrd
 from datetime import datetime
 import string
+
+# IF theres a custom template use it, Otherwise use the default.
+try:
+    import structure_csv_user as template
+    from structure_csv_user import *
+except:
+    import structure_csv_default as template
+    from structure_csv_default import *
+
 
 __version__ = "0.0.15"
 Opt = None
