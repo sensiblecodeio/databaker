@@ -230,16 +230,9 @@ class TechnicalCSV(object):
         for dimension in range(1, obj.table.max_header+1):
             name = obj.table.headernames[dimension]
             value = value_for_dimension(dimension)
-
-            # Eight yields per loop - they are the parameters of an ONS dimension:
-            yield name  # Dimension Id
-            yield name  # Dimension Label English
-            yield ''    # Dimension Label Welsh
-            yield value # Dimension Item Id
-            yield value # Dimension Item Label English
-            yield ''    # Dimension Item Label Welsh
-            yield ''    # Is Total
-            yield ''    # Is Subtotal
+            topic_headers = get_topic_headers(name, value)
+            for col in topic_headers:
+                yield col
 
 
 class Progress(object):
