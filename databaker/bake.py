@@ -30,7 +30,7 @@ import os.path
 import bake
 from constants import *
 import overrides        # warning: changes xypath and messytables
-import header
+import template_csv_default as template
 import warnings
 import xlutils.copy
 import xlwt
@@ -143,9 +143,9 @@ class TechnicalCSV(object):
             return
 
         self.header_dimensions = dimensions
-        header_row = header.start.split(',')
+        header_row = template.start.split(',')
         for i in range(dimensions):
-            header_row.extend(header.repeat.format(num=i+1).split(','))
+            header_row.extend(template.repeat.format(num=i+1).split(','))
         self.csv_writer.writerow(header_row)
 
     def footer(self):
@@ -289,8 +289,8 @@ def per_file(spreadsheet, recipe):
     def make_preview():
         # call for each segment
         for i, header in tab.headers.items():
-            if hasattr(header, 'bag') and not isinstance(header.bag, xypath.Table):
-                for bag in header.bag:
+            if hasattr(header, 'bag') and not isinstance(template.bag, xypath.Table):
+                for bag in template.bag:
                     writer.get_sheet(tab.index).write(bag.y, bag.x, bag.value,
                         xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[i])))
                 for ob in segment:
