@@ -25,12 +25,18 @@ SKIP_AFTER = {OBS: 0,            # 1..2
               STATPOP:11}        # 23/24..36/37
 LAST_METADATA = STATPOP
 
-
 # Repeat - list of headers to be repeated for each topic dimension
 repeat = "dim_id_{num},dimension_label_eng_{num},dimension_label_cym_{num},dim_item_id_{num},dimension_item_label_eng_{num},dimension_item_label_cym_{num},is_total_{num},is_sub_total_{num}"
-
+   
+dimlist = []
 # Match up the captured name and dimension value with the repeat shown above
-def get_topic_headers(name, value):  # DONT alter this line
+def get_topic_headers(name, value):  # DONT alter this 
+    dimlist.append(name)
     return (name, name, '', value, value, '', '', '')   # Change this line
-    
 
+# Where are the values - should match the above!
+value_spread = ['', '', '', 'value', 'value', '', '', '']
+
+# do you want to output the 'name' value in the header of the value columns?
+topic_headers_as_dims = False
+ 

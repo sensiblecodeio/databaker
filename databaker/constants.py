@@ -2,6 +2,7 @@ from xypath import DOWN, UP, LEFT, RIGHT
 import bake
 from template_csv_default import *        # Import tempalte so constants are availible to recipe
 from hamcrest import *
+import csv
 
 ABOVE = UP
 BELOW = DOWN
@@ -32,3 +33,40 @@ def create_colourlist():
             numbers.append(-i)
     colourlist = dict(zip(numbers, colours))
     return colourlist
+    
+    
+def rewrite_headers(dims, filename):
+    with open(filename, 'rb') as fr:
+        myreader = csv.reader(fr, delimiter=',')
+        for row in myreader:
+            allcells = row
+            for i in range(0,len(allcells)-1):
+                if i >= len(start.split(',')):
+                    which_cell_in_spread = (i - len(start.split(','))) % len(value_spread)
+                    which_dim = (i - len(start.split(','))) / len(value_spread)
+                    which_dim = int(which_dim) + 1
+                    if value_spread[which_cell_in_spread] == 'value':
+                        allcells[i] = dims[which_dim-1] 
+            fr.close()
+            return allcells   # Return as a string to match other inputs for csvwriter
+
+
+    
+def write_headers(dims, filename):
+    if not topic_headers_as_dims:     # If the user hasnt indicated they want dimensions as dimension item headers return
+        return
+    header_list = []
+    # Read all data from the csv file.
+    with open(filename, 'rb') as b:
+        headers = csv.reader(b)
+        header_list.extend(headers)
+    
+    # data to override in the format {line_num_to_override:data_to_write}. 
+    line_to_override = {0:rewrite_headers(dims, filename) }
+    
+    # Write data to the csv file and replace the lines in the line_to_override dict.
+    with open(filename, 'wb') as b:
+        writer = csv.writer(b)
+        for line, row in enumerate(header_list):
+             data = line_to_override.get(line, row)
+             writer.writerow(data)    

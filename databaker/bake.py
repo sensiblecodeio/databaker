@@ -233,8 +233,8 @@ class TechnicalCSV(object):
             topic_headers = get_topic_headers(name, value)
             for col in topic_headers:
                 yield col
-
-
+        
+        
 class Progress(object):
     def __init__(self, max_count, prefix=None, msg="\r{}{:3d}% - [{}{}]"):
         self.last_percent = None
@@ -264,6 +264,9 @@ def per_file(spreadsheet, recipe):
         csv_filename = Opt.csv_filename.format(spreadsheet=xls_base,
                                                recipe=recipe_base,
                                                params=parsed_params)
+        global csv_name
+        csv_name = csv_filename
+                                     
         csv_path = os.path.join(xls_directory, csv_filename)
 
         preview_filename = Opt.preview_filename.format(spreadsheet=xls_base,
@@ -359,6 +362,10 @@ def main():
             print '\n'.join(crash_msg)
             print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
             raise
+    print csv_name
+    write_headers(dimlist[0:len(value_spread)-1], csv_name) 
 
 if __name__ == '__main__':
     main()
+
+
