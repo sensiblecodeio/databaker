@@ -347,31 +347,9 @@ def per_file(spreadsheet, recipe):
         writer.save(filenames()['preview'])
 
 "https://github.com/python-excel/xlwt/blob/master/xlwt/Style.py#L307"
+colourlist = create_colourlist()
+ 
 
-colourlist = {OBS: "lavender",
-              DATAMARKER: "violet",
-              STATUNIT: "gray25",
-              MEASURETYPE: "gray25",
-              UNITMULTIPLIER: "gray25",
-              UNITOFMEASURE: "gray25",
-              GEOG: "sea_green",
-              TIME: "pale_blue",
-              TIMEUNIT: "blue",
-              STATPOP: "gray25",
-              1: "rose",
-              2: "tan",
-              3: "light_yellow",
-              4: "light_green",
-              5: "light_turquoise",
-              6: "light_blue",
-              7: "sky_blue",
-              8: "plum",
-              9: "gold",
-              10: "lime",
-              11: "coral",
-              12: "periwinkle",
-              13: "ice_blue",
-              14: "aqua"}
 
 def main():
     global Opt
