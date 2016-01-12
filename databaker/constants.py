@@ -1,8 +1,14 @@
 from xypath import DOWN, UP, LEFT, RIGHT
 import bake
-from template_csv_default import *        # Import tempalte so constants are availible to recipe
 from hamcrest import *
 import csv
+
+# IF theres a custom template use it, Otherwise use the default.
+try:
+    from structure_csv_user import *
+except:
+    from structure_csv_default import *
+
 
 ABOVE = UP
 BELOW = DOWN
