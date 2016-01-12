@@ -41,26 +41,24 @@ def create_colourlist():
     return colourlist
     
    
-# Returns a list of headers, for use by the write_headers function 
+    
 def rewrite_headers(dims, filename):
     with open(filename, 'rb') as fr:
         myreader = csv.reader(fr, delimiter=',')
-        start_len = len(start.split(','))
-        repeat_len = len(repeat.split(','))
         for row in myreader:
             allcells = row
-            for i in range(0,start_len-1):
-                if i >= start_len:
-                    which_cell_in_spread = (i - start_len) % repeat_len
-                    which_dim = (i - start_len) / repeat_len
+            for i in range(0,len(allcells)-1):
+                if i >= len(start.split(',')):
+                    which_cell_in_spread = (i - len(start.split(','))) % len(value_spread)
+                    which_dim = (i - len(start.split(','))) / len(value_spread)
                     which_dim = int(which_dim) + 1
                     if value_spread[which_cell_in_spread] == 'value':
                         allcells[i] = dims[which_dim-1] 
             fr.close()
-            return allcells   
+            return allcells   # Return as a string to match other inputs for csvwriter
 
 
-# Funtion to rewrite topic headers as dimensions if needed   
+    
 def write_headers(dims, filename):
     if not topic_headers_as_dims:     # If the user hasnt indicated they want dimensions as dimension item headers return
         return
