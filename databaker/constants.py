@@ -42,24 +42,24 @@ def create_colourlist():
     
    
     
-def rewrite_headers(dims, filename):
+def rewrite_headers(filename):
     with open(filename, 'rb') as fr:
         myreader = csv.reader(fr, delimiter=',')
         for row in myreader:
-            allcells = row
-            for i in range(0,len(allcells)-1):
+            dims = dimlist[0: (len(row) - len(start.split(',')) / len(value_spread))]
+            for i in range(0,len(row)):
                 if i >= len(start.split(',')):
                     which_cell_in_spread = (i - len(start.split(','))) % len(value_spread)
                     which_dim = (i - len(start.split(','))) / len(value_spread)
-                    which_dim = int(which_dim) + 1
+                    which_dim = int(which_dim)
                     if value_spread[which_cell_in_spread] == 'value':
-                        allcells[i] = dims[which_dim-1] 
+                        row[i] = dims[which_dim] 
             fr.close()
-            return allcells   # Return as a string to match other inputs for csvwriter
+            return row   # Return as a string to match other inputs for csvwriter
 
 
     
-def write_headers(dims, filename):
+def write_headers(filename):
     if not topic_headers_as_dims:     # If the user hasnt indicated they want dimensions as dimension item headers return
         return
     header_list = []
@@ -69,7 +69,7 @@ def write_headers(dims, filename):
         header_list.extend(headers)
     
     # data to override in the format {line_num_to_override:data_to_write}. 
-    line_to_override = {0:rewrite_headers(dims, filename) }
+    line_to_override = {0:rewrite_headers(filename)}
     
     # Write data to the csv file and replace the lines in the line_to_override dict.
     with open(filename, 'wb') as b:

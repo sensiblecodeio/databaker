@@ -241,6 +241,7 @@ class TechnicalCSV(object):
             topic_headers = get_topic_headers(name, value)
             for col in topic_headers:
                 yield col
+
         
         
 class Progress(object):
@@ -371,7 +372,7 @@ def main():
             print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
             raise
     print csv_name
-    write_headers(dimlist[0:len(value_spread)-1], csv_name) 
+    write_headers(csv_name) 
 
 if __name__ == '__main__':
     main()

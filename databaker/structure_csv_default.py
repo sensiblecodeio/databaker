@@ -50,7 +50,6 @@ value_spread = ['', '', '', 'value', 'value', '', '', '']
 # do you want to output the 'name' value in the header of the value columns?
 topic_headers_as_dims = False
 
-
 # ====================== S-P-E-C-I-A-L handling ========================== (..fallout much?)
 # Use the following to decide which dimensions from the above should get special handling
 
@@ -62,6 +61,3 @@ SH_Create_ONS_time = True
 
 # Do you want to split the OBS, placing non float data into your next column. 
 SH_Split_OBS = True
-
-
- 
