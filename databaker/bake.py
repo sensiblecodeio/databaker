@@ -135,16 +135,28 @@ class TechnicalCSV(object):
         self.row_count = 0
         self.header_dimensions = None
 
-    def write_header_if_needed(self, dimensions):
+    def write_header_if_needed(self, dimensions, ob):
         if self.header_dimensions is not None:
             # we've already written headers.
-            return
+            pass
+        else:                
+            self.header_dimensions = dimensions
+            header_row = template.start.split(',')
+            
+            # create new heaader row
+            for i in range(dimensions):
+                header_row.extend(template.repeat.format(num=i+1).split(','))
+            
+            # overwrite dimenions/subject/name as column header (if requested) 
+            if topic_headers_as_dims:
+                dims = []
+                for dimension in range(1, ob._cell.table.max_header+1):
+                    dims.append(ob._cell.table.headernames[dimension])
+                header_row = rewrite_headers(header_row, dims)  
+            
+            # Write to the file
+            self.csv_writer.writerow(header_row)
 
-        self.header_dimensions = dimensions
-        header_row = template.start.split(',')
-        for i in range(dimensions):
-            header_row.extend(template.repeat.format(num=i+1).split(','))
-        self.csv_writer.writerow(header_row)
 
     def footer(self):
         self.csv_writer.writerow(["*"*9, str(self.row_count)])
@@ -152,7 +164,7 @@ class TechnicalCSV(object):
 
     def handle_observation(self, ob):
         number_of_dimensions = ob.table.max_header
-        self.write_header_if_needed(number_of_dimensions)
+        self.write_header_if_needed(number_of_dimensions, ob)
         output_row = self.get_dimensions_for_ob(ob)
         self.output(output_row)
 
@@ -273,8 +285,6 @@ def per_file(spreadsheet, recipe):
         csv_filename = Opt.csv_filename.format(spreadsheet=xls_base,
                                                recipe=recipe_base,
                                                params=parsed_params)
-        global csv_name
-        csv_name = csv_filename
                                      
         csv_path = os.path.join(xls_directory, csv_filename)
 
@@ -371,8 +381,6 @@ def main():
             print '\n'.join(crash_msg)
             print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
             raise
-    print csv_name
-    write_headers(csv_name) 
 
 if __name__ == '__main__':
     main()

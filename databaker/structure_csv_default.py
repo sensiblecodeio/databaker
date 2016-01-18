@@ -38,17 +38,15 @@ LAST_METADATA = STATPOP                                     #   MUST point to th
 # Repeat - list of headers to be repeated for each topic dimension
 repeat = "dim_id_{num},dimension_label_eng_{num},dimension_label_cym_{num},dim_item_id_{num},dimension_item_label_eng_{num},dimension_item_label_cym_{num},is_total_{num},is_sub_total_{num}"
    
-dimlist = []
 # Match up the captured name and dimension value with the repeat shown above
 def get_topic_headers(name, value):  # DONT alter this 
-    dimlist.append(name)
     return (name, name, '', value, value, '', '', '')   # Change this line
 
 # Where are the values - should match the above (minus the 'name entries)
 value_spread = ['', '', '', 'value', 'value', '', '', '']
 
 # do you want to output the 'name' value in the header of the value columns?
-topic_headers_as_dims = False
+topic_headers_as_dims = True
 
 # ====================== S-P-E-C-I-A-L handling ========================== (..fallout much?)
 # Use the following to decide which dimensions from the above should get special handling
