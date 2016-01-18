@@ -7,7 +7,7 @@ Template/Options file for altering the structure of the .csv flatfile output.
 # Start = list of standard headers. 
 start = "observation,data_marking,statistical_unit_eng,statistical_unit_cym,measure_type_eng,measure_type_cym,observation_type,empty,obs_type_value,unit_multiplier,unit_of_measure_eng,unit_of_measure_cym,confidentuality,empty1,geographic_area,empty2,empty3,time_dim_item_id,time_dim_item_label_eng,time_dim_item_label_cym,time_type,empty4,statistical_population_id,statistical_population_label_eng,statistical_population_label_cym,cdid,cdiddescrip,empty5,empty6,empty7,empty8,empty9,empty10,empty11,empty12"
 
-# CONSTANTS. Order IS important. Keep to the pattern. The most negative should be column 1/leftmost column of your csv structure. 
+# CONSTANTS. Order IS important. Keep to the pattern. The most negative outputting dimension should be column 1/leftmost column of your csv structure. 
 OBS = -9            # MANDATORY, must be here, must be called OBS
 DATAMARKER = -8
 STATUNIT = -7
@@ -19,8 +19,8 @@ TIME = -2
 TIMEUNIT = -1
 STATPOP = 0
 
-# Columsn to skip after each dimension is output. order as above
-SKIP_AFTER = {OBS: 0,            # 1..2                      MANDATORY, must be here, must be called OBS 
+# Columns to skip after each dimension is output. order as above
+SKIP_AFTER = {OBS: 0,            # 1..2  MANDATORY, must be here, must be called OBS 
               DATAMARKER: 0,     # 2..3
               STATUNIT: 1,       # 3..5
               MEASURETYPE: 4,    # 5..10
@@ -30,7 +30,11 @@ SKIP_AFTER = {OBS: 0,            # 1..2                      MANDATORY, must be 
               TIME: 1,           # 18/19..21
               TIMEUNIT: 1,       # 21..23/24
               STATPOP:11}        # 23/24..36/37
-LAST_METADATA = STATPOP                                     #   MUST point to the last standard dimension in your structure,i.e last of above.keys()
+LAST_METADATA = STATPOP          #   MUST point to the last standard dimension in your structure,i.e last of above.keys()
+
+
+# Dimensions (as strings!) in reverse order. Needed for debugging and feedback to user
+debugging = ['STATPOP', 'TIMEUNIT', 'TIME', 'GEOG', 'UNITOFMEASURE', 'UNITMULTIPLIER', 'MEASURETYPE', 'STATUNIT', 'DATAMARKER', 'OBS']
 
 
 # = Topic Dimensions ========
@@ -38,20 +42,23 @@ LAST_METADATA = STATPOP                                     #   MUST point to th
 # Repeat - list of headers to be repeated for each topic dimension
 repeat = "dim_id_{num},dimension_label_eng_{num},dimension_label_cym_{num},dim_item_id_{num},dimension_item_label_eng_{num},dimension_item_label_cym_{num},is_total_{num},is_sub_total_{num}"
    
-# Match up the captured name and dimension value with the repeat shown above
+
+# Where in the repeat do you want to output the dimensions name and value?
 def get_topic_headers(name, value):  # DONT alter this 
     return (name, name, '', value, value, '', '', '')   # Change this line
 
-# Where are the values - should match the above (minus the 'name entries)
+# Where are the values? (should match the above (minus the 'name entries)
 value_spread = ['', '', '', 'value', 'value', '', '', '']
 
 # do you want to output the 'name' value in the header of the value columns?
-topic_headers_as_dims = True
+topic_headers_as_dims = False
+
+
 
 # ====================== S-P-E-C-I-A-L handling ========================== (..fallout much?)
-# Use the following to decide which dimensions from the above should get special handling
+# Use the following to decide which STANDARD dimensionss should get special handling
 
-# Dimensions that need to be outputted twice in a row (i.e item|label combos)
+# Standard Dimensions that need to be outputted twice in a row (i.e item|label combos)
 SH_Repeat = [TIME, STATPOP]
 
 # Do we want to create a TIMEUNIT dimension using a TIME dimension - ONS specific
