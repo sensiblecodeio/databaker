@@ -37,16 +37,16 @@ import richxlrd.richxlrd as richxlrd
 from datetime import datetime
 import string
 
-# IF theres a custom template use it, Otherwise use the default.
+# If there's a custom template, use it. Otherwise use the default.
 try:
     import structure_csv_user as template
     from structure_csv_user import *
-except:
+except ImportError:
     import structure_csv_default as template
     from structure_csv_default import *
 
 
-__version__ = "0.0.15"
+__version__ = "1.0.7"
 Opt = None
 crash_msg = []
 
@@ -60,7 +60,6 @@ def dim_name(dimension):
 
 class DimensionError(Exception):
     pass
-
 
 
 def showtime(msg='unspecified'):
@@ -138,24 +137,23 @@ class TechnicalCSV(object):
     def write_header_if_needed(self, dimensions, ob):
         if self.header_dimensions is not None:
             # we've already written headers.
-            pass
-        else:                
-            self.header_dimensions = dimensions
-            header_row = template.start.split(',')
-            
-            # create new heaader row
-            for i in range(dimensions):
-                header_row.extend(template.repeat.format(num=i+1).split(','))
-            
-            # overwrite dimenions/subject/name as column header (if requested) 
-            if topic_headers_as_dims:
-                dims = []
-                for dimension in range(1, ob._cell.table.max_header+1):
-                    dims.append(ob._cell.table.headernames[dimension])
-                header_row = rewrite_headers(header_row, dims)  
-            
-            # Write to the file
-            self.csv_writer.writerow(header_row)
+            return
+        self.header_dimensions = dimensions
+        header_row = template.start.split(',')
+
+        # create new header row
+        for i in range(dimensions):
+            header_row.extend(template.repeat.format(num=i+1).split(','))
+
+        # overwrite dimensions/subject/name as column header (if requested)
+        if topic_headers_as_dims:
+            dims = []
+            for dimension in range(1, ob._cell.table.max_header+1):
+                dims.append(ob._cell.table.headernames[dimension])
+            header_row = rewrite_headers(header_row, dims)
+
+        # Write to the file
+        self.csv_writer.writerow(header_row)
 
 
     def footer(self):
@@ -185,7 +183,7 @@ class TechnicalCSV(object):
                 cell = obj.table.headers.get(dimension, lambda _: None)(obj)
             except xypath.xypath.NoLookupError:
                 print "no lookup to dimension {} from cell {}".format(dim_name(dimension), repr(ob._cell))
-                if Opt.no_lookup_error: 
+                if Opt.no_lookup_error:
                     cell = "NoLookupError"            # if user wants - output 'NoLookUpError' to CSV
                 else:
                     cell = ''                         # Otherwise output a blanks
@@ -254,8 +252,8 @@ class TechnicalCSV(object):
             for col in topic_headers:
                 yield col
 
-        
-        
+
+
 class Progress(object):
     def __init__(self, max_count, prefix=None, msg="\r{}{:3d}% - [{}{}]"):
         self.last_percent = None
@@ -285,7 +283,7 @@ def per_file(spreadsheet, recipe):
         csv_filename = Opt.csv_filename.format(spreadsheet=xls_base,
                                                recipe=recipe_base,
                                                params=parsed_params)
-                                     
+
         csv_path = os.path.join(xls_directory, csv_filename)
 
         preview_filename = Opt.preview_filename.format(spreadsheet=xls_base,
@@ -363,7 +361,7 @@ def per_file(spreadsheet, recipe):
 
 "https://github.com/python-excel/xlwt/blob/master/xlwt/Style.py#L307"
 colourlist = create_colourlist()
- 
+
 
 
 def main():
@@ -384,5 +382,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
