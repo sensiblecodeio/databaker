@@ -52,7 +52,7 @@ crash_msg = []
 
 def dim_name(dimension):
     if isinstance(dimension, int) and dimension <= 0:
-        return debugging[-dimension]
+        return template.dimension_names[dimension]
     else:
         return dimension
 
@@ -146,7 +146,7 @@ class TechnicalCSV(object):
             header_row.extend(template.repeat.format(num=i+1).split(','))
 
         # overwrite dimensions/subject/name as column header (if requested)
-        if topic_headers_as_dims:
+        if template.topic_headers_as_dims:
             dims = []
             for dimension in range(1, ob._cell.table.max_header+1):
                 dims.append(ob._cell.table.headernames[dimension])
@@ -214,25 +214,26 @@ class TechnicalCSV(object):
         values = {}
         values[OBS] = obj.value
 
+        LAST_METADATA = 0 # since they're numbered -9 for obs, ... 0 for last one
         for dimension in range(OBS+1, LAST_METADATA + 1):
             values[dimension] = value_for_dimension(dimension)
 
         # Mutate values
         # Special handling per dimension.
-        # NOTE  - varibales beinging SH_ ... are ependant on user choices from the bottom of the template file
+        # NOTE  - variables beginning SH_ ... are dependent on user choices from the template file
 
-        if SH_Split_OBS:
+        if template.SH_Split_OBS:
             if not isinstance(values[OBS], float):  # NOTE xls specific!
                 ob_value, dm_value = parse_ob(ob)
                 values[OBS] = ob_value
                 # the observation is not actually a number
                 # store it as a datamarker and nuke the observation field
-                if values[OBS+1] == '':
-                    values[OBS+1] = dm_value
+                if values[template.SH_Split_OBS] == '':
+                    values[template.SH_Split_OBS] = dm_value
                 elif dm_value:
                     logging.warn("datamarker lost: {} on {!r}".format(dm_value, ob))
 
-        if SH_Create_ONS_time:
+        if template.SH_Create_ONS_time:
             if values[TIMEUNIT] == '' and values[TIME] != '':
                 # we've not actually been given a timeunit, but we have a time
                 # determine the timeunit from the time
@@ -240,15 +241,15 @@ class TechnicalCSV(object):
 
         for dimension in range(OBS, LAST_METADATA + 1):
             yield values[dimension]
-            if dimension in SH_Repeat:         # Calls special handling - repeats
+            if dimension in template.SH_Repeat:         # Calls special handling - repeats
                 yield values[dimension]
-            for i in range(0, SKIP_AFTER[dimension]):
+            for i in range(0, template.SKIP_AFTER[dimension]):
                 yield ''
 
         for dimension in range(1, obj.table.max_header+1):
             name = obj.table.headernames[dimension]
             value = value_for_dimension(dimension)
-            topic_headers = get_topic_headers(name, value)
+            topic_headers = template.get_topic_headers(name, value)
             for col in topic_headers:
                 yield col
 

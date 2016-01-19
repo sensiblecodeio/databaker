@@ -7,17 +7,14 @@ Template/Options file for altering the structure of the .csv flatfile output.
 # Start = list of standard headers.
 start = "observation,data_marking,statistical_unit_eng,statistical_unit_cym,measure_type_eng,measure_type_cym,observation_type,empty,obs_type_value,unit_multiplier,unit_of_measure_eng,unit_of_measure_cym,confidentuality,empty1,geographic_area,empty2,empty3,time_dim_item_id,time_dim_item_label_eng,time_dim_item_label_cym,time_type,empty4,statistical_population_id,statistical_population_label_eng,statistical_population_label_cym,cdid,cdiddescrip,empty5,empty6,empty7,empty8,empty9,empty10,empty11,empty12"
 
-# CONSTANTS. Order IS important. Keep to the pattern. The most negative outputting dimension should be column 1/leftmost column of your csv structure. 
-OBS = -9            # MANDATORY, must be here, must be called OBS
-DATAMARKER = -8
-STATUNIT = -7
-MEASURETYPE = -6
-UNITMULTIPLIER = -5
-UNITOFMEASURE = -4
-GEOG = -3
-TIME = -2
-TIMEUNIT = -1
-STATPOP = 0
+# Dimension names (as strings!)
+dimension_names = ['OBS', 'DATAMARKER', 'STATUNIT', 'MEASURETYPE', 'UNITMULTIPLIER', 'UNITOFMEASURE', 'GEOG', 'TIME', 'TIMEUNIT', 'STATPOP']
+
+# Create variables
+for i, item in enumerate(reversed(dimension_names)):
+    exec(item+"=-i")
+
+__all__ = list(dimension_names) # don't expose unnecessary items when using `from foo import *`
 
 # Columns to skip after each dimension is output. order as above
 SKIP_AFTER = {OBS: 0,            # 1..2  MANDATORY, must be here, must be called OBS
@@ -30,12 +27,6 @@ SKIP_AFTER = {OBS: 0,            # 1..2  MANDATORY, must be here, must be called
               TIME: 1,           # 18/19..21
               TIMEUNIT: 1,       # 21..23/24
               STATPOP:11}        # 23/24..36/37
-LAST_METADATA = STATPOP          #   MUST point to the last standard dimension in your structure,i.e last of above.keys()
-
-
-# Dimensions (as strings!) in reverse order. Needed for debugging and feedback to user
-debugging = ['STATPOP', 'TIMEUNIT', 'TIME', 'GEOG', 'UNITOFMEASURE', 'UNITMULTIPLIER', 'MEASURETYPE', 'STATUNIT', 'DATAMARKER', 'OBS']
-
 
 # = Topic Dimensions ========
 
@@ -65,4 +56,4 @@ SH_Repeat = [TIME, STATPOP]
 SH_Create_ONS_time = True
 
 # Do you want to split the OBS, placing non float data into your next column.
-SH_Split_OBS = True
+SH_Split_OBS = DATAMARKER

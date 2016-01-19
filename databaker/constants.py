@@ -6,8 +6,10 @@ import csv
 # IF theres a custom template use it, Otherwise use the default.
 try:
     from structure_csv_user import *
+    import structure_csv_user as template
 except ImportError:
     from structure_csv_default import *
+    import structure_csv_default as template
 
 
 ABOVE = UP
@@ -34,7 +36,8 @@ def create_colourlist():
               "pale_blue", "blue", "gray25", "rose", "tan", "light_yellow", "light_green", "light_turquoise",
               "light_blue", "sky_blue", "plum", "gold", "lime", "coral", "periwinkle", "ice_blue", "aqua"]
     numbers = []
-    for i in range(len(SKIP_AFTER)-1, -(len(colours) - len(SKIP_AFTER)), -1):
+    for i in range(len(template.dimension_names)-1, \
+                   -(len(colours) - len(template.dimension_names)), -1):
         numbers.append(-i)
     colourlist = dict(zip(numbers, colours))
     return colourlist
