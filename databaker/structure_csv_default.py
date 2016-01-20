@@ -36,7 +36,7 @@ repeat = "dim_id_{num},dimension_label_eng_{num},dimension_label_cym_{num},dim_i
 
 # Where in the repeat do you want to output the dimensions name and value?
 def get_topic_headers(name, value):  # DONT alter this
-    return (name, name, '', value, value, '', '', '')   # Change this line
+    return ([name, name, '', value, value, '', '', ''])   # Change this line
 
 # Where are the values? (should match the above (minus the 'name entries)
 value_spread = ['', '', '', 'value', 'value', '', '', '']

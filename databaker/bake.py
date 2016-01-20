@@ -52,7 +52,8 @@ crash_msg = []
 
 def dim_name(dimension):
     if isinstance(dimension, int) and dimension <= 0:
-        return template.dimension_names[dimension]
+        # the last dimension is dimension 0; but we index it as -1.
+        return template.dimension_names[dimension-1]
     else:
         return dimension
 
@@ -75,6 +76,16 @@ def onexit():
 
 start = timer()
 last = start
+
+def rewrite_headers(row,dims):
+    for i in range(0,len(row)):
+        if i >= len(template.start.split(',')):
+            which_cell_in_spread = (i - len(template.start.split(','))) % len(template.value_spread)
+            which_dim = (i - len(template.start.split(','))) / len(template.value_spread)
+            which_dim = int(which_dim)
+            if value_spread[which_cell_in_spread] == 'value':
+                row[i] = dims[which_dim]
+    return row
 
 def datematch(date, silent=False):
     """match mmm yyyy, mmm-mmm yyyy, yyyy Qn, yyyy"""
@@ -110,7 +121,6 @@ def parse_ob(ob):
     if value is None:
         value = ''
     return value.strip(), datamarker.strip()
-
 
 
 class Options(object):
@@ -254,8 +264,8 @@ class TechnicalCSV(object):
                 yield col
 
 
-
 class Progress(object):
+    # creates a progress bar
     def __init__(self, max_count, prefix=None, msg="\r{}{:3d}% - [{}{}]"):
         self.last_percent = None
         self.max_count = max_count
@@ -360,7 +370,18 @@ def per_file(spreadsheet, recipe):
     if Opt.preview:
         writer.save(filenames()['preview'])
 
-"https://github.com/python-excel/xlwt/blob/master/xlwt/Style.py#L307"
+def create_colourlist():
+    # Function to dynamically assign colours to dimensions for preview
+    "https://github.com/python-excel/xlwt/blob/master/xlwt/Style.py#L309"
+    colours = ["lavender", "violet", "gray25", "sea_green",
+              "pale_blue", "blue", "gray25", "rose", "tan", "light_yellow", "light_green", "light_turquoise",
+              "light_blue", "sky_blue", "plum", "gold", "lime", "coral", "periwinkle", "ice_blue", "aqua"]
+    numbers = []
+    for i in range(len(template.dimension_names)-1, \
+                   -(len(colours) - len(template.dimension_names)), -1):
+        numbers.append(-i)
+    colourlist = dict(zip(numbers, colours))
+    return colourlist
 colourlist = create_colourlist()
 
 
