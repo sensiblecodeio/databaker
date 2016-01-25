@@ -30,7 +30,6 @@ import os.path
 import bake
 from constants import *
 import overrides        # warning: changes xypath and messytables
-import header
 import warnings
 import xlutils.copy
 import xlwt
@@ -38,13 +37,23 @@ import richxlrd.richxlrd as richxlrd
 from datetime import datetime
 import string
 
-__version__ = "0.0.15"
+# If there's a custom template, use it. Otherwise use the default.
+try:
+    import structure_csv_user as template
+    from structure_csv_user import *
+except ImportError:
+    import structure_csv_default as template
+    from structure_csv_default import *
+
+
+__version__ = "1.0.7"
 Opt = None
 crash_msg = []
 
 def dim_name(dimension):
     if isinstance(dimension, int) and dimension <= 0:
-        return ['STATPOP', 'TIMEUNIT', 'TIME', 'GEOG', 'UNITOFMEASURE', 'UNITMULTIPLIER', 'MEASURETYPE', 'STATUNIT', 'DATAMARKER', 'OBS'][-dimension]
+        # the last dimension is dimension 0; but we index it as -1.
+        return template.dimension_names[dimension-1]
     else:
         return dimension
 
@@ -53,17 +62,6 @@ def dim_name(dimension):
 class DimensionError(Exception):
     pass
 
-SKIP_AFTER = {OBS: 0,            # 1..2
-              DATAMARKER: 0,     # 2..3
-              STATUNIT: 1,       # 3..5
-              MEASURETYPE: 4,    # 5..10
-              UNITMULTIPLIER: 0, # 10..11
-              UNITOFMEASURE: 3,  # 11..15
-              GEOG: 2,           # 15..18/19
-              TIME: 1,           # 18/19..21
-              TIMEUNIT: 1,       # 21..23/24
-              STATPOP:11}        # 23/24..36/37
-LAST_METADATA = STATPOP
 
 def showtime(msg='unspecified'):
     if not Opt.timing:
@@ -78,6 +76,16 @@ def onexit():
 
 start = timer()
 last = start
+
+def rewrite_headers(row,dims):
+    for i in range(0,len(row)):
+        if i >= len(template.start.split(',')):
+            which_cell_in_spread = (i - len(template.start.split(','))) % len(template.value_spread)
+            which_dim = (i - len(template.start.split(','))) / len(template.value_spread)
+            which_dim = int(which_dim)
+            if value_spread[which_cell_in_spread] == 'value':
+                row[i] = dims[which_dim]
+    return row
 
 def datematch(date, silent=False):
     """match mmm yyyy, mmm-mmm yyyy, yyyy Qn, yyyy"""
@@ -115,7 +123,6 @@ def parse_ob(ob):
     return value.strip(), datamarker.strip()
 
 
-
 class Options(object):
     def __init__(self):
         options = docopt(__doc__, version='databaker {}'.format(__version__))
@@ -137,16 +144,27 @@ class TechnicalCSV(object):
         self.row_count = 0
         self.header_dimensions = None
 
-    def write_header_if_needed(self, dimensions):
+    def write_header_if_needed(self, dimensions, ob):
         if self.header_dimensions is not None:
             # we've already written headers.
             return
-
         self.header_dimensions = dimensions
-        header_row = header.start.split(',')
+        header_row = template.start.split(',')
+
+        # create new header row
         for i in range(dimensions):
-            header_row.extend(header.repeat.format(num=i+1).split(','))
+            header_row.extend(template.repeat.format(num=i+1).split(','))
+
+        # overwrite dimensions/subject/name as column header (if requested)
+        if template.topic_headers_as_dims:
+            dims = []
+            for dimension in range(1, ob._cell.table.max_header+1):
+                dims.append(ob._cell.table.headernames[dimension])
+            header_row = rewrite_headers(header_row, dims)
+
+        # Write to the file
         self.csv_writer.writerow(header_row)
+
 
     def footer(self):
         self.csv_writer.writerow(["*"*9, str(self.row_count)])
@@ -154,7 +172,7 @@ class TechnicalCSV(object):
 
     def handle_observation(self, ob):
         number_of_dimensions = ob.table.max_header
-        self.write_header_if_needed(number_of_dimensions)
+        self.write_header_if_needed(number_of_dimensions, ob)
         output_row = self.get_dimensions_for_ob(ob)
         self.output(output_row)
 
@@ -175,7 +193,7 @@ class TechnicalCSV(object):
                 cell = obj.table.headers.get(dimension, lambda _: None)(obj)
             except xypath.xypath.NoLookupError:
                 print "no lookup to dimension {} from cell {}".format(dim_name(dimension), repr(ob._cell))
-                if Opt.no_lookup_error: 
+                if Opt.no_lookup_error:
                     cell = "NoLookupError"            # if user wants - output 'NoLookUpError' to CSV
                 else:
                     cell = ''                         # Otherwise output a blanks
@@ -206,50 +224,48 @@ class TechnicalCSV(object):
         values = {}
         values[OBS] = obj.value
 
-        for dimension in range(DATAMARKER, LAST_METADATA + 1):
+        LAST_METADATA = 0 # since they're numbered -9 for obs, ... 0 for last one
+        for dimension in range(OBS+1, LAST_METADATA + 1):
             values[dimension] = value_for_dimension(dimension)
 
         # Mutate values
         # Special handling per dimension.
+        # NOTE  - variables beginning SH_ ... are dependent on user choices from the template file
 
-        if not isinstance(values[OBS], float):  # NOTE xls specific!
-            ob_value, dm_value = parse_ob(ob)
-            values[OBS] = ob_value
-            # the observation is not actually a number
-            # store it as a datamarker and nuke the observation field
-            if values[DATAMARKER] == '':
-                values[DATAMARKER] = dm_value
-            elif dm_value:
-                logging.warn("datamarker lost: {} on {!r}".format(dm_value, ob))
+        if template.SH_Split_OBS:
+            if not isinstance(values[OBS], float):  # NOTE xls specific!
+                ob_value, dm_value = parse_ob(ob)
+                values[OBS] = ob_value
+                # the observation is not actually a number
+                # store it as a datamarker and nuke the observation field
+                if values[template.SH_Split_OBS] == '':
+                    values[template.SH_Split_OBS] = dm_value
+                elif dm_value:
+                    logging.warn("datamarker lost: {} on {!r}".format(dm_value, ob))
 
-        if values[TIMEUNIT] == '' and values[TIME] != '':
-            # we've not actually been given a timeunit, but we have a time
-            # determine the timeunit from the time
-            values[TIMEUNIT] = datematch(values[TIME])
+        if template.SH_Create_ONS_time:
+            if values[TIMEUNIT] == '' and values[TIME] != '':
+                # we've not actually been given a timeunit, but we have a time
+                # determine the timeunit from the time
+                values[TIMEUNIT] = datematch(values[TIME])
 
         for dimension in range(OBS, LAST_METADATA + 1):
             yield values[dimension]
-            if dimension in [TIME, STATPOP]:  # lets do the timewarp again
+            if dimension in template.SH_Repeat:         # Calls special handling - repeats
                 yield values[dimension]
-            for i in range(0, SKIP_AFTER[dimension]):
+            for i in range(0, template.SKIP_AFTER[dimension]):
                 yield ''
 
         for dimension in range(1, obj.table.max_header+1):
             name = obj.table.headernames[dimension]
             value = value_for_dimension(dimension)
-
-            # Eight yields per loop - they are the parameters of an ONS dimension:
-            yield name  # Dimension Id
-            yield name  # Dimension Label English
-            yield ''    # Dimension Label Welsh
-            yield value # Dimension Item Id
-            yield value # Dimension Item Label English
-            yield ''    # Dimension Item Label Welsh
-            yield ''    # Is Total
-            yield ''    # Is Subtotal
+            topic_headers = template.get_topic_headers(name, value)
+            for col in topic_headers:
+                yield col
 
 
 class Progress(object):
+    # creates a progress bar
     def __init__(self, max_count, prefix=None, msg="\r{}{:3d}% - [{}{}]"):
         self.last_percent = None
         self.max_count = max_count
@@ -278,6 +294,7 @@ def per_file(spreadsheet, recipe):
         csv_filename = Opt.csv_filename.format(spreadsheet=xls_base,
                                                recipe=recipe_base,
                                                params=parsed_params)
+
         csv_path = os.path.join(xls_directory, csv_filename)
 
         preview_filename = Opt.preview_filename.format(spreadsheet=xls_base,
@@ -353,32 +370,21 @@ def per_file(spreadsheet, recipe):
     if Opt.preview:
         writer.save(filenames()['preview'])
 
-"https://github.com/python-excel/xlwt/blob/master/xlwt/Style.py#L307"
+def create_colourlist():
+    # Function to dynamically assign colours to dimensions for preview
+    "https://github.com/python-excel/xlwt/blob/master/xlwt/Style.py#L309"
+    colours = ["lavender", "violet", "gray25", "sea_green",
+              "pale_blue", "blue", "gray25", "rose", "tan", "light_yellow", "light_green", "light_turquoise",
+              "light_blue", "sky_blue", "plum", "gold", "lime", "coral", "periwinkle", "ice_blue", "aqua"]
+    numbers = []
+    for i in range(len(template.dimension_names)-1, \
+                   -(len(colours) - len(template.dimension_names)), -1):
+        numbers.append(-i)
+    colourlist = dict(zip(numbers, colours))
+    return colourlist
+colourlist = create_colourlist()
 
-colourlist = {OBS: "lavender",
-              DATAMARKER: "violet",
-              STATUNIT: "gray25",
-              MEASURETYPE: "gray25",
-              UNITMULTIPLIER: "gray25",
-              UNITOFMEASURE: "gray25",
-              GEOG: "sea_green",
-              TIME: "pale_blue",
-              TIMEUNIT: "blue",
-              STATPOP: "gray25",
-              1: "rose",
-              2: "tan",
-              3: "light_yellow",
-              4: "light_green",
-              5: "light_turquoise",
-              6: "light_blue",
-              7: "sky_blue",
-              8: "plum",
-              9: "gold",
-              10: "lime",
-              11: "coral",
-              12: "periwinkle",
-              13: "ice_blue",
-              14: "aqua"}
+
 
 def main():
     global Opt

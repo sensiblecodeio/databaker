@@ -1,17 +1,16 @@
 from xypath import DOWN, UP, LEFT, RIGHT
 import bake
 from hamcrest import *
+import csv
 
-OBS = -9
-DATAMARKER = -8
-STATUNIT = -7
-MEASURETYPE = -6
-UNITMULTIPLIER = -5
-UNITOFMEASURE = -4
-GEOG = -3
-TIME = -2
-TIMEUNIT = -1
-STATPOP = 0
+# IF theres a custom template use it, Otherwise use the default.
+try:
+    from structure_csv_user import *
+    import structure_csv_user as template
+except ImportError:
+    from structure_csv_default import *
+    import structure_csv_default as template
+
 
 ABOVE = UP
 BELOW = DOWN
