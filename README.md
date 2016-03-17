@@ -1,4 +1,4 @@
-# databaker
-Excel Output Transformation language for the UK's Office of National Statistics. Documentation currently at http://scraperwiki.github.io/eot-docs/
+# ONSdatabaker
+databaker is an Excel Output Transformation language for the UK's Office of National Statistics. Documentation at http://scraperwiki.github.io/eot-docs/
 
-Branched from originally commissioned version to continue development.
+ONSdatabaker was branched from that originally commissioned version to continue development.
