@@ -4,6 +4,6 @@ python:
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
   - pip install setuptools --upgrade # fix for html5lib
-  - pip install nose docopt xypath>=1.0.12 xlutils pyhamcrest
+  - pip install -r requirements.txt
 # command to run tests, e.g. python setup.py test
 script:  nosetests
