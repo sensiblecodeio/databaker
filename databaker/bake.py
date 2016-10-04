@@ -19,8 +19,6 @@ import re
 import sys
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
-from timeit import default_timer as timer
-
 from docopt import docopt
 import xypath
 import xypath.loader
@@ -36,6 +34,8 @@ import richxlrd.richxlrd as richxlrd
 from datetime import datetime
 import string
 
+from utils import showtime, dim_name, datematch
+
 # If there's a custom template, use it. Otherwise use the default.
 try:
     import structure_csv_user as template
@@ -49,29 +49,8 @@ __version__ = "1.0.7"
 
 crash_msg = []
 
-def dim_name(dimension):
-    if isinstance(dimension, int) and dimension <= 0:
-        # the last dimension is dimension 0; but we index it as -1.
-        return template.dimension_names[dimension-1]
-    else:
-        return dimension
-
-# should agree with constants.py
-
 class DimensionError(Exception):
     pass
-
-start = timer()
-last = start
-showtime_enabled = True
-
-def showtime(msg='unspecified'):
-    if not showtime_enabled:
-        return
-    global last
-    t = timer()
-    print "{}: {:.3f}s,  {:.3f}s total".format(msg, t - last, t - start)
-    last = t
 
 def onexit():
     return showtime('exit')
@@ -85,27 +64,6 @@ def rewrite_headers(row,dims):
             if value_spread[which_cell_in_spread] == 'value':
                 row[i] = dims[which_dim]
     return row
-
-def datematch(date, silent=False):
-    """match mmm yyyy, mmm-mmm yyyy, yyyy Qn, yyyy"""
-    if not isinstance(date, basestring):
-        if isinstance(date, float) and date>=1000 and date<=9999 and int(date)==date:
-            return "Year"
-        if not silent:
-            warnings.warn("Couldn't identify date {!r}".format(date))
-        return ''
-    d = date.strip()
-    if re.match('\d{4}$', d):
-        return 'Year'
-    if re.match('\d{4} [Qq]\d$', d):
-        return 'Quarter'
-    if re.match('[A-Za-z]{3}-[A-Za-z]{3} \d{4}$', d):
-        return 'Quarter'
-    if re.match('[A-Za-z]{3} \d{4}$', d):
-        return 'Month'
-    if not silent:
-        warnings.warn("Couldn't identify date {!r}".format(date))
-    return ''
 
 def parse_ob(ob):
     if isinstance(ob.value, datetime):
@@ -387,7 +345,7 @@ colourlist = create_colourlist()
 
 def main():
     Opt = Options()
-    showtime_enabled = Opt.timing
+    utils.showtime_enabled = Opt.timing
     constants.constant_params = Opt.params
     atexit.register(onexit)
     recipe = imp.load_source("recipe", Opt.recipe_file)

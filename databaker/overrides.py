@@ -8,7 +8,7 @@ import warnings
 
 import xypath
 import messytables
-import bake
+import databaker.utils as utils
 
 unicode = type(u'')
 
@@ -170,7 +170,7 @@ def append_dimension(table, label, func):
         assert isinstance(label, int)
         number = label
     table.headers[number] = func
-    bake.showtime("got header {}".format(bake.dim_name(label)))
+    utils.showtime("got header {}".format(utils.dim_name(label)))
 xypath.Table.append_dimension = append_dimension
 
 def debug_dimensions(table):
@@ -201,7 +201,7 @@ def glue(bag, expand_function, join_function=None, blank=True):
 xypath.Bag.glue = glue
 
 def is_date(bag):
-    return bag.filter(lambda cell: bake.datematch(cell.value, silent=True))
+    return bag.filter(lambda cell: utils.datematch(cell.value, silent=True))
 xypath.Bag.is_date = is_date
 
 def is_number(bag):
