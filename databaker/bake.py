@@ -27,7 +27,6 @@ import xypath.loader
 from utf8csv import UnicodeWriter
 import os.path
 
-import bake
 from constants import *
 import overrides        # warning: changes xypath and messytables
 import warnings
