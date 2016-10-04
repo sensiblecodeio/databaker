@@ -13,28 +13,31 @@ Options:
 """
 
 import atexit
-import codecs
+
 import imp
 import re
-import sys
-sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
-
-from docopt import docopt
-import xypath
-import xypath.loader
-from utf8csv import UnicodeWriter
 import os.path
-
-from constants import *
-import overrides        # warning: changes xypath and messytables
+import string
 import warnings
+import sys
+import codecs
+sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
+from datetime import datetime
+
 import xlutils.copy
 import xlwt
-import richxlrd.richxlrd as richxlrd
-from datetime import datetime
-import string
+from docopt import docopt
 
-from utils import showtime, dim_name, datematch
+import xypath
+import xypath.loader
+
+from databaker.utf8csv import UnicodeWriter
+from databaker.constants import *
+import databaker.overrides as overrides       # warning: changes xypath and messytables
+import databaker.richxlrd.richxlrd as richxlrd
+from datetime import datetime
+
+from databaker.utils import showtime, dim_name, datematch
 
 # If there's a custom template, use it. Otherwise use the default.
 try:
@@ -198,7 +201,7 @@ class TechnicalCSV(object):
                 if values[template.SH_Split_OBS] == '':
                     values[template.SH_Split_OBS] = dm_value
                 elif dm_value:
-                    logging.warn("datamarker lost: {} on {!r}".format(dm_value, ob))
+                    warnings.warn("datamarker lost: {} on {!r}".format(dm_value, ob))
 
         if template.SH_Create_ONS_time:
             if values[TIMEUNIT] == '' and values[TIME] != '':
@@ -346,7 +349,7 @@ colourlist = create_colourlist()
 def main():
     Opt = Options()
     utils.showtime_enabled = Opt.timing
-    constants.constant_params = Opt.params
+    databaker.constants.constant_params = Opt.params
     atexit.register(onexit)
     recipe = imp.load_source("recipe", Opt.recipe_file)
     for fn in Opt.xls_files:
