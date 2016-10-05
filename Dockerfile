@@ -23,7 +23,7 @@ RUN pip3 install --user messytables
 RUN pip install --user xypath
 RUN pip3 install --user https://github.com/scraperwiki/xypath/archive/py3.zip
 RUN pip install --user pyhamcrest xlwt-future docopt mock manuel
-# RUN pip3 install --user pyhamcrest docopt xlwt-future mock manuel
+RUN pip3 install --user pyhamcrest docopt xlwt-future mock manuel
 COPY . /home/nobody/
 USER root
 RUN chown -R nobody /home/nobody 
