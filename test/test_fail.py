@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 import databaker.bake as bake
 import databaker.constants as constants
 import unittest

@@ -2,6 +2,7 @@
 Template/Options file for altering the structure of the .csv flatfile output.
 
 """
+from __future__ import division
 # = Standard Dimensions ========
 
 # Start = list of standard headers.

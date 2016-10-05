@@ -4,8 +4,7 @@ Usage:
     json2csv.py --ons <files>...
 """
 
-from __future__ import absolute_import
-from __future__ import print_function
+from __future__ import absolute_import, print_function, division
 from docopt import docopt
 import json
 import re

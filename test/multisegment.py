@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 import databaker.bake
 from databaker.constants import *
 from nose.tools import assert_equal

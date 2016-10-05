@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 from databaker.utf8csv import UnicodeWriter, UnicodeReader
 import subprocess
 

@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 from databaker.constants import *
 
 def per_file(tabs):

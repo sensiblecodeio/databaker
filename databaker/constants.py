@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 from xypath import DOWN, UP, LEFT, RIGHT
 from hamcrest import *
 import csv

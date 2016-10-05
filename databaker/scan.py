@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 dims = [14, 17, 38, 46, 54, 62, 70]
 
 from databaker.utf8csv import UnicodeReader
