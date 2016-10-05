@@ -26,3 +26,4 @@ COPY . /home/nobody/
 USER root
 RUN chown -R nobody /home/nobody 
 USER nobody
+RUN pip3 install --user --editable .
