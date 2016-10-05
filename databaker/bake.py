@@ -43,6 +43,7 @@ import databaker.richxlrd.richxlrd as richxlrd
 from datetime import datetime
 
 from databaker.utils import showtime, dim_name, datematch
+import databaker.utils
 
 # If there's a custom template, use it. Otherwise use the default.
 try:
@@ -353,7 +354,7 @@ colourlist = create_colourlist()
 
 def main():
     Opt = Options()
-    utils.showtime_enabled = Opt.timing
+    databaker.utils.showtime_enabled = Opt.timing
     databaker.constants.constant_params = Opt.params
     atexit.register(onexit)
     recipe = imp.load_source("recipe", Opt.recipe_file)
