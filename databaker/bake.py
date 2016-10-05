@@ -248,7 +248,7 @@ class Progress(object):
     def update(self, count):
         percent = (((count+1) * 100) // self.max_count)
         if percent != self.last_percent:
-            progress = percent // 5
+            progress = int(percent // 5)
             print(self.msg.format(self.prefix, percent, '='*progress, " "*(20-progress)), end=' ')
             sys.stdout.flush()
             self.last_percent = percent
