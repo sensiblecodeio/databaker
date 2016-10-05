@@ -9,7 +9,7 @@ from __future__ import print_function
 from docopt import docopt
 import json
 import re
-from .utf8csv import UnicodeWriter
+from databaker.utf8csv import UnicodeWriter
 
 ### options
 options = docopt(__doc__)
