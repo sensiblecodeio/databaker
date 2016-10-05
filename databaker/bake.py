@@ -67,7 +67,7 @@ def rewrite_headers(row,dims):
     for i in range(0,len(row)):
         if i >= len(template.start.split(',')):
             which_cell_in_spread = (i - len(template.start.split(','))) % len(template.value_spread)
-            which_dim = (i - len(template.start.split(','))) / len(template.value_spread)
+            which_dim = (i - len(template.start.split(','))) // len(template.value_spread)
             which_dim = int(which_dim)
             if value_spread[which_cell_in_spread] == 'value':
                 row[i] = dims[which_dim]
@@ -243,7 +243,7 @@ class Progress(object):
     def update(self, count):
         percent = (((count+1) * 100) // self.max_count)
         if percent != self.last_percent:
-            progress = percent / 5
+            progress = percent // 5
             print(self.msg.format(self.prefix, percent, '='*progress, " "*(20-progress)), end=' ')
             sys.stdout.flush()
             self.last_percent = percent
