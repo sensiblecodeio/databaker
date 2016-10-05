@@ -5,3 +5,6 @@ venv
 xypath
 .~lock*
 *.egg-info
+
+/test/t_out.xls
+/test/t_rich.xls
