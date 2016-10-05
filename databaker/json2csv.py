@@ -8,7 +8,7 @@ from __future__ import absolute_import, print_function, division
 from docopt import docopt
 import json
 import re
-from databaker.utf8csv import UnicodeWriter
+from utf8csv import UnicodeWriter
 
 ### options
 options = docopt(__doc__)

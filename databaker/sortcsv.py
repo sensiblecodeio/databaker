@@ -11,7 +11,7 @@ Options:
 
 from __future__ import absolute_import, division
 from docopt import docopt
-from databaker.utf8csv import UnicodeReader, UnicodeWriter
+from utf8csv import UnicodeReader, UnicodeWriter
 import re
 
 ### options
