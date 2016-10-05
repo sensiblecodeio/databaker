@@ -18,6 +18,7 @@ operations (so if we do .fill(RIGHT).fill(DOWN) a lot we can have
 .fill(RECTANGLE) or similar).
 """
 
+from __future__ import absolute_import
 from constants import *
 
 def per_file(tableset):

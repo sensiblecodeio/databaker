@@ -12,6 +12,8 @@ Options:
   --nolookuperrors      Dont output 'NoLookuperror' to final CSV.
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import atexit
 
 import imp
@@ -21,6 +23,9 @@ import string
 import warnings
 import sys
 import codecs
+import six
+from six.moves import range
+from six.moves import zip
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 from datetime import datetime
 
@@ -44,8 +49,8 @@ try:
     import structure_csv_user as template
     from structure_csv_user import *
 except ImportError:
-    import structure_csv_default as template
-    from structure_csv_default import *
+    from . import structure_csv_default as template
+    from .structure_csv_default import *
 
 
 __version__ = "1.0.7"
@@ -138,11 +143,11 @@ class TechnicalCSV(object):
 
     def output(self, row):
         def translator(s):
-            if not isinstance(s, basestring):
-                return unicode(s)
+            if not isinstance(s, six.string_types):
+                return six.text_type(s)
             # this is slow. We can't just use translate because some of the
             # strings are unicode. This adds 0.2 seconds to a 3.4 second run.
-            return unicode(s.replace('\n',' ').replace('\r', ' '))
+            return six.text_type(s.replace('\n',' ').replace('\r', ' '))
         self.csv_writer.writerow([translator(item) for item in row])
         self.row_count += 1
 
@@ -152,7 +157,7 @@ class TechnicalCSV(object):
             try:
                 cell = obj.table.headers.get(dimension, lambda _: None)(obj)
             except xypath.xypath.NoLookupError:
-                print "no lookup to dimension {} from cell {}".format(dim_name(dimension), repr(ob._cell))
+                print("no lookup to dimension {} from cell {}".format(dim_name(dimension), repr(ob._cell)))
                 if Opt.no_lookup_error:
                     cell = "NoLookupError"            # if user wants - output 'NoLookUpError' to CSV
                 else:
@@ -164,7 +169,7 @@ class TechnicalCSV(object):
             cell = cell_for_dimension(dimension)
             if cell is None:
                 value = ''
-            elif isinstance(cell, (basestring, float)):
+            elif isinstance(cell, (six.string_types, float)):
                 value = cell
             elif cell.properties['richtext']:
                 value = richxlrd.RichCell(cell.properties.cell.sheet, cell.y, cell.x).fragments.not_script.value
@@ -177,7 +182,7 @@ class TechnicalCSV(object):
            information for a single CSV row"""
         out = {}
         obj = ob._cell
-        keys = ob.table.headers.keys()
+        keys = list(ob.table.headers.keys())
 
 
         # Get fixed headers.
@@ -239,7 +244,7 @@ class Progress(object):
         percent = (((count+1) * 100) // self.max_count)
         if percent != self.last_percent:
             progress = percent / 5
-            print self.msg.format(self.prefix, percent, '='*progress, " "*(20-progress)),
+            print(self.msg.format(self.prefix, percent, '='*progress, " "*(20-progress)), end=' ')
             sys.stdout.flush()
             self.last_percent = percent
 
@@ -284,7 +289,7 @@ def per_file(spreadsheet, recipe, opt):
         csv = TechnicalCSV(csv_file)
     tabs = list(xypath.loader.get_sheets(tableset, recipe.per_file(tableset)))
     if not tabs:
-        print "No matching tabs found."
+        print("No matching tabs found.")
         exit(1)
     for tab_num, tab in enumerate(tabs):
         try:
@@ -296,7 +301,7 @@ def per_file(spreadsheet, recipe, opt):
             for seg_id, segment in enumerate(pertab):
                 try:
                     if opt.debug:
-                        print "tab and segment available for interrogation"
+                        print("tab and segment available for interrogation")
                         import pdb; pdb.set_trace()
 
                     if opt.preview:
@@ -312,7 +317,7 @@ def per_file(spreadsheet, recipe, opt):
                                 crash_msg.append("ob: {!r}".format(ob))
                                 raise
                             progress.update(ob_num)
-                        print
+                        print()
                     # hacky observation wiping
                     tab.headers = {}
                     tab.max_header = 0
@@ -340,7 +345,7 @@ def create_colourlist():
     for i in range(len(template.dimension_names)-1, \
                    -(len(colours) - len(template.dimension_names)), -1):
         numbers.append(-i)
-    colourlist = dict(zip(numbers, colours))
+    colourlist = dict(list(zip(numbers, colours)))
     return colourlist
 colourlist = create_colourlist()
 
@@ -358,9 +363,9 @@ def main():
         except Exception:
             crash_msg.append("fn: {!r}".format(fn))
             crash_msg.append("recipe: {!r}".format(Opt.recipe_file))
-            print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-            print '\n'.join(crash_msg)
-            print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+            print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+            print('\n'.join(crash_msg))
+            print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
             raise
 
 if __name__ == '__main__':

@@ -9,8 +9,9 @@ Options:
     --footer         Remove last row and replace
 """
 
+from __future__ import absolute_import
 from docopt import docopt
-from utf8csv import UnicodeReader, UnicodeWriter
+from .utf8csv import UnicodeReader, UnicodeWriter
 import re
 
 ### options

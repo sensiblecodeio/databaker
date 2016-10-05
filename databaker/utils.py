@@ -1,18 +1,21 @@
+from __future__ import absolute_import
+from __future__ import print_function
 from timeit import default_timer as timer
 import re
 import warnings
+import six
 
 # If there's a custom template, use it. Otherwise use the default.
 try:
     import structure_csv_user as template
     from structure_csv_user import *
 except ImportError:
-    import structure_csv_default as template
-    from structure_csv_default import *
+    from . import structure_csv_default as template
+    from .structure_csv_default import *
 
 def datematch(date, silent=False):
     """match mmm yyyy, mmm-mmm yyyy, yyyy Qn, yyyy"""
-    if not isinstance(date, basestring):
+    if not isinstance(date, six.string_types):
         if isinstance(date, float) and date>=1000 and date<=9999 and int(date)==date:
             return "Year"
         if not silent:
@@ -48,5 +51,5 @@ def showtime(msg='unspecified'):
         return
     global last
     t = timer()
-    print "{}: {:.3f}s,  {:.3f}s total".format(msg, t - last, t - start)
+    print("{}: {:.3f}s,  {:.3f}s total".format(msg, t - last, t - start))
     last = t

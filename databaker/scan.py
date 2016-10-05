@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 dims = [14, 17, 38, 46, 54, 62, 70]
 
-from utf8csv import UnicodeReader
+from .utf8csv import UnicodeReader
 
 seen = set()
 with open('out.csv', 'r') as f:

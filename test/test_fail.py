@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import databaker.bake as bake
 import databaker.constants as constants
 import unittest

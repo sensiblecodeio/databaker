@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from xypath import DOWN, UP, LEFT, RIGHT
 from hamcrest import *
 import csv
@@ -7,8 +8,8 @@ try:
     from structure_csv_user import *
     import structure_csv_user as template
 except ImportError:
-    from structure_csv_default import *
-    import structure_csv_default as template
+    from .structure_csv_default import *
+    from . import structure_csv_default as template
 
 
 ABOVE = UP

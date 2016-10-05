@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import databaker.bake
 from nose.tools import assert_equal
 def per_file(tabs):

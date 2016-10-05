@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from databaker.utf8csv import UnicodeWriter, UnicodeReader
 import subprocess
 

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import xlrd
 
 "Horrid workaround! Can get 'no' every time from LibreOffice xls"
@@ -70,7 +71,7 @@ class Fragments(list):
             sense = False
             word = v[4:]
         else:
-            raise AttributeError, "{!r} object has no attribute {!r}".format(self.__class__.__name__, v)
+            raise AttributeError("{!r} object has no attribute {!r}".format(self.__class__.__name__, v))
         if word in ['bold']:
             word = '_' + word
         return Fragments(frag for frag in self if bool(getattr(frag.font, word)) == sense)

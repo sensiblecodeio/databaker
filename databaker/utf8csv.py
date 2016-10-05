@@ -1,4 +1,6 @@
+from __future__ import absolute_import
 import csv, codecs, cStringIO
+import six
 
 class UTF8Recoder:
     """
@@ -24,8 +26,8 @@ class UnicodeReader:
         self.reader = csv.reader(f, dialect=dialect, **kwds)
 
     def next(self):
-        row = self.reader.next()
-        return [unicode(s, "utf-8") for s in row]
+        row = next(self.reader)
+        return [six.text_type(s, "utf-8") for s in row]
 
     def __iter__(self):
         return self
