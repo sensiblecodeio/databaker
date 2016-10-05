@@ -21,7 +21,7 @@ WORKDIR /home/nobody
 RUN pip install --user messytables xlutils xypath
 RUN pip3 install --user messytables xlutils xypath
 RUN pip install --user pyhamcrest xlwt-future docopt mock manuel
-RUN pip3 install --user pyhamcrest docopt xlwt-future mock manuel
+RUN pip3 install --user pyhamcrest xlwt-future docopt mock manuel
 COPY . /home/nobody/
 USER root
 RUN chown -R nobody /home/nobody 
