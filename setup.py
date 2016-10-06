@@ -8,7 +8,7 @@ Transform Excel spreadsheets
 
 conf = dict(
     name='databaker',
-    version='1.0.7',
+    version='1.1.0',
     description="DataBaker, part of QuickCode for ONS",
     long_description=long_desc,
     classifiers=[
