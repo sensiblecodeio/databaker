@@ -23,7 +23,7 @@ conf = dict(
     keywords='',
     author='The Sensible Code Company Ltd',
     author_email='feedback@sensiblecode.io',
-    url='http://github.com/scraperwiki/databaker',
+    url='https://github.com/sensiblecodeio/databaker',
     license='AGPL',
     packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
     namespace_packages=[],
