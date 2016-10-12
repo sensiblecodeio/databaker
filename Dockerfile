@@ -18,13 +18,12 @@ ENV HOME=/home/nobody \
     LANG=en_GB.UTF-8
 # LANG needed for httpretty install on Py3
 WORKDIR /home/nobody
-RUN pip install --user messytables xlutils
-RUN pip3 install --user messytables
-RUN pip install --user xypath
-RUN pip3 install --user https://github.com/scraperwiki/xypath/archive/py3.zip
+RUN pip install --user messytables xlutils xypath
+RUN pip3 install --user messytables xlutils xypath
 RUN pip install --user pyhamcrest xlwt-future docopt mock manuel
-# RUN pip3 install --user pyhamcrest docopt xlwt-future mock manuel
+RUN pip3 install --user pyhamcrest xlwt-future docopt mock manuel
 COPY . /home/nobody/
 USER root
 RUN chown -R nobody /home/nobody 
 USER nobody
+RUN pip3 install --user --editable .

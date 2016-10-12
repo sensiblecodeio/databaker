@@ -12,101 +12,67 @@ Options:
   --nolookuperrors      Dont output 'NoLookuperror' to final CSV.
 """
 
+from __future__ import absolute_import, division, print_function
 import atexit
-import codecs
+
 import imp
 import re
-import sys
-sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
-
-from timeit import default_timer as timer
-
-from docopt import docopt
-import xypath
-import xypath.loader
-from utf8csv import UnicodeWriter
 import os.path
-
-import bake
-from constants import *
-import overrides        # warning: changes xypath and messytables
+import string
 import warnings
+import sys
+import codecs
+import six
+from six.moves import range
+from six.moves import zip
+if six.PY2:
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
+from datetime import datetime
+
 import xlutils.copy
 import xlwt
-import richxlrd.richxlrd as richxlrd
+from docopt import docopt
+
+import xypath
+import xypath.loader
+
+from databaker.utf8csv import UnicodeWriter
+from databaker.constants import *
+import databaker.overrides as overrides       # warning: changes xypath and messytables
+import databaker.richxlrd.richxlrd as richxlrd
 from datetime import datetime
-import string
+
+from databaker.utils import showtime, dim_name, datematch
+import databaker.utils
 
 # If there's a custom template, use it. Otherwise use the default.
 try:
     import structure_csv_user as template
     from structure_csv_user import *
 except ImportError:
-    import structure_csv_default as template
-    from structure_csv_default import *
+    from . import structure_csv_default as template
+    from .structure_csv_default import *
 
 
-__version__ = "1.0.7"
-Opt = None
+__version__ = "1.1.0"
+
 crash_msg = []
-
-def dim_name(dimension):
-    if isinstance(dimension, int) and dimension <= 0:
-        # the last dimension is dimension 0; but we index it as -1.
-        return template.dimension_names[dimension-1]
-    else:
-        return dimension
-
-# should agree with constants.py
 
 class DimensionError(Exception):
     pass
 
-
-def showtime(msg='unspecified'):
-    if not Opt.timing:
-        return
-    global last
-    t = timer()
-    print "{}: {:.3f}s,  {:.3f}s total".format(msg, t - last, t - start)
-    last = t
-
 def onexit():
     return showtime('exit')
-
-start = timer()
-last = start
 
 def rewrite_headers(row,dims):
     for i in range(0,len(row)):
         if i >= len(template.start.split(',')):
             which_cell_in_spread = (i - len(template.start.split(','))) % len(template.value_spread)
-            which_dim = (i - len(template.start.split(','))) / len(template.value_spread)
+            which_dim = (i - len(template.start.split(','))) // len(template.value_spread)
             which_dim = int(which_dim)
             if value_spread[which_cell_in_spread] == 'value':
                 row[i] = dims[which_dim]
     return row
-
-def datematch(date, silent=False):
-    """match mmm yyyy, mmm-mmm yyyy, yyyy Qn, yyyy"""
-    if not isinstance(date, basestring):
-        if isinstance(date, float) and date>=1000 and date<=9999 and int(date)==date:
-            return "Year"
-        if not silent:
-            warnings.warn("Couldn't identify date {!r}".format(date))
-        return ''
-    d = date.strip()
-    if re.match('\d{4}$', d):
-        return 'Year'
-    if re.match('\d{4} [Qq]\d$', d):
-        return 'Quarter'
-    if re.match('[A-Za-z]{3}-[A-Za-z]{3} \d{4}$', d):
-        return 'Quarter'
-    if re.match('[A-Za-z]{3} \d{4}$', d):
-        return 'Month'
-    if not silent:
-        warnings.warn("Couldn't identify date {!r}".format(date))
-    return ''
 
 def parse_ob(ob):
     if isinstance(ob.value, datetime):
@@ -139,7 +105,11 @@ class Options(object):
 
 class TechnicalCSV(object):
     def __init__(self, filename):
-        self.filehandle = open(filename, "wb")
+        if six.PY2:
+            mode = "wb"
+        else:
+            mode = "w"
+        self.filehandle = open(filename, mode)
         self.csv_writer = UnicodeWriter(self.filehandle)
         self.row_count = 0
         self.header_dimensions = None
@@ -178,11 +148,11 @@ class TechnicalCSV(object):
 
     def output(self, row):
         def translator(s):
-            if not isinstance(s, basestring):
-                return unicode(s)
+            if not isinstance(s, six.string_types):
+                return six.text_type(s)
             # this is slow. We can't just use translate because some of the
             # strings are unicode. This adds 0.2 seconds to a 3.4 second run.
-            return unicode(s.replace('\n',' ').replace('\r', ' '))
+            return six.text_type(s.replace('\n',' ').replace('\r', ' '))
         self.csv_writer.writerow([translator(item) for item in row])
         self.row_count += 1
 
@@ -192,11 +162,8 @@ class TechnicalCSV(object):
             try:
                 cell = obj.table.headers.get(dimension, lambda _: None)(obj)
             except xypath.xypath.NoLookupError:
-                print "no lookup to dimension {} from cell {}".format(dim_name(dimension), repr(ob._cell))
-                if Opt.no_lookup_error:
-                    cell = "NoLookupError"            # if user wants - output 'NoLookUpError' to CSV
-                else:
-                    cell = ''                         # Otherwise output a blanks
+                print("no lookup to dimension {} from cell {}".format(dim_name(dimension), repr(ob._cell)))
+                cell = "NoLookupError"            # if user wants - output 'NoLookUpError' to CSV
             return cell
 
         def value_for_dimension(dimension):
@@ -204,7 +171,7 @@ class TechnicalCSV(object):
             cell = cell_for_dimension(dimension)
             if cell is None:
                 value = ''
-            elif isinstance(cell, (basestring, float)):
+            elif isinstance(cell, (six.string_types, float)):
                 value = cell
             elif cell.properties['richtext']:
                 value = richxlrd.RichCell(cell.properties.cell.sheet, cell.y, cell.x).fragments.not_script.value
@@ -217,7 +184,7 @@ class TechnicalCSV(object):
            information for a single CSV row"""
         out = {}
         obj = ob._cell
-        keys = ob.table.headers.keys()
+        keys = list(ob.table.headers.keys())
 
 
         # Get fixed headers.
@@ -241,7 +208,7 @@ class TechnicalCSV(object):
                 if values[template.SH_Split_OBS] == '':
                     values[template.SH_Split_OBS] = dm_value
                 elif dm_value:
-                    logging.warn("datamarker lost: {} on {!r}".format(dm_value, ob))
+                    warnings.warn("datamarker lost: {} on {!r}".format(dm_value, ob))
 
         if template.SH_Create_ONS_time:
             if values[TIMEUNIT] == '' and values[TIME] != '':
@@ -278,26 +245,26 @@ class Progress(object):
     def update(self, count):
         percent = (((count+1) * 100) // self.max_count)
         if percent != self.last_percent:
-            progress = percent / 5
-            print self.msg.format(self.prefix, percent, '='*progress, " "*(20-progress)),
+            progress = int(percent // 5)
+            print(self.msg.format(self.prefix, percent, '='*progress, " "*(20-progress)), end=' ')
             sys.stdout.flush()
             self.last_percent = percent
 
-def per_file(spreadsheet, recipe):
+def per_file(spreadsheet, recipe, opt):
     def filenames():
         get_base = lambda filename: os.path.splitext(os.path.basename(filename))[0]
         xls_directory = os.path.dirname(spreadsheet)
         xls_base = get_base(spreadsheet)
-        recipe_base = get_base(Opt.recipe_file)
-        parsed_params = ','.join(Opt.params)
+        recipe_base = get_base(opt.recipe_file)
+        parsed_params = ','.join(opt.params)
 
-        csv_filename = Opt.csv_filename.format(spreadsheet=xls_base,
+        csv_filename = opt.csv_filename.format(spreadsheet=xls_base,
                                                recipe=recipe_base,
                                                params=parsed_params)
 
         csv_path = os.path.join(xls_directory, csv_filename)
 
-        preview_filename = Opt.preview_filename.format(spreadsheet=xls_base,
+        preview_filename = opt.preview_filename.format(spreadsheet=xls_base,
                                                        recipe=recipe_base,
                                                        params=parsed_params)
         preview_path = os.path.join(xls_directory, preview_filename)
@@ -317,14 +284,14 @@ def per_file(spreadsheet, recipe):
 
     tableset = xypath.loader.table_set(spreadsheet, extension='xls')
     showtime("file {!r} imported".format(spreadsheet))
-    if Opt.preview:
+    if opt.preview:
         writer = xlutils.copy.copy(tableset.workbook)
-    if Opt.csv:
+    if opt.csv:
         csv_file = filenames()['csv']
         csv = TechnicalCSV(csv_file)
     tabs = list(xypath.loader.get_sheets(tableset, recipe.per_file(tableset)))
     if not tabs:
-        print "No matching tabs found."
+        print("No matching tabs found.")
         exit(1)
     for tab_num, tab in enumerate(tabs):
         try:
@@ -335,14 +302,14 @@ def per_file(spreadsheet, recipe):
 
             for seg_id, segment in enumerate(pertab):
                 try:
-                    if Opt.debug:
-                        print "tab and segment available for interrogation"
+                    if opt.debug:
+                        print("tab and segment available for interrogation")
                         import pdb; pdb.set_trace()
 
-                    if Opt.preview:
+                    if opt.preview:
                         make_preview()
 
-                    if Opt.csv:
+                    if opt.csv:
                         obs_count = len(segment)
                         progress = Progress(obs_count, 'Tab {}'.format(tab_num + 1))
                         for ob_num, ob in enumerate(segment):  # TODO use const
@@ -352,7 +319,7 @@ def per_file(spreadsheet, recipe):
                                 crash_msg.append("ob: {!r}".format(ob))
                                 raise
                             progress.update(ob_num)
-                        print
+                        print()
                     # hacky observation wiping
                     tab.headers = {}
                     tab.max_header = 0
@@ -365,9 +332,9 @@ def per_file(spreadsheet, recipe):
             raise
 
 
-    if Opt.csv:
+    if opt.csv:
         csv.footer()
-    if Opt.preview:
+    if opt.preview:
         writer.save(filenames()['preview'])
 
 def create_colourlist():
@@ -380,26 +347,27 @@ def create_colourlist():
     for i in range(len(template.dimension_names)-1, \
                    -(len(colours) - len(template.dimension_names)), -1):
         numbers.append(-i)
-    colourlist = dict(zip(numbers, colours))
+    colourlist = dict(list(zip(numbers, colours)))
     return colourlist
 colourlist = create_colourlist()
 
 
 
 def main():
-    global Opt
     Opt = Options()
+    databaker.utils.showtime_enabled = Opt.timing
+    databaker.constants.constant_params = Opt.params
     atexit.register(onexit)
     recipe = imp.load_source("recipe", Opt.recipe_file)
     for fn in Opt.xls_files:
         try:
-            per_file(fn, recipe)
+            per_file(fn, recipe, Opt)
         except Exception:
             crash_msg.append("fn: {!r}".format(fn))
             crash_msg.append("recipe: {!r}".format(Opt.recipe_file))
-            print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-            print '\n'.join(crash_msg)
-            print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+            print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+            print('\n'.join(crash_msg))
+            print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
             raise
 
 if __name__ == '__main__':

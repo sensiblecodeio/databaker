@@ -1,7 +1,9 @@
+from __future__ import absolute_import, print_function, division
 import re
 from databaker.constants import *
 import databaker.bake
 from nose.tools import assert_equal
+from six.moves import zip
 
 def per_file(tabs):
     return "Table 2b"
@@ -23,5 +25,5 @@ def per_tab(tab):
     for cell in alls:
         assert cell == tab.get_at(cell.x, cell.y)
 
-    print alls
+    print(alls)
     return alls.waffle(year)

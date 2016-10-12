@@ -1,5 +1,5 @@
+from __future__ import absolute_import, division
 from xypath import DOWN, UP, LEFT, RIGHT
-import bake
 from hamcrest import *
 import csv
 
@@ -8,8 +8,8 @@ try:
     from structure_csv_user import *
     import structure_csv_user as template
 except ImportError:
-    from structure_csv_default import *
-    import structure_csv_default as template
+    from .structure_csv_default import *
+    from . import structure_csv_default as template
 
 
 ABOVE = UP
@@ -18,14 +18,16 @@ BELOW = DOWN
 DIRECTLY = True
 CLOSEST = False
 
+constant_params = [] # Overridden in main().
+
 class NotEnoughParams(Exception):
     pass
 
 def PARAMS(position=None):
     if position is None:
-        return bake.Opt.params
+        return constant_params
     else:
         try:
-            return bake.Opt.params[position]
+            return constant_params[position]
         except IndexError:
-            raise NotEnoughParams("Unable to find PARAM({!r}). Only {!r} parameters were passed on the command line: {!r}".format(position, len(bake.Opt.params), bake.Opt.params))
+            raise NotEnoughParams("Unable to find PARAM({!r}). Only {!r} parameters were passed on the command line: {!r}".format(position, len(constant_params), constant_params))

@@ -2,15 +2,18 @@
 Patches xypath and messytables.
 """
 
+from __future__ import absolute_import, division
 import re
 import datetime
 import warnings
 
 import xypath
 import messytables
-import bake
+import databaker.utils as utils
+import six
+from six.moves import range
 
-unicode = type(u'')
+six.text_type = type(u'')
 
 class MatchNotFound(Exception):
     """failed to find match in bag.group"""
@@ -21,17 +24,17 @@ def string_cell_value(cell):
     # might not all be needed
     if cell is None:
         value = ''
-    elif isinstance(cell, (str, unicode)):
-        value = unicode(cell)
+    elif isinstance(cell, (str, six.text_type)):
+        value = six.text_type(cell)
     elif isinstance(cell, float):
         if int(cell) == cell:
             value = str(int(cell))
         else:
             value = str(cell)
     elif cell.properties['richtext']:
-        import richxlrd
+        from . import richxlrd
         value = richxlrd.RichCell(cell.properties.cell.sheet, cell.y, cell.x).fragments.not_script.value
-    elif isinstance(cell.value, (str, unicode, float)):
+    elif isinstance(cell.value, (str, six.text_type, float)):
         value = string_cell_value(cell.value)
     else:
         raise NotImplementedError("Tried to stringify {!r}, a {}".format(cell.value, type(cell.value)))
@@ -56,7 +59,7 @@ class Dimension(object):
             self.join_function = join_function
         self.bag = bag
         self.direction = direction  # direction
-        if isinstance(param1, basestring):
+        if isinstance(param1, six.string_types):
             self.strict = None
             self.string = param1
             self.subdim = []
@@ -96,7 +99,8 @@ xypath.Bag.subdim = subdim
 
 def text_date(cell):
     xls_format = cell.properties['formatting_string'].upper()
-    quarter = int((cell.value.month -1 ) / 3) + 1  # TODO testme!
+    quarter = int((cell.value.month -1 ) // 3) + 1  # TODO testme!
+    print("quarter" + str(quarter))
     if 'Q' in xls_format:
         py_format = "%Y Q{quarter}"
     elif 'D' in xls_format:
@@ -145,14 +149,14 @@ def excel_ref(table, reference):
         ((left, top), (right, bottom)) = xypath.contrib.excel.excel_range(reference)
         bag = xypath.Bag(table=table)
         if top is None and bottom is None:
-            for col in xrange(left, right + 1):
+            for col in range(left, right + 1):
                 bag = bag | table.get_at(col, None)
         elif left is None and right is None:
-            for row in xrange(top, bottom + 1):
+            for row in range(top, bottom + 1):
                 bag = bag | table.get_at(None, row)
         else:
-            for row in xrange(top, bottom + 1):
-                for col in xrange(left, right + 1):
+            for row in range(top, bottom + 1):
+                for col in range(left, right + 1):
                     bag = bag | table.get_at(col, row)
         return bag
 xypath.Table.excel_ref = excel_ref
@@ -162,7 +166,7 @@ def append_dimension(table, label, func):
         table.headers = {}
         table.max_header = 0
         table.headernames = [None]
-    if isinstance(label, basestring):
+    if isinstance(label, six.string_types):
         table.max_header += 1
         number = table.max_header
         table.headernames.append(label)
@@ -170,7 +174,7 @@ def append_dimension(table, label, func):
         assert isinstance(label, int)
         number = label
     table.headers[number] = func
-    bake.showtime("got header {}".format(bake.dim_name(label)))
+    utils.showtime("got header {}".format(utils.dim_name(label)))
 xypath.Table.append_dimension = append_dimension
 
 def debug_dimensions(table):
@@ -201,11 +205,11 @@ def glue(bag, expand_function, join_function=None, blank=True):
 xypath.Bag.glue = glue
 
 def is_date(bag):
-    return bag.filter(lambda cell: bake.datematch(cell.value, silent=True))
+    return bag.filter(lambda cell: utils.datematch(cell.value, silent=True))
 xypath.Bag.is_date = is_date
 
 def is_number(bag):
-    return bag.filter(lambda cell: isinstance(cell.value, (int, float, long)))
+    return bag.filter(lambda cell: isinstance(cell.value, (int, float, int)))
 xypath.Bag.is_number = is_number
 
 def group(bag, regex):
@@ -243,8 +247,8 @@ def children(bag):
     outputbag = xypath.Bag(table=bag.table)
     for parent in bag:
         top, bottom, left, right = parent.properties.raw_span(always=True)
-        for row in xrange(top, bottom + 1):
-            for col in xrange(left, right + 1):
+        for row in range(top, bottom + 1):
+            for col in range(left, right + 1):
                 outputbag = outputbag | bag.table.get_at(col, row)
     return outputbag
 xypath.Bag.children = children
@@ -261,12 +265,12 @@ xypath.Bag.spaceprefix = spaceprefix
 
 def is_whitespace(bag):
     """filter: cells which do not contain printable characters"""
-    return bag.filter(lambda cell: not unicode(cell.value).strip())
+    return bag.filter(lambda cell: not six.text_type(cell.value).strip())
 xypath.Bag.is_whitespace = is_whitespace
 
 def is_not_whitespace(bag):
     """filter: cells which do contain printable characters"""
-    return bag.filter(lambda cell: unicode(cell.value).strip())
+    return bag.filter(lambda cell: six.text_type(cell.value).strip())
 xypath.Bag.is_not_whitespace = is_not_whitespace
 
 def by_index(bag, items):

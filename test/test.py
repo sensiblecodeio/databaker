@@ -1,8 +1,10 @@
+from __future__ import absolute_import, print_function, division
 import databaker.bake as bake
 import unittest
 import warnings
 import imp
 from databaker.utf8csv import UnicodeReader
+from six.moves import zip
 
 warnings.simplefilter("ignore")
 
@@ -29,10 +31,10 @@ class datematch(unittest.TestCase):
 
 class subdim(unittest.TestCase):
     def test_subdim(self):
-        bake.Opt = Options(recipe='subdim_recipe.py', xls='glue.xls')
-        recipe = imp.load_source("recipe", bake.Opt.recipe_file)
-        for fn in bake.Opt.xls_files:
-            bake.per_file(fn, recipe)
+        Opt = Options(recipe='subdim_recipe.py', xls='glue.xls')
+        recipe = imp.load_source("recipe", Opt.recipe_file)
+        for fn in Opt.xls_files:
+            bake.per_file(fn, recipe, Opt)
         with open("test/t_out.csv") as f:
             for row in UnicodeReader(f):
                 if '- Q1 1997' in row:
@@ -41,10 +43,10 @@ class subdim(unittest.TestCase):
 
 class subdim(unittest.TestCase):
     def test_subdim(self):
-        bake.Opt = Options(recipe='glue_recipe.py', xls='glue.xls')
-        recipe = imp.load_source("recipe", bake.Opt.recipe_file)
-        for fn in bake.Opt.xls_files:
-            bake.per_file(fn, recipe)
+        Opt = Options(recipe='glue_recipe.py', xls='glue.xls')
+        recipe = imp.load_source("recipe", Opt.recipe_file)
+        for fn in Opt.xls_files:
+            bake.per_file(fn, recipe, Opt)
         with open("test/t_out.csv") as f:
             for row in UnicodeReader(f):
                 if row[0] == "8828.0":
@@ -55,24 +57,24 @@ class subdim(unittest.TestCase):
 
 class no_tab_run(unittest.TestCase):
     def test_normal(self):
-        bake.Opt = Options(recipe='bail.py', xls='t.xls')
-        recipe = imp.load_source("recipe", bake.Opt.recipe_file)
+        Opt = Options(recipe='bail.py', xls='t.xls')
+        recipe = imp.load_source("recipe", Opt.recipe_file)
         try:
-            for fn in bake.Opt.xls_files:
-                bake.per_file(fn, recipe)
+            for fn in Opt.xls_files:
+                bake.per_file(fn, recipe, Opt)
         except SystemExit:
             pass
         else:
-            raise Exception, "Should have been System Exit"
+            raise Exception("Should have been System Exit")
 
 class super_sub_script(unittest.TestCase):
     def test_header(self):
         with open("test/t_out.csv", "w") as f:
             f.write('blat')
-        bake.Opt = Options(recipe="supersub.py", xls="supersub.xls")
-        recipe = imp.load_source("recipe", bake.Opt.recipe_file)
-        for fn in bake.Opt.xls_files:
-            bake.per_file(fn, recipe)
+        Opt = Options(recipe="supersub.py", xls="supersub.xls")
+        recipe = imp.load_source("recipe", Opt.recipe_file)
+        for fn in Opt.xls_files:
+            bake.per_file(fn, recipe, Opt)
         with open("test/t_out.csv") as f:
             raw = list(UnicodeReader(f))
             assert "OB" in raw[1]
@@ -81,18 +83,18 @@ class super_sub_script(unittest.TestCase):
 
 class normal_run(unittest.TestCase):
     def test_normal(self):
-        bake.Opt = Options(recipe='t.py', xls='t.xls')
-        recipe = imp.load_source("recipe", bake.Opt.recipe_file)
-        for fn in bake.Opt.xls_files:
-            bake.per_file(fn, recipe)
+        Opt = Options(recipe='t.py', xls='t.xls')
+        recipe = imp.load_source("recipe", Opt.recipe_file)
+        for fn in Opt.xls_files:
+            bake.per_file(fn, recipe, Opt)
         with open("test/t_out.csv") as f:
             raw = list(UnicodeReader(f))
         self.assertEqual(raw[0][0], 'observation')
         self.assertEqual(raw[-1][0], '*'*9)
         self.assertEqual(raw[-1][1], '9')
-        data = zip(*raw[1:-1])  # transpose
+        data = list(zip(*raw[1:-1]))  # transpose
         setdata = [set(x) for x in data]
-        print list(enumerate(setdata))
+        print(list(enumerate(setdata)))
         self.assertEqual(set([u'', '4']), setdata[0])
         assert '(d)' in setdata[1]
 
@@ -109,9 +111,9 @@ class normal_run(unittest.TestCase):
         self.assertEqual(setdata[38+8+8], set(["Sheet1"]))
 
     def test_parse_ob(self):
-        bake.Opt = Options(recipe='obs.py', xls='rich.xls')
-        recipe = imp.load_source("recipe", bake.Opt.recipe_file)
-        bake.Opt.preview_filename = "t_rich.xls"
-        bake.Opt.csv_filename = "t_rich.csv"
-        for fn in bake.Opt.xls_files:
-            bake.per_file(fn, recipe)
+        Opt = Options(recipe='obs.py', xls='rich.xls')
+        recipe = imp.load_source("recipe", Opt.recipe_file)
+        Opt.preview_filename = "t_rich.xls"
+        Opt.csv_filename = "t_rich.csv"
+        for fn in Opt.xls_files:
+            bake.per_file(fn, recipe, Opt)

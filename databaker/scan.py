@@ -1,3 +1,4 @@
+from __future__ import absolute_import, division
 dims = [14, 17, 38, 46, 54, 62, 70]
 
 from utf8csv import UnicodeReader
