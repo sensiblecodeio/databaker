@@ -100,6 +100,7 @@ xypath.Bag.subdim = subdim
 def text_date(cell):
     xls_format = cell.properties['formatting_string'].upper()
     quarter = int((cell.value.month -1 ) // 3) + 1  # TODO testme!
+    print("quarter" + str(quarter))
     if 'Q' in xls_format:
         py_format = "%Y Q{quarter}"
     elif 'D' in xls_format:
