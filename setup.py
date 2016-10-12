@@ -13,8 +13,12 @@ conf = dict(
     long_description=long_desc,
     classifiers=[
         "Development Status :: 3 - Alpha",
-        "Programming Language :: Python",
         "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+        "Operating System :: POSIX :: Linux",
+        "Operating System :: Microsoft :: Windows",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
     ],
     keywords='',
     author='The Sensible Code Company Ltd',
