@@ -125,32 +125,32 @@ class TechnicalCSV(object):
         self.csv_writer.writerow([translator(item) for item in row])
         self.row_count += 1
 
-    def get_dimensions_for_ob(self, ob):
-        def cell_for_dimension(dimension):
-            # implicit: obj
-            try:
-                cell = obj.table.headers.get(dimension, lambda _: None)(obj)
-            except xypath.xypath.NoLookupError:
-                print("no lookup to dimension {} from cell {}".format(dim_name(dimension), repr(ob._cell)))
-                if self.no_lookup-error:
-                    cell = "NoLookupError"            # if user wants - output 'NoLookUpError' to CSV
-                else:
-                    cell = "" # Otherwise output a blank cell.
-            return cell
-
-        def value_for_dimension(dimension):
-            # implicit: obj
-            cell = cell_for_dimension(dimension)
-            if cell is None:
-                value = ''
-            elif isinstance(cell, (six.string_types, float)):
-                value = cell
-            elif cell.properties['richtext']:
-                value = richxlrd.RichCell(cell.properties.cell.sheet, cell.y, cell.x).fragments.not_script.value
+    def cell_for_dimension(self, obj, dimension):
+        # implicit: obj
+        try:
+            cell = obj.table.headers.get(dimension, lambda _: None)(obj)
+        except xypath.xypath.NoLookupError:
+            print("no lookup to dimension {} from cell {}".format(dim_name(dimension), repr(ob._cell)))
+            if self.no_lookup-error:
+                cell = "NoLookupError"            # if user wants - output 'NoLookUpError' to CSV
             else:
-                value = cell.value
-            return value
+                cell = "" # Otherwise output a blank cell.
+        return cell
 
+    def value_for_dimension(self, obj, dimension):
+        # implicit: obj
+        cell = self.cell_for_dimension(obj, dimension)
+        if cell is None:
+            value = ''
+        elif isinstance(cell, (six.string_types, float)):
+            value = cell
+        elif cell.properties['richtext']:
+            value = richxlrd.RichCell(cell.properties.cell.sheet, cell.y, cell.x).fragments.not_script.value
+        else:
+            value = cell.value
+        return value
+
+    def get_dimensions_for_ob(self, ob):
         # TODO not really 'self'y
         """For a single observation cell, provide all the
            information for a single CSV row"""
@@ -165,7 +165,7 @@ class TechnicalCSV(object):
 
         LAST_METADATA = 0 # since they're numbered -9 for obs, ... 0 for last one
         for dimension in range(OBS+1, LAST_METADATA + 1):
-            values[dimension] = value_for_dimension(dimension)
+            values[dimension] = self.value_for_dimension(obj, dimension)
 
         # Mutate values
         # Special handling per dimension.
@@ -197,7 +197,7 @@ class TechnicalCSV(object):
 
         for dimension in range(1, obj.table.max_header+1):
             name = obj.table.headernames[dimension]
-            value = value_for_dimension(dimension)
+            value = self.value_for_dimension(obj, dimension)
             topic_headers = template.get_topic_headers(name, value)
             for col in topic_headers:
                 yield col
