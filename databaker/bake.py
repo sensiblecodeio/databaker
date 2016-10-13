@@ -51,8 +51,6 @@ __version__ = "1.2.0"
 
 crash_msg = []
 
-class DimensionError(Exception):
-    pass
 
 def onexit():
     return showtime('exit')
