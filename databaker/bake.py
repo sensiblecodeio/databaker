@@ -70,7 +70,7 @@ def rewrite_headers(row,dims):
             which_cell_in_spread = (i - len(template.start.split(','))) % len(template.value_spread)
             which_dim = (i - len(template.start.split(','))) // len(template.value_spread)
             which_dim = int(which_dim)
-            if value_spread[which_cell_in_spread] == 'value':
+            if template.value_spread[which_cell_in_spread] == 'value':
                 row[i] = dims[which_dim]
     return row
 
