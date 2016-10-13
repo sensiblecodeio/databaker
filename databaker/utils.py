@@ -82,6 +82,8 @@ class TechnicalCSV(object):
         self.csv_writer = UnicodeWriter(self.filehandle)
         self.row_count = 0
         self.header_dimensions = None
+        self.table = None
+        self.batchrows = []
 
     def write_header_if_needed(self, dimensions, ob):
         if self.header_dimensions is not None:
@@ -109,11 +111,19 @@ class TechnicalCSV(object):
         self.csv_writer.writerow(["*"*9, str(self.row_count)])
         self.filehandle.close()
 
+    # try to put in the batching here
     def handle_observation(self, ob):
-        number_of_dimensions = ob.table.max_header
+        assert self.table is ob.table
+        number_of_dimensions = self.table.max_header
         self.write_header_if_needed(number_of_dimensions, ob)
         output_row = self.get_dimensions_for_ob(ob)
         self.output(output_row)
+
+    def begin_observation_batch(self, table):
+        self.table = table
+
+    def finish_observation_batch(self):
+        self.table = None
 
     def output(self, row):
         def translator(s):
@@ -156,7 +166,7 @@ class TechnicalCSV(object):
            information for a single CSV row"""
         out = {}
         obj = ob._cell
-        keys = list(ob.table.headers.keys())
+        keys = list(self.table.headers.keys())
 
 
         # Get fixed headers.
@@ -202,7 +212,8 @@ class TechnicalCSV(object):
             for col in topic_headers:
                 yield col
 
-
+    
+        
 start = timer()
 last = start
 showtime_enabled = True
