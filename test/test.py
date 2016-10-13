@@ -19,6 +19,7 @@ class Options(object):
         self.csv = True
         self.debug = False
         self.params = []
+        self.no_lookup_error = False
 
 class datematch(unittest.TestCase):
     def test_datematch(self):

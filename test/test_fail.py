@@ -18,6 +18,7 @@ class Options(object):
         self.csv = True
         self.debug = False
         self.params = ["1999","2000"]
+        self.no_lookup_error = False
 
 class paramfail(unittest.TestCase):
     def test_failparam(self):
