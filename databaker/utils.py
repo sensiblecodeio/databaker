@@ -15,6 +15,15 @@ except ImportError:
     from . import structure_csv_default as template
     from .structure_csv_default import *
 
+def rewrite_headers(row,dims):
+    for i in range(0,len(row)):
+        if i >= len(template.start.split(',')):
+            which_cell_in_spread = (i - len(template.start.split(','))) % len(template.value_spread)
+            which_dim = (i - len(template.start.split(','))) // len(template.value_spread)
+            which_dim = int(which_dim)
+            if value_spread[which_cell_in_spread] == 'value':
+                row[i] = dims[which_dim]
+    return row
 
 def datematch(date, silent=False):
     """match mmm yyyy, mmm-mmm yyyy, yyyy Qn, yyyy"""
@@ -205,3 +214,4 @@ def showtime(msg='unspecified'):
     t = timer()
     print("{}: {:.3f}s,  {:.3f}s total".format(msg, t - last, t - start))
     last = t
+

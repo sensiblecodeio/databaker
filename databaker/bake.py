@@ -57,16 +57,6 @@ class DimensionError(Exception):
 def onexit():
     return showtime('exit')
 
-def rewrite_headers(row,dims):
-    for i in range(0,len(row)):
-        if i >= len(template.start.split(',')):
-            which_cell_in_spread = (i - len(template.start.split(','))) % len(template.value_spread)
-            which_dim = (i - len(template.start.split(','))) // len(template.value_spread)
-            which_dim = int(which_dim)
-            if value_spread[which_cell_in_spread] == 'value':
-                row[i] = dims[which_dim]
-    return row
-
 
 class Options(object):
     def __init__(self):
