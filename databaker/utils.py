@@ -3,6 +3,7 @@ from timeit import default_timer as timer
 import re
 import warnings
 import six
+import xypath
 import databaker.richxlrd.richxlrd as richxlrd
 from datetime import datetime
 from databaker.utf8csv import UnicodeWriter
