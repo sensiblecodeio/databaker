@@ -138,7 +138,7 @@ class TechnicalCSV(object):
         try:
             cell = self.table.headers.get(dimension, lambda _: None)(obj)
         except xypath.xypath.NoLookupError:
-            print("no lookup to dimension {} from cell {}".format(dim_name(dimension), repr(ob._cell)))
+            print("no lookup to dimension {} from cell {}".format(dim_name(dimension), repr(obj)))
             if self.no_lookup-error:
                 cell = "NoLookupError"            # if user wants - output 'NoLookUpError' to CSV
             else:
