@@ -156,13 +156,14 @@ def per_file(spreadsheet, recipe, opt):
                         obs_count = len(segment)
                         progress = Progress(obs_count, 'Tab {}'.format(tab_num + 1))
 
-                        for ob in segment:
-                            csv.begin_observation_batch(ob.table)
-                            break # A quick way to get first element for now.
+                        csv.begin_observation_batch(tab)
+
                         if not bheaderoutput:
-                            csv.write_header_dimensions()
+                            csv.csv_writer.writerow(csv.fullheaderrow)
                             bheaderoutput = True
-                        for ob_num, ob in enumerate(segment):  # TODO use const
+
+                        for ob_num, ob in enumerate(segment):
+                            assert tab is ob.table
                             try:
                                 csv.handle_observation(ob)
                             except Exception:

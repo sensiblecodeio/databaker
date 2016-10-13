@@ -82,11 +82,11 @@ class TechnicalCSV(object):
         self.filehandle = open(filename, mode)
         self.csv_writer = UnicodeWriter(self.filehandle)
         self.row_count = 0
-        self.header_dimensions = None
         self.table = None
+        self.fullheaderrow = None
         self.batchrows = []
 
-    def write_header_dimensions(self):
+    def generate_header_row(self):
         header_row = template.start.split(',')
 
         # create new header row
@@ -99,12 +99,11 @@ class TechnicalCSV(object):
             for dimension in range(1, self.table.max_header+1):
                 dims.append(self.table.headernames[dimension])
             header_row = rewrite_headers(header_row, dims)
-
-        # Write to the file
-        self.csv_writer.writerow(header_row)
+        return header_row
 
 
     def footer(self):
+        # WDA Observation File Interface Specification Section 1.3
         self.csv_writer.writerow(["*"*9, str(self.row_count)])
         self.filehandle.close()
 
@@ -112,14 +111,18 @@ class TechnicalCSV(object):
     def handle_observation(self, ob):
         assert self.table is ob.table
         values = self.extract_dimension_values_for_ob(ob)
-        output_row = self.yield_dimension_values(values)
-        self.output(output_row)
+        self.batchrows.append(values)
 
     def begin_observation_batch(self, table):
+        assert self.table is None or self.table is table
         self.table = table
+        self.fullheaderrow = self.generate_header_row()
         assert len(self.batchrows) == 0
 
     def finish_observation_batch(self):
+        for values in self.batchrows:
+            output_row = self.yield_dimension_values(values)
+            self.output(output_row)
         self.batchrows = []
         self.table = None
 
@@ -127,14 +130,11 @@ class TechnicalCSV(object):
         def translator(s):
             if not isinstance(s, six.string_types):
                 return six.text_type(s)
-            # this is slow. We can't just use translate because some of the
-            # strings are unicode. This adds 0.2 seconds to a 3.4 second run.
             return six.text_type(s.replace('\n',' ').replace('\r', ' '))
         self.csv_writer.writerow([translator(item) for item in row])
         self.row_count += 1
 
     def cell_for_dimension(self, obj, dimension):
-        # implicit: obj
         try:
             cell = self.table.headers.get(dimension, lambda _: None)(obj)
         except xypath.xypath.NoLookupError:
@@ -159,9 +159,6 @@ class TechnicalCSV(object):
         return value
 
     def extract_dimension_values_for_ob(self, ob):
-        # TODO not really 'self'y
-        """For a single observation cell, provide all the
-           information for a single CSV row"""
         obj = ob._cell
 
         # Get fixed headers.
