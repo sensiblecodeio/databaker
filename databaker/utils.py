@@ -71,6 +71,7 @@ def parse_ob(ob):
         value = ''
     return value.strip(), datamarker.strip()
 
+LAST_METADATA = 0 # since they're numbered -9 for obs, ... 0 for last one
 class TechnicalCSV(object):
     def __init__(self, filename, no_lookup_error):
         if six.PY2:
@@ -116,13 +117,16 @@ class TechnicalCSV(object):
         assert self.table is ob.table
         number_of_dimensions = self.table.max_header
         self.write_header_if_needed(number_of_dimensions, ob)
-        output_row = self.get_dimensions_for_ob(ob)
+        values = self.extract_dimension_values_for_ob(ob)
+        output_row = self.yield_dimension_values(values)
         self.output(output_row)
 
     def begin_observation_batch(self, table):
         self.table = table
+        assert len(self.batchrows) == 0
 
     def finish_observation_batch(self):
+        self.batchrows = []
         self.table = None
 
     def output(self, row):
@@ -138,7 +142,7 @@ class TechnicalCSV(object):
     def cell_for_dimension(self, obj, dimension):
         # implicit: obj
         try:
-            cell = obj.table.headers.get(dimension, lambda _: None)(obj)
+            cell = self.table.headers.get(dimension, lambda _: None)(obj)
         except xypath.xypath.NoLookupError:
             print("no lookup to dimension {} from cell {}".format(dim_name(dimension), repr(ob._cell)))
             if self.no_lookup-error:
@@ -160,20 +164,16 @@ class TechnicalCSV(object):
             value = cell.value
         return value
 
-    def get_dimensions_for_ob(self, ob):
+    def extract_dimension_values_for_ob(self, ob):
         # TODO not really 'self'y
         """For a single observation cell, provide all the
            information for a single CSV row"""
-        out = {}
         obj = ob._cell
-        keys = list(self.table.headers.keys())
-
 
         # Get fixed headers.
         values = {}
         values[OBS] = obj.value
 
-        LAST_METADATA = 0 # since they're numbered -9 for obs, ... 0 for last one
         for dimension in range(OBS+1, LAST_METADATA + 1):
             values[dimension] = self.value_for_dimension(obj, dimension)
 
@@ -198,6 +198,12 @@ class TechnicalCSV(object):
                 # determine the timeunit from the time
                 values[TIMEUNIT] = datematch(values[TIME])
 
+        for dimension in range(1, self.table.max_header+1):
+            assert dimension not in values
+            values[dimension] = self.value_for_dimension(obj, dimension)
+        return values
+
+    def yield_dimension_values(self, values):
         for dimension in range(OBS, LAST_METADATA + 1):
             yield values[dimension]
             if dimension in template.SH_Repeat:         # Calls special handling - repeats
@@ -205,9 +211,9 @@ class TechnicalCSV(object):
             for i in range(0, template.SKIP_AFTER[dimension]):
                 yield ''
 
-        for dimension in range(1, obj.table.max_header+1):
-            name = obj.table.headernames[dimension]
-            value = self.value_for_dimension(obj, dimension)
+        for dimension in range(1, self.table.max_header+1):
+            name = self.table.headernames[dimension]
+            value = values[dimension]
             topic_headers = template.get_topic_headers(name, value)
             for col in topic_headers:
                 yield col
