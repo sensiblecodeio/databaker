@@ -134,6 +134,7 @@ def per_file(spreadsheet, recipe, opt):
     if not tabs:
         print("No matching tabs found.")
         exit(1)
+    bheaderoutput=False
     for tab_num, tab in enumerate(tabs):
         try:
             showtime("tab {!r} imported".format(tab.name))
@@ -158,7 +159,9 @@ def per_file(spreadsheet, recipe, opt):
                         for ob in segment:
                             csv.begin_observation_batch(ob.table)
                             break # A quick way to get first element for now.
-
+                        if not bheaderoutput:
+                            csv.write_header_dimensions()
+                            bheaderoutput = True
                         for ob_num, ob in enumerate(segment):  # TODO use const
                             try:
                                 csv.handle_observation(ob)

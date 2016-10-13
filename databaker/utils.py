@@ -86,22 +86,18 @@ class TechnicalCSV(object):
         self.table = None
         self.batchrows = []
 
-    def write_header_if_needed(self, dimensions, ob):
-        if self.header_dimensions is not None:
-            # we've already written headers.
-            return
-        self.header_dimensions = dimensions
+    def write_header_dimensions(self):
         header_row = template.start.split(',')
 
         # create new header row
-        for i in range(dimensions):
+        for i in range(self.table.max_header):
             header_row.extend(template.repeat.format(num=i+1).split(','))
 
         # overwrite dimensions/subject/name as column header (if requested)
         if template.topic_headers_as_dims:
             dims = []
-            for dimension in range(1, ob._cell.table.max_header+1):
-                dims.append(ob._cell.table.headernames[dimension])
+            for dimension in range(1, self.table.max_header+1):
+                dims.append(self.table.headernames[dimension])
             header_row = rewrite_headers(header_row, dims)
 
         # Write to the file
@@ -115,8 +111,6 @@ class TechnicalCSV(object):
     # try to put in the batching here
     def handle_observation(self, ob):
         assert self.table is ob.table
-        number_of_dimensions = self.table.max_header
-        self.write_header_if_needed(number_of_dimensions, ob)
         values = self.extract_dimension_values_for_ob(ob)
         output_row = self.yield_dimension_values(values)
         self.output(output_row)
