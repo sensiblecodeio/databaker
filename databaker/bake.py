@@ -136,51 +136,57 @@ def per_file(spreadsheet, recipe, opt):
         exit(1)
     bheaderoutput=False
     for tab_num, tab in enumerate(tabs):
+        showtime("tab {!r} imported".format(tab.name))
+
+        ## The callback into the recipe.
         try:
-            showtime("tab {!r} imported".format(tab.name))
             pertab = recipe.per_tab(tab)
-            if isinstance(pertab, xypath.xypath.Bag):
-                pertab = [pertab]
-
-            for seg_id, segment in enumerate(pertab):
-                try:
-                    if opt.debug:
-                        print("tab and segment available for interrogation")
-                        import pdb; pdb.set_trace()
-
-                    if opt.preview:
-                        make_preview()
-
-                    # TODO(sm): consider removing duplication of len(segment).
-                    if opt.csv and len(segment) != 0:
-                        obs_count = len(segment)
-                        progress = Progress(obs_count, 'Tab {}'.format(tab_num + 1))
-
-                        csv.begin_observation_batch(tab)
-
-                        if not bheaderoutput:
-                            csv.csv_writer.writerow(csv.fullheaderrow)
-                            bheaderoutput = True
-
-                        for ob_num, ob in enumerate(segment):
-                            assert tab is ob.table
-                            try:
-                                csv.handle_observation(ob)
-                            except Exception:
-                                crash_msg.append("ob: {!r}".format(ob))
-                                raise
-                            progress.update(ob_num)
-                        print()
-                        csv.finish_observation_batch()
-
-                    # hacky observation wiping
-                    tab.headers = {}
-                    tab.max_header = 0
-                    tab.headernames = [None]
-                except Exception:
-                    crash_msg.append("segment: {!r}".format(seg_id))
-                    raise
         except Exception:
+            crash_msg.append("tab: {!r} {!r}".format(tab_num, tab.name))
+            raise
+
+        # Process the per_tab return value.
+        if isinstance(pertab, xypath.xypath.Bag):
+            pertab = [pertab]
+
+        try:
+            for seg_id, segment in enumerate(pertab):
+                if opt.debug:
+                    print("tab and segment available for interrogation")
+                    import pdb; pdb.set_trace()
+
+                if opt.preview:
+                    make_preview()
+
+                # TODO(sm): consider removing duplication of len(segment).
+                if opt.csv and len(segment) != 0:
+                    obs_count = len(segment)
+                    progress = Progress(obs_count, 'Tab {}'.format(tab_num + 1))
+
+                    csv.begin_observation_batch(tab)
+
+                    if not bheaderoutput:
+                        csv.csv_writer.writerow(csv.generate_header_row(tab))
+                        bheaderoutput = True
+
+                    for ob_num, ob in enumerate(segment):
+                        assert tab is ob.table
+                        try:
+                            csv.handle_observation(ob)
+                        except Exception:
+                            crash_msg.append("ob: {!r}".format(ob))
+                            raise
+                        progress.update(ob_num)
+                    print()
+                    csv.finish_observation_batch()
+
+                # hacky observation wiping
+                tab.headers = {}
+                tab.max_header = 0
+                tab.headernames = [None]
+
+        except Exception:
+            crash_msg.append("segment: {!r}".format(seg_id))
             crash_msg.append("tab: {!r} {!r}".format(tab_num, tab.name))
             raise
 
