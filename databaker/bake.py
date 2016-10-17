@@ -47,7 +47,7 @@ except ImportError:
     from .structure_csv_default import *
 
 
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 
 crash_msg = []
 
