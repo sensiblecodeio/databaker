@@ -4,6 +4,7 @@ import unittest
 import warnings
 import imp
 from databaker.utf8csv import UnicodeReader
+from databaker.utils import datematch
 from six.moves import zip
 
 warnings.simplefilter("ignore")
@@ -19,15 +20,16 @@ class Options(object):
         self.csv = True
         self.debug = False
         self.params = []
+        self.no_lookup_error = False
 
-class datematch(unittest.TestCase):
+class datematches(unittest.TestCase):
     def test_datematch(self):
-        self.assertEqual(bake.datematch("1999"), "Year")
-        self.assertEqual(bake.datematch("2014 Q3"), "Quarter")
-        self.assertEqual(bake.datematch("Jan-Apr 1982"), "Quarter")
-        self.assertEqual(bake.datematch("Feb 2001"), "Month")
-        self.assertEqual(bake.datematch("Not A Date"), "")
-        self.assertEqual(bake.datematch(4.0), "")
+        self.assertEqual(datematch("1999"), "Year")
+        self.assertEqual(datematch("2014 Q3"), "Quarter")
+        self.assertEqual(datematch("Jan-Apr 1982"), "Quarter")
+        self.assertEqual(datematch("Feb 2001"), "Month")
+        self.assertEqual(datematch("Not A Date"), "")
+        self.assertEqual(datematch(4.0), "")
 
 class subdim(unittest.TestCase):
     def test_subdim(self):
