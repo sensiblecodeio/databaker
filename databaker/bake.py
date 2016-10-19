@@ -130,10 +130,9 @@ def per_file(spreadsheet, recipe, opt):
     if opt.csv:
         csv_file = filenames()['csv']
         csv = TechnicalCSV(csv_file, opt.no_lookup_error)
-    tabs = list(xypath.loader.get_sheets(tableset, recipe.per_file(tableset)))
-    if not tabs:
-        print("No matching tabs found.")
-        exit(1)
+
+    tabs = xypath.loader.get_sheets(tableset, recipe.per_file(tableset))
+    tab = None
     bheaderoutput=False
     for tab_num, tab in enumerate(tabs):
         showtime("tab {!r} imported".format(tab.name))
@@ -190,6 +189,9 @@ def per_file(spreadsheet, recipe, opt):
             crash_msg.append("tab: {!r} {!r}".format(tab_num, tab.name))
             raise
 
+    if tab is None:
+        print("No matching tabs found.")
+        exit(1)
 
     if opt.csv:
         csv.footer()
