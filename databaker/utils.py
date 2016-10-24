@@ -72,7 +72,72 @@ def parse_ob(ob):
         value = ''
     return value.strip(), datamarker.strip()
 
-LAST_METADATA = 0 # since they're numbered -9 for obs, ... 0 for last one
+
+
+def cell_for_dimension(headers, obj, dimension):
+    try:
+        cell = headers.get(dimension, lambda _: None)(obj)
+    except xypath.xypath.NoLookupError:
+        print("no lookup to dimension {} from cell {}".format(dim_name(dimension), repr(obj)))
+        if self.no_lookup_error:
+            cell = "NoLookupError"            # if user wants - output 'NoLookUpError' to CSV
+        else:
+            cell = "" # Otherwise output a blank cell.
+    return cell
+
+def value_for_dimension(headers, obj, dimension):
+    # implicit: obj
+    cell = cell_for_dimension(headers, obj, dimension)
+    if cell is None:
+        value = ''
+    elif isinstance(cell, (six.string_types, float)):
+        value = cell
+    elif cell.properties['richtext']:
+        value = richxlrd.RichCell(cell.properties.cell.sheet, cell.y, cell.x).fragments.not_script.value
+    else:
+        value = cell.value
+    return value
+
+
+def extract_dimension_values_for_ob(headers, ob):
+    obj = ob._cell
+
+    # Get fixed headers.
+    values = {}
+    values[OBS] = obj.value
+
+    for dimension in range(OBS+1, LAST_METADATA + 1):
+        values[dimension] = value_for_dimension(headers, obj, dimension)
+
+    # Mutate values
+    # Special handling per dimension.
+    # NOTE  - variables beginning SH_ ... are dependent on user choices from the template file
+
+    if template.SH_Split_OBS:
+        if not isinstance(values[OBS], float):  # NOTE xls specific!
+            ob_value, dm_value = parse_ob(ob)
+            values[OBS] = ob_value
+            # the observation is not actually a number
+            # store it as a datamarker and nuke the observation field
+            if values[template.SH_Split_OBS] == '':
+                values[template.SH_Split_OBS] = dm_value
+            elif dm_value:
+                warnings.warn("datamarker lost: {} on {!r}".format(dm_value, ob))
+
+    if template.SH_Create_ONS_time:
+        if values[TIMEUNIT] == '' and values[TIME] != '':
+            # we've not actually been given a timeunit, but we have a time
+            # determine the timeunit from the time
+            values[TIMEUNIT] = datematch(values[TIME])
+
+    max_header = max(headers.keys())
+    for dimension in range(1, max_header+1):
+        assert dimension not in values
+        values[dimension] = value_for_dimension(headers, obj, dimension)
+    return values
+
+
+LAST_METADATA = 0 # since they're numbered -9 for OBS, ... 0 for last one
 class TechnicalCSV(object):
     def __init__(self, filename, no_lookup_error):
         if six.PY2:
@@ -85,6 +150,7 @@ class TechnicalCSV(object):
         self.row_count = 0
         self.table = None
         self.batchrows = []
+        self.headers = None   # a copy from the table one above intended to supercede it
 
     def generate_header_row(self, table):
         assert self.table is None or self.table is table
@@ -111,12 +177,14 @@ class TechnicalCSV(object):
     # try to put in the batching here
     def handle_observation(self, ob):
         assert self.table is ob.table
-        values = self.extract_dimension_values_for_ob(ob)
+        values = extract_dimension_values_for_ob(self.headers, ob)
         self.batchrows.append(values)
 
     def begin_observation_batch(self, table):
         assert self.table is None or self.table is table
         self.table = table
+        self.headers = table.headers.copy()
+        assert self.table.max_header == max(self.headers.keys())
         assert len(self.batchrows) == 0
 
     def finish_observation_batch(self):
@@ -125,6 +193,7 @@ class TechnicalCSV(object):
             self.output(output_row)
         self.batchrows = []
         self.table = None
+        self.headers = None
 
     def output(self, row):
         def translator(s):
@@ -134,65 +203,8 @@ class TechnicalCSV(object):
         self.csv_writer.writerow([translator(item) for item in row])
         self.row_count += 1
 
-    def cell_for_dimension(self, obj, dimension):
-        try:
-            cell = self.table.headers.get(dimension, lambda _: None)(obj)
-        except xypath.xypath.NoLookupError:
-            print("no lookup to dimension {} from cell {}".format(dim_name(dimension), repr(obj)))
-            if self.no_lookup_error:
-                cell = "NoLookupError"            # if user wants - output 'NoLookUpError' to CSV
-            else:
-                cell = "" # Otherwise output a blank cell.
-        return cell
 
-    def value_for_dimension(self, obj, dimension):
-        # implicit: obj
-        cell = self.cell_for_dimension(obj, dimension)
-        if cell is None:
-            value = ''
-        elif isinstance(cell, (six.string_types, float)):
-            value = cell
-        elif cell.properties['richtext']:
-            value = richxlrd.RichCell(cell.properties.cell.sheet, cell.y, cell.x).fragments.not_script.value
-        else:
-            value = cell.value
-        return value
 
-    def extract_dimension_values_for_ob(self, ob):
-        obj = ob._cell
-
-        # Get fixed headers.
-        values = {}
-        values[OBS] = obj.value
-
-        for dimension in range(OBS+1, LAST_METADATA + 1):
-            values[dimension] = self.value_for_dimension(obj, dimension)
-
-        # Mutate values
-        # Special handling per dimension.
-        # NOTE  - variables beginning SH_ ... are dependent on user choices from the template file
-
-        if template.SH_Split_OBS:
-            if not isinstance(values[OBS], float):  # NOTE xls specific!
-                ob_value, dm_value = parse_ob(ob)
-                values[OBS] = ob_value
-                # the observation is not actually a number
-                # store it as a datamarker and nuke the observation field
-                if values[template.SH_Split_OBS] == '':
-                    values[template.SH_Split_OBS] = dm_value
-                elif dm_value:
-                    warnings.warn("datamarker lost: {} on {!r}".format(dm_value, ob))
-
-        if template.SH_Create_ONS_time:
-            if values[TIMEUNIT] == '' and values[TIME] != '':
-                # we've not actually been given a timeunit, but we have a time
-                # determine the timeunit from the time
-                values[TIMEUNIT] = datematch(values[TIME])
-
-        for dimension in range(1, self.table.max_header+1):
-            assert dimension not in values
-            values[dimension] = self.value_for_dimension(obj, dimension)
-        return values
 
     def yield_dimension_values(self, values):
         for dimension in range(OBS, LAST_METADATA + 1):

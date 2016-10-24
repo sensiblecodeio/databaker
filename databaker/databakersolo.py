@@ -150,11 +150,13 @@ def per_file(spreadsheet, recipe, opt):
         if isinstance(pertab, xypath.xypath.Bag):
             pertab = [pertab]
 
+        seg_id = 0
         try:
             for seg_id, segment in enumerate(pertab):
                 if opt.debug:
                     print("tab and segment available for interrogation")
                     import pdb; pdb.set_trace()
+                print("TTT", tab.max_header, tab.headers)
 
                 if opt.preview:
                     make_preview()
@@ -165,11 +167,9 @@ def per_file(spreadsheet, recipe, opt):
                     progress = Progress(obs_count, 'Tab {}'.format(tab_num + 1))
 
                     csv.begin_observation_batch(tab)
-
                     if not bheaderoutput:
                         csv.csv_writer.writerow(csv.generate_header_row(tab))
                         bheaderoutput = True
-
                     for ob_num, ob in enumerate(segment):
                         assert tab is ob.table
                         try:
@@ -180,6 +180,7 @@ def per_file(spreadsheet, recipe, opt):
                         progress.update(ob_num)
                     print()
                     csv.finish_observation_batch()
+
 
                 # hacky observation wiping
                 tab.headers = {}
