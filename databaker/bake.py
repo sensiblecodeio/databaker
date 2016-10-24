@@ -125,8 +125,11 @@ def per_file(spreadsheet, recipe, opt):
 
     tableset = xypath.loader.table_set(spreadsheet, extension='xls')
     showtime("file {!r} imported".format(spreadsheet))
+    # HACK: Save spreadsheet preview now, so that we can reopen and resave
+    # in the main processing loop below.
     if opt.preview:
         writer = xlutils.copy.copy(tableset.workbook)
+        writer.save(filenames()['preview'])
     if opt.csv:
         csv_file = filenames()['csv']
         csv = TechnicalCSV(csv_file, opt.no_lookup_error)
@@ -135,6 +138,13 @@ def per_file(spreadsheet, recipe, opt):
     tab = None
     bheaderoutput=False
     for tab_num, tab in enumerate(tabs):
+        # HACK: Memory reduction; reload spreadsheet for each tab.
+        # xlwt's flush_row_data() doesn't seem to give the same reduction.
+        if opt.preview:
+            tableset = xypath.loader.table_set(filenames()['preview'],
+                                               extension='xls')
+            writer = xlutils.copy.copy(tableset.workbook)
+
         showtime("tab {!r} imported".format(tab.name))
 
         ## The callback into the recipe.
@@ -184,6 +194,9 @@ def per_file(spreadsheet, recipe, opt):
                 tab.max_header = 0
                 tab.headernames = [None]
 
+            if opt.preview:
+                writer.save(filenames()['preview'])
+
         except Exception:
             crash_msg.append("segment: {!r}".format(seg_id))
             crash_msg.append("tab: {!r} {!r}".format(tab_num, tab.name))
@@ -195,8 +208,6 @@ def per_file(spreadsheet, recipe, opt):
 
     if opt.csv:
         csv.footer()
-    if opt.preview:
-        writer.save(filenames()['preview'])
 
 def create_colourlist():
     # Function to dynamically assign colours to dimensions for preview
