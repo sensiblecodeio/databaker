@@ -174,9 +174,10 @@ def per_file(spreadsheet, recipe, opt):
                     progress = Progress(obs_count, 'Tab {}'.format(tab_num + 1))
 
                     csv.begin_observation_batch(tab)
+                    csv.headers = tab.headers
 
                     if not bheaderoutput:
-                        csv.csv_writer.writerow(csv.generate_header_row(tab))
+                        csv.csv_writer.writerow(csv.generate_header_row(tab.headers, tab.headernames))
                         bheaderoutput = True
 
                     for ob_num, ob in enumerate(segment):
@@ -188,7 +189,7 @@ def per_file(spreadsheet, recipe, opt):
                             raise
                         progress.update(ob_num)
                     print()
-                    csv.finish_observation_batch()
+                    csv.finish_observation_batch(tab.headernames)
 
                 # hacky observation wiping
                 tab.headers = {}

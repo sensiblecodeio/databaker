@@ -73,8 +73,7 @@ def parse_ob(ob):
     return value.strip(), datamarker.strip()
 
 
-no_lookup_error = False
-def cell_for_dimension(headers, obj, dimension):
+def cell_for_dimension(headers, obj, dimension, no_lookup_error):
     try:
         cell = headers.get(dimension, lambda _: None)(obj)
     except xypath.xypath.NoLookupError:
@@ -85,9 +84,9 @@ def cell_for_dimension(headers, obj, dimension):
             cell = "" # Otherwise output a blank cell.
     return cell
 
-def value_for_dimension(headers, obj, dimension):
+def value_for_dimension(headers, obj, dimension, no_lookup_error):
     # implicit: obj
-    cell = cell_for_dimension(headers, obj, dimension)
+    cell = cell_for_dimension(headers, obj, dimension, no_lookup_error)
     if cell is None:
         value = ''
     elif isinstance(cell, (six.string_types, float)):
@@ -99,7 +98,7 @@ def value_for_dimension(headers, obj, dimension):
     return value
 
 
-def extract_dimension_values_for_ob(headers, ob):
+def extract_dimension_values_for_ob(headers, ob, no_lookup_error):
     obj = ob._cell
 
     # Get fixed headers.
@@ -107,7 +106,7 @@ def extract_dimension_values_for_ob(headers, ob):
     values[OBS] = obj.value
 
     for dimension in range(OBS+1, LAST_METADATA + 1):
-        values[dimension] = value_for_dimension(headers, obj, dimension)
+        values[dimension] = value_for_dimension(headers, obj, dimension, no_lookup_error)
 
     # Mutate values
     # Special handling per dimension.
@@ -133,8 +132,24 @@ def extract_dimension_values_for_ob(headers, ob):
     max_header = max(headers.keys())
     for dimension in range(1, max_header+1):
         assert dimension not in values
-        values[dimension] = value_for_dimension(headers, obj, dimension)
+        values[dimension] = value_for_dimension(headers, obj, dimension, no_lookup_error)
     return values
+
+
+def yield_dimension_values(values, headernames):
+    for dimension in range(OBS, LAST_METADATA + 1):
+        yield values[dimension]
+        if dimension in template.SH_Repeat:         # Calls special handling - repeats
+            yield values[dimension]
+        for i in range(0, template.SKIP_AFTER[dimension]):
+            yield ''
+
+    for dimension in range(1, len(headernames)):
+        name = headernames[dimension]
+        value = values[dimension]
+        topic_headers = template.get_topic_headers(name, value)
+        for col in topic_headers:
+            yield col
 
 
 LAST_METADATA = 0 # since they're numbered -9 for OBS, ... 0 for last one
@@ -154,19 +169,19 @@ class TechnicalCSV(object):
         self.batchrows = []
         self.headers = None   # a copy from the table one above intended to supercede it
 
-    def generate_header_row(self, table):
-        assert self.table is None or self.table is table
+    def generate_header_row(self, headers, headernames):
         header_row = template.start.split(',')
 
         # create new header row
-        for i in range(table.max_header):
+        max_header = max(headers.keys())
+        for i in range(max_header):
             header_row.extend(template.repeat.format(num=i+1).split(','))
 
         # overwrite dimensions/subject/name as column header (if requested)
         if template.topic_headers_as_dims:
             dims = []
-            for dimension in range(1, table.max_header+1):
-                dims.append(table.headernames[dimension])
+            for dimension in range(1, max_header+1):
+                dims.append(headernames[dimension])
             header_row = rewrite_headers(header_row, dims)
         return header_row
 
@@ -179,19 +194,17 @@ class TechnicalCSV(object):
     # try to put in the batching here
     def handle_observation(self, ob):
         assert self.table is ob.table
-        values = extract_dimension_values_for_ob(self.headers, ob)
+        values = extract_dimension_values_for_ob(self.headers, ob, self.no_lookup_error)
         self.batchrows.append(values)
 
     def begin_observation_batch(self, table):
         assert self.table is None or self.table is table
         self.table = table
-        self.headers = table.headers.copy()
-        assert self.table.max_header == max(self.headers.keys())
         assert len(self.batchrows) == 0
 
-    def finish_observation_batch(self):
+    def finish_observation_batch(self, headernames):
         for values in self.batchrows:
-            output_row = self.yield_dimension_values(values)
+            output_row = yield_dimension_values(values, headernames)
             self.output(output_row)
         self.batchrows = []
         self.table = None
@@ -206,22 +219,6 @@ class TechnicalCSV(object):
         self.row_count += 1
 
 
-
-
-    def yield_dimension_values(self, values):
-        for dimension in range(OBS, LAST_METADATA + 1):
-            yield values[dimension]
-            if dimension in template.SH_Repeat:         # Calls special handling - repeats
-                yield values[dimension]
-            for i in range(0, template.SKIP_AFTER[dimension]):
-                yield ''
-
-        for dimension in range(1, self.table.max_header+1):
-            name = self.table.headernames[dimension]
-            value = values[dimension]
-            topic_headers = template.get_topic_headers(name, value)
-            for col in topic_headers:
-                yield col
 
     
         

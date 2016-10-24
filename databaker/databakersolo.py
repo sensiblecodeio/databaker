@@ -16,6 +16,15 @@ Options:
 from __future__ import absolute_import, division, print_function
 import atexit
 
+# Instructions: insert the following two lines at the bottom of the recipe and run it directly as a Python3 scripe
+# import databaker.databakersolo
+# databaker.databakersolo.runall(per_file, per_tab)
+
+# test script calls (for regression)
+# python3 ../../quickcode-ons-recipes/abs/ABS01.py --preview ../../quickcode-ons-recipes/abs/Annual\ Business\ Survey\ Standard\ Extracts\ 2014P\ \(2\).xlsx 
+# python3 bake.py --preview ../../quickcode-ons-recipes/abs/ABS01.py ../../quickcode-ons-recipes/abs/Annual\ Business\ Survey\ Standard\ Extracts\ 2014P\ \(2\).xlsx 
+
+
 import imp
 import os.path
 import sys
@@ -36,7 +45,7 @@ import xypath.loader
 from databaker.constants import *
 import databaker.overrides as overrides       # warning: changes xypath and messytables
 
-from databaker.utils import showtime, TechnicalCSV
+from databaker.utils import showtime, TechnicalCSV, extract_dimension_values_for_ob, yield_dimension_values
 import databaker.utils
 
 # If there's a custom template, use it. Otherwise use the default.
@@ -77,7 +86,7 @@ class Progress(object):
     # creates a progress bar
     def __init__(self, max_count, prefix=None, msg="\r{}{:3d}% - [{}{}]"):
         self.last_percent = None
-        self.max_count = max_count
+        self.max_count = max(1, max_count)
         self.msg = msg
         if prefix is not None:
             self.prefix = prefix + ' - '
@@ -91,6 +100,18 @@ class Progress(object):
             print(self.msg.format(self.prefix, percent, '='*progress, " "*(20-progress)), end=' ')
             sys.stdout.flush()
             self.last_percent = percent
+
+def make_preview(writer, tabindex, headers, segment):
+    # call for each segment
+    for i, header in headers.items():
+        if hasattr(header, 'bag') and not isinstance(header.bag, xypath.Table):
+            for bag in header.bag:
+                writer.get_sheet(tabindex).write(bag.y, bag.x, bag.value,
+                    xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[i])))
+    for ob in segment:
+        writer.get_sheet(tabindex).write(ob.y, ob.x, ob.value,
+            xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[OBS])))
+            
 
 def per_file(spreadsheet, recipe, opt):
     def filenames():
@@ -112,91 +133,91 @@ def per_file(spreadsheet, recipe, opt):
         preview_path = os.path.join(xls_directory, preview_filename)
         return {'csv': csv_path, 'preview': preview_path}
 
-    def make_preview():
-        # call for each segment
-        for i, header in tab.headers.items():
-            if hasattr(header, 'bag') and not isinstance(header.bag, xypath.Table):
-                for bag in header.bag:
-                    writer.get_sheet(tab.index).write(bag.y, bag.x, bag.value,
-                        xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[i])))
-                for ob in segment:
-                    writer.get_sheet(tab.index).write(ob.y, ob.x, ob.value,
-                        xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[OBS])))
 
-
+    # this is the call of RECIPE.per_file() which filters the list of tables
     tableset = xypath.loader.table_set(spreadsheet, extension='xls')
     showtime("file {!r} imported".format(spreadsheet))
     if opt.preview:
         writer = xlutils.copy.copy(tableset.workbook)
-    if opt.csv:
-        csv_file = filenames()['csv']
-        csv = TechnicalCSV(csv_file, opt.no_lookup_error)
+        writer.save(filenames()['preview'])
+        
     tabs = list(xypath.loader.get_sheets(tableset, recipe.per_file(tableset)))
     if not tabs:
         print("No matching tabs found.")
         exit(1)
-    bheaderoutput=False
+
+    # this calls RECIPE.per_tab() on each table and batches up the yielded segments and headers into conversionsequence tuples
+    conversionsequence = [ ]   # [ (tab, tab_num, {int:dimension} headers, [] headernames, [] segment, int seg_id) ]
     for tab_num, tab in enumerate(tabs):
         showtime("tab {!r} imported".format(tab.name))
 
-        ## The callback into the recipe.
+        # The callback into the recipe.
         try:
             pertab = recipe.per_tab(tab)
         except Exception:
             crash_msg.append("tab: {!r} {!r}".format(tab_num, tab.name))
             raise
-
-        # Process the per_tab return value.
         if isinstance(pertab, xypath.xypath.Bag):
-            pertab = [pertab]
+            pertab = [pertab]   # normal case when single list returned rather than yielded 
 
-        seg_id = 0
-        try:
-            for seg_id, segment in enumerate(pertab):
-                if opt.debug:
-                    print("tab and segment available for interrogation")
-                    import pdb; pdb.set_trace()
-                print("TTT", tab.max_header, tab.headers)
-
-                if opt.preview:
-                    make_preview()
-
-                # TODO(sm): consider removing duplication of len(segment).
-                if opt.csv and len(segment) != 0:
-                    obs_count = len(segment)
-                    progress = Progress(obs_count, 'Tab {}'.format(tab_num + 1))
-
-                    csv.begin_observation_batch(tab)
-                    if not bheaderoutput:
-                        csv.csv_writer.writerow(csv.generate_header_row(tab))
-                        bheaderoutput = True
-                    for ob_num, ob in enumerate(segment):
-                        assert tab is ob.table
-                        try:
-                            csv.handle_observation(ob)
-                        except Exception:
-                            crash_msg.append("ob: {!r}".format(ob))
-                            raise
-                        progress.update(ob_num)
-                    print()
-                    csv.finish_observation_batch()
-
-
-                # hacky observation wiping
-                tab.headers = {}
-                tab.max_header = 0
-                tab.headernames = [None]
-
-        except Exception:
-            crash_msg.append("segment: {!r}".format(seg_id))
-            crash_msg.append("tab: {!r} {!r}".format(tab_num, tab.name))
-            raise
-
-
-    if opt.csv:
-        csv.footer()
+        # issue here is that pertab can be a generator, where the tab.headers are rewritten between each batch/segment
+        for seg_id, segment in enumerate(pertab):  # must be yielded so we can copy out tab.headers which are set between the function calls
+            assert tab.max_header == max(tab.headers.keys())
+            assert tab.max_header + 1 == len(tab.headernames)
+            try:
+                conversionsequence.append((tab, tab_num, tab.headers.copy(), tab.headernames.copy(), segment, seg_id))
+            except Exception:
+                crash_msg.append("segment: {!r}".format(seg_id))
+                crash_msg.append("tab: {!r} {!r}".format(tab_num, tab.name))
+                raise
+            # [D's original] hacky observation wiping
+            tab.headers = {}
+            tab.max_header = 0
+            tab.headernames = [None]
+            
+    # collected all the work.  now the conversion and saving
+    print("we have a conversion sequence size", len(conversionsequence)) 
+    
+    # write the spreadsheets out all as one batch from the conversionsequence
     if opt.preview:
-        writer.save(filenames()['preview'])
+        print("making preview spreadsheet")
+        for tab, tab_num, headers, headernames, segment, seg_id in conversionsequence:
+            print("%d" % tab_num, end='.')
+            sys.stdout.flush()
+            tableset = xypath.loader.table_set(filenames()['preview'], extension='xls')   # load and save between each one
+            writer = xlutils.copy.copy(tableset.workbook)
+            make_preview(writer, tab.index, headers, segment)
+            writer.save(filenames()['preview'])
+        print()
+
+    # now generate the csv all into one batch from the conversion system
+    if opt.csv and conversionsequence:
+        print("making conversion csv")
+        batchrows = [ ]
+        for tab, tab_num, headers, headernames, segment, seg_id in conversionsequence:
+            progress = Progress(len(segment), 'Tab {}'.format(tab_num + 1))
+            for ob_num, ob in enumerate(segment):
+                assert tab is ob.table
+                try:
+                    values = extract_dimension_values_for_ob(headers, ob, opt.no_lookup_error)
+                    batchrows.append((values, headernames))
+                except Exception:
+                    crash_msg.append("ob: {!r}".format(ob))
+                    crash_msg.append("tab: {!r} {!r}".format(tab_num, tab.name))
+                    raise
+                progress.update(ob_num)
+            print()
+
+        # this is the bloat process I'd like to take this loop outside the loop above
+        csv_file = filenames()['csv']
+        csv = TechnicalCSV(csv_file, opt.no_lookup_error)
+        tab, tab_num, headers, headernames, segment, seg_id = conversionsequence[0]
+        csv.csv_writer.writerow(csv.generate_header_row(headers, headernames))  # note that only first batch of headernames is used
+        for values, headernames in batchrows:
+            output_row = yield_dimension_values(values, headernames)
+            csv.output(output_row)
+        csv.footer()
+
 
 def create_colourlist():
     # Function to dynamically assign colours to dimensions for preview
