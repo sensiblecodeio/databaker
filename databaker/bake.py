@@ -25,6 +25,7 @@ from six.moves import zip
 if six.PY2:
     sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
+
 import xlutils.copy
 import xlwt
 from docopt import docopt
@@ -43,8 +44,8 @@ try:
     import structure_csv_user as template
     from structure_csv_user import *
 except ImportError:
-    from . import structure_csv_default as template
-    from .structure_csv_default import *
+    import structure_csv_default as template
+    from structure_csv_default import *
 
 
 __version__ = "1.2.1"

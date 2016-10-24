@@ -73,13 +73,13 @@ def parse_ob(ob):
     return value.strip(), datamarker.strip()
 
 
-
+no_lookup_error = False
 def cell_for_dimension(headers, obj, dimension):
     try:
         cell = headers.get(dimension, lambda _: None)(obj)
     except xypath.xypath.NoLookupError:
         print("no lookup to dimension {} from cell {}".format(dim_name(dimension), repr(obj)))
-        if self.no_lookup_error:
+        if no_lookup_error:
             cell = "NoLookupError"            # if user wants - output 'NoLookUpError' to CSV
         else:
             cell = "" # Otherwise output a blank cell.
@@ -139,7 +139,9 @@ def extract_dimension_values_for_ob(headers, ob):
 
 LAST_METADATA = 0 # since they're numbered -9 for OBS, ... 0 for last one
 class TechnicalCSV(object):
-    def __init__(self, filename, no_lookup_error):
+    def __init__(self, filename, lno_lookup_error):
+        global no_lookup_error
+        no_lookup_error = lno_lookup_error
         if six.PY2:
             mode = "wb"
         else:
