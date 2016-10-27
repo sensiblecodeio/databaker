@@ -162,10 +162,12 @@ def per_file(spreadsheet, recipe, opt):
 
         # issue here is that pertab can be a generator, where the tab.headers are rewritten between each batch/segment
         for seg_id, segment in enumerate(pertab):  # must be yielded so we can copy out tab.headers which are set between the function calls
-            assert tab.max_header == max(tab.headers.keys())
-            assert tab.max_header + 1 == len(tab.headernames)
+            max_header = max(tab.headers.keys())
+            assert tab.max_header == max_header
+            assert len(tab.headernames) == max_header + 1
             try:
-                conversionsequence.append((tab, tab_num, tab.headers.copy(), tab.headernames.copy(), segment, seg_id))
+                assert tab.headernames == [None]+[tab.headers[i].Dlabel  for i in range(1, max_header+1)]
+                print("\n\n\n")
             except Exception:
                 crash_msg.append("segment: {!r}".format(seg_id))
                 crash_msg.append("tab: {!r} {!r}".format(tab_num, tab.name))
@@ -194,7 +196,9 @@ def per_file(spreadsheet, recipe, opt):
     if opt.csv and conversionsequence:
         print("making conversion csv")
         batchrows = [ ]
-        for tab, tab_num, headers, headernames, segment, seg_id in conversionsequence:
+        for tab, tab_num, headers, lheadernames, segment, seg_id in conversionsequence:
+            headernames == [None]+[headers[i].Dlabel  for i in range(1, max(headers)+1)]
+            assert headernames == lheadernames  # this is the double test
             progress = Progress(len(segment), 'Tab {}'.format(tab_num + 1))
             for ob_num, ob in enumerate(segment):
                 assert tab is ob.table
