@@ -167,6 +167,7 @@ def per_file(spreadsheet, recipe, opt):
             assert len(tab.headernames) == max_header + 1
             try:
                 assert tab.headernames == [None]+[tab.headers[i].Dlabel  for i in range(1, max_header+1)]
+                conversionsequence.append((tab, tab_num, tab.headers, tab.headernames, segment, seg_id))
                 print("\n\n\n")
             except Exception:
                 crash_msg.append("segment: {!r}".format(seg_id))
@@ -197,7 +198,7 @@ def per_file(spreadsheet, recipe, opt):
         print("making conversion csv")
         batchrows = [ ]
         for tab, tab_num, headers, lheadernames, segment, seg_id in conversionsequence:
-            headernames == [None]+[headers[i].Dlabel  for i in range(1, max(headers)+1)]
+            headernames = [None]+[headers[i].Dlabel  for i in range(1, max(headers)+1)]
             assert headernames == lheadernames  # this is the double test
             progress = Progress(len(segment), 'Tab {}'.format(tab_num + 1))
             for ob_num, ob in enumerate(segment):
