@@ -58,6 +58,7 @@ class Dimension(object):
         self.bag = bag
         self.direction = direction
         self.Dlabel = label
+        self.Dnumber = None   # unknown yet
 
         # constant type
         if isinstance(param1, six.string_types):
@@ -87,7 +88,7 @@ class Dimension(object):
             self.string = None
             self.subdim = param1
         if primary_dimension:
-            self.bag.table.append_dimension(label, self)
+            self.Dnumber = self.bag.table.append_dimension(label, self)
 
     def Dcelllookup(self, scell):
         header_bag = self.bag
@@ -229,6 +230,7 @@ def append_dimension(table, label, func):
     table.headers[number] = func
     assert number < 0 or max(table.headers.keys()) == table.max_header, (label, max(table.headers.keys()), table.max_header)
     utils.showtime("got header {}".format(utils.dim_name(label)))
+    return number
 xypath.Table.append_dimension = append_dimension
 
 def debug_dimensions(table):

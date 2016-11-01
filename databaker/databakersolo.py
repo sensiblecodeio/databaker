@@ -16,13 +16,19 @@ Options:
 from __future__ import absolute_import, division, print_function
 import atexit
 
-# Instructions: insert the following two lines at the bottom of the recipe and run it directly as a Python3 scripe
+# Instructions: insert the following two lines at the bottom of the recipe and run it directly as a Python3 script
 # import databaker.databakersolo
 # databaker.databakersolo.runall(per_file, per_tab)
+
+# also get the paths working with
+# export PYTHONPATH=${PYTHONPATH}:/home/goatchurch/sensiblecode/databaker:/home/goatchurch/sensiblecode/xypath:/home/goatchurch/sensiblecode/messytables
 
 # test script calls (for regression)
 # python3 ../../quickcode-ons-recipes/abs/ABS01.py --preview ../../quickcode-ons-recipes/abs/Annual\ Business\ Survey\ Standard\ Extracts\ 2014P\ \(2\).xlsx 
 # python3 bake.py --preview ../../quickcode-ons-recipes/abs/ABS01.py ../../quickcode-ons-recipes/abs/Annual\ Business\ Survey\ Standard\ Extracts\ 2014P\ \(2\).xlsx 
+
+# Current test script being looked at
+# python3 ../../quickcode-ons-recipes/MandA/Mergers_6_7_recipe.py --preview ../../quickcode-ons-recipes/MandA/rftmatables_tcm77-415727.xls  "Table 6" "6A_Top"
 
 
 import imp
@@ -112,36 +118,39 @@ def make_preview(writer, tabindex, headers, segment):
         writer.get_sheet(tabindex).write(ob.y, ob.x, ob.value,
             xlwt.easyxf('pattern: pattern solid, fore-colour {}'.format(colourlist[OBS])))
             
-
-def per_file(spreadsheet, recipe, opt):
-    def filenames():
-        get_base = lambda filename: os.path.splitext(os.path.basename(filename))[0]
-        xls_directory = os.path.dirname(spreadsheet)
-        xls_base = get_base(spreadsheet)
-        recipe_base = get_base(opt.recipe_file)
-        parsed_params = ','.join(opt.params)
-
-        csv_filename = opt.csv_filename.format(spreadsheet=xls_base,
-                                               recipe=recipe_base,
-                                               params=parsed_params)
-
-        csv_path = os.path.join(xls_directory, csv_filename)
-
-        preview_filename = opt.preview_filename.format(spreadsheet=xls_base,
-                                                       recipe=recipe_base,
-                                                       params=parsed_params)
-        preview_path = os.path.join(xls_directory, preview_filename)
-        return {'csv': csv_path, 'preview': preview_path}
+# replacement of the main function (ugly so we can find it among other use of the per_file name
+Globrecipeper_file = None
+Globrecipeper_tab = None
 
 
-    # this is the call of RECIPE.per_file() which filters the list of tables
+def filenames(spreadsheet, opt):
+    get_base = lambda filename: os.path.splitext(os.path.basename(filename))[0]
+    xls_directory = os.path.dirname(spreadsheet)
+    xls_base = get_base(spreadsheet)
+    recipe_base = get_base(opt.recipe_file)
+    parsed_params = ','.join(opt.params)
+
+    csv_filename = opt.csv_filename.format(spreadsheet=xls_base,
+                                           recipe=recipe_base,
+                                           params=parsed_params)
+
+    csv_path = os.path.join(xls_directory, csv_filename)
+
+    preview_filename = opt.preview_filename.format(spreadsheet=xls_base,
+                                                   recipe=recipe_base,
+                                                   params=parsed_params)
+    preview_path = os.path.join(xls_directory, preview_filename)
+    return {'csv': csv_path, 'preview': preview_path}
+
+def DBSper_fileFUNC(spreadsheet, opt):
+    # this block is to call of RECIPE.per_file() which filters the list of tables
     tableset = xypath.loader.table_set(spreadsheet, extension='xls')
     showtime("file {!r} imported".format(spreadsheet))
     if opt.preview:
         writer = xlutils.copy.copy(tableset.workbook)
-        writer.save(filenames()['preview'])
+        writer.save(filenames(spreadsheet, opt)['preview'])
         
-    tabs = list(xypath.loader.get_sheets(tableset, recipe.per_file(tableset)))
+    tabs = list(xypath.loader.get_sheets(tableset, Globrecipeper_file(tableset)))
     if not tabs:
         print("No matching tabs found.")
         exit(1)
@@ -153,7 +162,7 @@ def per_file(spreadsheet, recipe, opt):
 
         # The callback into the recipe.
         try:
-            pertab = recipe.per_tab(tab)
+            pertab = Globrecipeper_tab(tab)
         except Exception:
             crash_msg.append("tab: {!r} {!r}".format(tab_num, tab.name))
             raise
@@ -187,10 +196,10 @@ def per_file(spreadsheet, recipe, opt):
         for tab, tab_num, headers, headernames, segment, seg_id in conversionsequence:
             print("%d" % tab_num, end='.')
             sys.stdout.flush()
-            tableset = xypath.loader.table_set(filenames()['preview'], extension='xls')   # load and save between each one
+            tableset = xypath.loader.table_set(filenames(spreadsheet, opt)['preview'], extension='xls')   # load and save between each one
             writer = xlutils.copy.copy(tableset.workbook)
             make_preview(writer, tab.index, headers, segment)
-            writer.save(filenames()['preview'])
+            writer.save(filenames(spreadsheet, opt)['preview'])
         print()
 
     # now generate the csv all into one batch from the conversion system
@@ -214,7 +223,7 @@ def per_file(spreadsheet, recipe, opt):
             print()
 
         # this is the bloat process I'd like to take this loop outside the loop above
-        csv_file = filenames()['csv']
+        csv_file = filenames(spreadsheet, opt)['csv']
         csv = TechnicalCSV(csv_file, opt.no_lookup_error)
         tab, tab_num, headers, headernames, segment, seg_id = conversionsequence[0]
         csv.csv_writer.writerow(csv.generate_header_row(headers, headernames))  # note that only first batch of headernames is used
@@ -239,26 +248,21 @@ def create_colourlist():
 colourlist = create_colourlist()
 
 
-# replacement of the main function
-class Recipe:
-    def __init__(self, lper_file, lper_tab):
-        self.per_file = lper_file
-        self.per_tab = lper_tab
-recipe = None
 def runall(lper_file, lper_tab):
     if sys.argv[0] == "bake.py":
         print("You are running this solo script using bake.py; quitting runall() now so it may work")
         return
     
-    global recipe
-    recipe = Recipe(lper_file, lper_tab)
+    global Globrecipeper_file, Globrecipeper_tab
+    Globrecipeper_file = lper_file
+    Globrecipeper_tab = lper_tab
     Opt = Options()
     databaker.utils.showtime_enabled = Opt.timing
     databaker.constants.constant_params = Opt.params
     atexit.register(onexit)
     for fn in Opt.xls_files:
         try:
-            per_file(fn, recipe, Opt)
+            DBSper_fileFUNC(fn, Opt)
         except Exception:
             crash_msg.append("fn: {!r}".format(fn))
             crash_msg.append("recipe: {!r}".format(Opt.recipe_file))

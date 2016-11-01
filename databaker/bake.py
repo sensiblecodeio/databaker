@@ -25,6 +25,10 @@ from six.moves import zip
 if six.PY2:
     sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
+sys.path.insert(0, "/home/goatchurch/sensiblecode/databaker")
+sys.path.insert(0, "/home/goatchurch/sensiblecode/xypath")
+sys.path.insert(0, "/home/goatchurch/sensiblecode/messytables")
+
 
 import xlutils.copy
 import xlwt
@@ -44,8 +48,8 @@ try:
     import structure_csv_user as template
     from structure_csv_user import *
 except ImportError:
-    from . import structure_csv_default as template
-    from .structure_csv_default import *
+    import structure_csv_default as template
+    from structure_csv_default import *
 
 
 __version__ = "1.2.1"
