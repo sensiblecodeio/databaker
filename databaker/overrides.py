@@ -41,6 +41,33 @@ def string_cell_value(cell):
     return value.strip()
 
 
+def Dcelllookup(header_bag, direction, strict, hcells, scell):
+    def mult(cell):
+        return cell.x * direction[0] + cell.y * direction[1]
+
+    def same_row_col(a, b, direction):
+        return  (a.x - b.x  == 0 and direction[0] == 0) or \
+                (a.y - b.y  == 0 and direction[1] == 0)
+    if hcells is None:
+        hcells = header_bag.unordered_cells
+
+    best_cell = None
+    second_best_cell = None
+
+    #if strict:  print(len(list(hcells)), len(list(header_bag.unordered_cells)))
+    for target_cell in hcells:
+        if mult(scell) <= mult(target_cell):
+            if not best_cell or mult(target_cell) <= mult(best_cell):
+                if not strict or same_row_col(scell, target_cell, direction):
+                    second_best_cell = best_cell
+                    best_cell = target_cell
+    if second_best_cell and mult(best_cell) == mult(second_best_cell):
+        raise xypath.LookupConfusionError("{!r} is as good as {!r} for {!r}".format(best_cell, second_best_cell, scell))
+    if best_cell is None:
+        raise xypath.NoLookupError("No lookup for {!r}".format(scell))
+    return best_cell
+
+
 class Dimension(object):
     # string signature: table.Dimension(label, string_literal)
     # bag signature:    bag.Dimension(label, direction, strictness)
@@ -90,35 +117,6 @@ class Dimension(object):
         if primary_dimension:
             self.Dnumber = self.bag.table.append_dimension(label, self)
 
-    def Dcelllookup(self, scell):
-        header_bag = self.bag
-        direction = self.direction
-        strict = self.strict
-        def mult(cell):
-            return cell.x * direction[0] + cell.y * direction[1]
-
-        def same_row_col(a, b, direction):
-            return  (a.x - b.x  == 0 and direction[0] == 0) or \
-                    (a.y - b.y  == 0 and direction[1] == 0)
-
-        best_cell = None
-        second_best_cell = None
-
-        bxtype = (self.direction[1] == 0)
-        hcells = header_bag.unordered_cells if not strict else self.samerowlookup.get(scell.y if bxtype else scell.x, [])
-        #if strict:  print(len(list(hcells)), len(list(header_bag.unordered_cells)))
-        for target_cell in hcells:
-            if mult(scell) <= mult(target_cell):
-                if not best_cell or mult(target_cell) <= mult(best_cell):
-                    if not strict or same_row_col(scell, target_cell, direction):
-                        second_best_cell = best_cell
-                        best_cell = target_cell
-        if second_best_cell and mult(best_cell) == mult(second_best_cell):
-            raise xypath.LookupConfusionError("{!r} is as good as {!r} for {!r}".format(best_cell, second_best_cell, scell))
-        if best_cell is None:
-            raise xypath.NoLookupError("No lookup for {!r}".format(scell))
-        return best_cell
-
     # This is done with this call because table.headers[number] takes "funcs"
     # in append_dimension (it shouldn't), which are lambda functions only in
     # debug dimensions.
@@ -126,7 +124,10 @@ class Dimension(object):
         if self.string is not None:
             return self.string
         if self.strict is not None:
-            hcell = self.Dcelllookup(cell)
+            bxtype = (self.direction[1] == 0)
+            scell = cell
+            hcells = self.bag.unordered_cells if not self.strict else self.samerowlookup.get(scell.y if bxtype else scell.x, [])
+            hcell = Dcelllookup(self.bag, self.direction, self.strict, hcells, scell)
             #hcell = cell.lookup(self.bag, self.direction, self.strict)
 
             # use this to test the lookup function is the same
