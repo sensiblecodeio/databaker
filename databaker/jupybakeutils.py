@@ -48,6 +48,10 @@ def dsubsets(dimensions, segment):
 
 def displaytable(tab, tsubs):
     key = [ ]
+    key.append('Table: ')
+    key.append('<b>')
+    key.append(tab.name); 
+    key.append('</b> ')
     key.append('<table class="ex">\n')
     key.append('<tr>')
     ixyheaderlookup = { }
