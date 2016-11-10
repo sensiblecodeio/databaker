@@ -42,12 +42,27 @@ def string_cell_value(cell):
 
 
 def Dcelllookup(header_bag, direction, strict, hcells, scell):
+    bbothdirtype = type(direction[0]) == tuple or type(direction[1]) == tuple
     def mult(cell):
         return cell.x * direction[0] + cell.y * direction[1]
-
+    def dgap(cell, target_cell):
+        if direction[1] == 0:
+            return abs(cell.x - target_cell.x)
+        return abs(cell.y - target_cell.y)
+        
+    def betweencells(scell, target_cell, best_cell):
+        if not bbothdirtype:
+            if mult(scell) <= mult(target_cell):
+                if not best_cell or mult(target_cell) <= mult(best_cell):
+                    return True
+            return False
+        if not best_cell:
+            return True
+        return dgap(scell, target_cell) <= dgap(scell, best_cell)
+        
     def same_row_col(a, b, direction):
-        return  (a.x - b.x  == 0 and direction[0] == 0) or \
-                (a.y - b.y  == 0 and direction[1] == 0)
+        return  (a.x - b.x  == 0 and direction[0] == 0) or (a.y - b.y  == 0 and direction[1] == 0)
+    
     if hcells is None:
         hcells = header_bag.unordered_cells
 
@@ -56,16 +71,30 @@ def Dcelllookup(header_bag, direction, strict, hcells, scell):
 
     #if strict:  print(len(list(hcells)), len(list(header_bag.unordered_cells)))
     for target_cell in hcells:
-        if mult(scell) <= mult(target_cell):
-            if not best_cell or mult(target_cell) <= mult(best_cell):
-                if not strict or same_row_col(scell, target_cell, direction):
-                    second_best_cell = best_cell
-                    best_cell = target_cell
-    if second_best_cell and mult(best_cell) == mult(second_best_cell):
+        if betweencells(scell, target_cell, best_cell):
+            if not strict or same_row_col(scell, target_cell, direction):
+                second_best_cell = best_cell
+                best_cell = target_cell
+    if second_best_cell and not bbothdirtype and mult(best_cell) == mult(second_best_cell):
+        raise xypath.LookupConfusionError("{!r} is as good as {!r} for {!r}".format(best_cell, second_best_cell, scell))
+    if second_best_cell and bbothdirtype and dgap(scell, best_cell) == dgap(scell, second_best_cell):
         raise xypath.LookupConfusionError("{!r} is as good as {!r} for {!r}".format(best_cell, second_best_cell, scell))
     if best_cell is None:
         raise xypath.NoLookupError("No lookup for {!r}".format(scell))
     return best_cell
+
+# this could do the sorting and more efficient batch looking up of the values (eg by calculating hcells locally)
+def batchcelllookup(tab, segment, dimension):     
+    dlookup = [ ]
+    header_bag, name, strict, direction = dimension
+    for ob in segment:
+        try:
+            h = Dcelllookup(header_bag, direction, strict, None, ob)
+            dlookup.append(h)
+        except xypath.NoLookupError:
+            dlookup.append(None)
+    return dlookup
+
 
 
 class Dimension(object):

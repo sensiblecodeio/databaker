@@ -46,7 +46,7 @@ def dsubsets(dimensions, segment):
     return tsubs
 
 
-def displaytable(tab, tsubs):
+def tabletohtml(tab, tsubs):
     key = [ ]
     key.append('Table: ')
     key.append('<b>')
@@ -70,8 +70,10 @@ def displaytable(tab, tsubs):
     sty.append("td.exbold { font-weight: bold }\n")
     sty.append("td.exnumber { color: green }\n")
     sty.append("td.exdate { color: purple }\n")
+    sty.append("table { border-collapse: collapse }\n")
     for i, col in colourlist.items():
         sty.append("td.exc%d { background-color: %s }\n" % (i, "".join(lv.capitalize() for lv in colchange.get(col, col).split("_"))))
+    sty.append("td.exc%d:hover { border: thin blue solid }\n" % OBS)
     sty.append("</style>\n\n")
 
     htm = [ ]
@@ -87,14 +89,37 @@ def displaytable(tab, tsubs):
             if c.properties.get_bold():    cs.append("exbold")
             if c.is_date():                cs.append("exdate")
             if c.is_number():              cs.append("exnumber")
-            htm.append('<td class="%s">' % " ".join(cs))
+            htm.append('<td class="%s" title="(%d,%d)">' % (" ".join(cs), c.x, c.y))
             htm.append(str(c.value))
             htm.append("</td>")
         htm.append("</tr>\n")
     htm.append("</table>\n")
 
-    display(HTML("".join(sty)))
-    display(HTML("".join(key)))
-    display(HTML("".join(htm)))
+    jsty = "".join(sty)
+    jkey = "".join(key)
+    jhtm = "".join(htm)
+    return "%s\n%s\n%s\n" % (jsty, jkey, jhtm)
 
+def inlinehtmldisplay(htm):
+    display(HTML(htm))
 
+def sidewindowhtmldisplay(htm):
+    sJavascript = '''
+<b>Spawning "sidewin" window</b> 
+<script type="text/Javascript">
+var Dcheck = "something"; 
+var sidewin = "sssomething"; 
+sidewin = window.open("", "abc123", "toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=780,height=200,top=200,left=200"); 
+// use backtick for multi-line string
+var sHtml = `
+%s
+`;
+if (sidewin)
+    sidewin.document.body.innerHTML = "<h1>Hello</h1> " + sHtml;
+else
+    alert("sidewindow didn't work"); 
+</script>
+'''
+    display(HTML(sJavascript % htm))
+    
+    
