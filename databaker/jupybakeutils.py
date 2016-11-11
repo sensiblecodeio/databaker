@@ -100,26 +100,24 @@ def tabletohtml(tab, tsubs):
     jhtm = "".join(htm)
     return "%s\n%s\n%s\n" % (jsty, jkey, jhtm)
 
-def inlinehtmldisplay(htm):
-    display(HTML(htm))
+inlinehtmidNUM = 1000
+def inlinehtmldisplay(htm, hide=False):
+    global inlinehtmidNUM
+    inlinehtmidNUM += 1
+    display(HTML('injblock%d: <div id="injblock%d" style="%s">%s</div>' % (inlinehtmidNUM, inlinehtmidNUM, "display:none" if hide else "display:inline", htm)))
 
-def sidewindowhtmldisplay(htm):
-    sJavascript = '''
-<b>Spawning "sidewin" window</b> 
+def sidewindowhtmldisplay():
+    sjs = '''
 <script type="text/Javascript">
-var Dcheck = "something"; 
-var sidewin = "sssomething"; 
-sidewin = window.open("", "abc123", "toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=780,height=200,top=200,left=200"); 
-// use backtick for multi-line string
-var sHtml = `
-%s
-`;
-if (sidewin)
-    sidewin.document.body.innerHTML = "<h1>Hello</h1> " + sHtml;
+var injblock = document.getElementById("injblock%d"); 
+console.log(injblock.innerHTML); 
+var sidewin = window.open("", "abc123", "toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=780,height=200,top=200,left=200"); 
+if (sidewin) 
+    sidewin.document.body.innerHTML = injblock.innerHTML;
 else
     alert("sidewindow didn't work"); 
 </script>
 '''
-    display(HTML(sJavascript % htm))
+    display(HTML(sjs % inlinehtmidNUM))
     
     
