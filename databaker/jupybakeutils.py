@@ -5,6 +5,7 @@ from IPython.core.display import HTML
 import databaker.constants
 OBS = databaker.constants.OBS
 
+
 # copied out again
 def create_colourlist():
     # Function to dynamically assign colours to dimensions for preview
@@ -53,7 +54,7 @@ def incrementdividNUM():
     ndividNUM += 1
     dividNUM = "injblock%d" % ndividNUM
 
-def ddtabletohtml(tab, tsubs):
+def tabletohtml(tab, tsubs):
     key = [ ]
     key.append('Table: ')
     key.append('<b>')
@@ -82,6 +83,7 @@ def ddtabletohtml(tab, tsubs):
         sty.append("td.exc%d { background-color: %s }\n" % (i, "".join(lv.capitalize() for lv in colchange.get(col, col).split("_"))))
     sty.append("table.ex td:hover { border: thin blue solid }\n")
     sty.append("table.ex td.exc%d:hover { border: thin red solid }\n" % OBS)
+    sty.append("table.ex td.selected { background-color: red }\n")
     sty.append("</style>\n\n")
 
     htm = [ ]
@@ -117,9 +119,22 @@ function clickedcell()
 { 
     Dclickedcell = this; 
     console.log("jjjj", this); 
+    var rgc = new RegExp('(^|\\b)' + "selected".split(' ').join('|') + '(\\b|$)', 'gi'); 
+    Array.prototype.forEach.call(document.querySelectorAll("div#"+jdividNUM+" table.ex td.selected"), function(el, i) { 
+        if (el.classList)  el.classList.remove("selected");
+        else  el.className = el.className.replace(rgc, ' ');
+    }); 
+    if (this.classList)  this.classList.add("selected");
+    else this.className += ' ' + "selected";
+
     var dimpairs = jslookup[this.title]; 
     if (dimpairs !== undefined) {
-    
+        for (var i = 1; i < dimpairs.length; i += 2) {
+            var row = document.querySelectorAll("div#"+jdividNUM+" table.ex tr")[dimpairs[i]]; 
+            var el = row.querySelectorAll("td")[dimpairs[i-1]]; 
+            if (el.classList)  el.classList.add("selected");
+            else el.className += ' ' + "selected";
+        }
     }
 }
 Array.prototype.forEach.call(document.querySelectorAll("div#"+jdividNUM+" table.ex td"), function(item, i) { item.onclick=clickedcell; }); 
@@ -129,7 +144,7 @@ Array.prototype.forEach.call(document.querySelectorAll("div#"+jdividNUM+" table.
 def inlinehtmldisplay(htm, hide=False):
     display(HTML('%s: <div id="%s" style="%s">%s</div>' % (dividNUM, dividNUM, "display:none" if hide else "display:inline", htm)))
 
-def inlinehtmljsactive(conversionsegment):
+def inlinehtmljsactive(conversionsegment, batchcelllookup):
     # generate the lookup table from titles to references
     tab, dimensions, segment = conversionsegment
     obslist = list(segment.unordered_cells)  # list(segment) otherwise gives bags of one element
