@@ -46,13 +46,20 @@ def dsubsets(dimensions, segment):
     return tsubs
 
 
-def tabletohtml(tab, tsubs):
+ndividNUM = 1000
+dividNUM = "kkkk"
+def incrementdividNUM():
+    global ndividNUM, dividNUM
+    ndividNUM += 1
+    dividNUM = "injblock%d" % ndividNUM
+
+def ddtabletohtml(tab, tsubs):
     key = [ ]
     key.append('Table: ')
     key.append('<b>')
     key.append(tab.name); 
     key.append('</b> ')
-    key.append('<table class="ex">\n')
+    key.append('<table class="exkey">\n')
     key.append('<tr>')
     ixyheaderlookup = { }
     for i, label, bag in tsubs:
@@ -73,7 +80,8 @@ def tabletohtml(tab, tsubs):
     sty.append("table { border-collapse: collapse }\n")
     for i, col in colourlist.items():
         sty.append("td.exc%d { background-color: %s }\n" % (i, "".join(lv.capitalize() for lv in colchange.get(col, col).split("_"))))
-    sty.append("td.exc%d:hover { border: thin blue solid }\n" % OBS)
+    sty.append("table.ex td:hover { border: thin blue solid }\n")
+    sty.append("table.ex td.exc%d:hover { border: thin red solid }\n" % OBS)
     sty.append("</style>\n\n")
 
     htm = [ ]
@@ -89,7 +97,7 @@ def tabletohtml(tab, tsubs):
             if c.properties.get_bold():    cs.append("exbold")
             if c.is_date():                cs.append("exdate")
             if c.is_number():              cs.append("exnumber")
-            htm.append('<td class="%s" title="(%d,%d)">' % (" ".join(cs), c.x, c.y))
+            htm.append('<td class="%s" title="%d %d">' % (" ".join(cs), c.x, c.y))
             htm.append(str(c.value))
             htm.append("</td>")
         htm.append("</tr>\n")
@@ -100,16 +108,41 @@ def tabletohtml(tab, tsubs):
     jhtm = "".join(htm)
     return "%s\n%s\n%s\n" % (jsty, jkey, jhtm)
 
-inlinehtmidNUM = 1000
-def inlinehtmldisplay(htm, hide=False):
-    global inlinehtmidNUM
-    inlinehtmidNUM += 1
-    display(HTML('injblock%d: <div id="injblock%d" style="%s">%s</div>' % (inlinehtmidNUM, inlinehtmidNUM, "display:none" if hide else "display:inline", htm)))
+jscode = """
+<script>
+var jslookup = %s; 
+var jdividNUM = "%s"; 
+var Dclickedcell = null; 
+function clickedcell() 
+{ 
+    Dclickedcell = this; 
+    console.log("jjjj", this); 
+    var dimpairs = jslookup[this.title]; 
+    if (dimpairs !== undefined) {
+    
+    }
+}
+Array.prototype.forEach.call(document.querySelectorAll("div#"+jdividNUM+" table.ex td"), function(item, i) { item.onclick=clickedcell; }); 
+</script>
+"""
 
+def inlinehtmldisplay(htm, hide=False):
+    display(HTML('%s: <div id="%s" style="%s">%s</div>' % (dividNUM, dividNUM, "display:none" if hide else "display:inline", htm)))
+
+def inlinehtmljsactive(conversionsegment):
+    # generate the lookup table from titles to references
+    tab, dimensions, segment = conversionsegment
+    obslist = list(segment.unordered_cells)  # list(segment) otherwise gives bags of one element
+    dimvalues = [ batchcelllookup(tab, obslist, dimension)  for dimension in dimensions ]
+    jslookup = '{%s}' % ",".join('"%d %d":[%s]' % (k.x, k.y, ",".join("%d,%d" % (d.x, d.y)  for d in tup))  \
+                           for k, tup in zip(obslist, zip(*dimvalues)))
+    display(HTML(jscode % (jslookup, dividNUM)))
+    
+# could do this as a save and reload
 def sidewindowhtmldisplay():
     sjs = '''
 <script type="text/Javascript">
-var injblock = document.getElementById("injblock%d"); 
+var injblock = document.getElementById("%s"); 
 console.log(injblock.innerHTML); 
 var sidewin = window.open("", "abc123", "toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=780,height=200,top=200,left=200"); 
 if (sidewin) 
@@ -118,6 +151,6 @@ else
     alert("sidewindow didn't work"); 
 </script>
 '''
-    display(HTML(sjs % inlinehtmidNUM))
+    display(HTML(sjs % dividNUM))
     
     
