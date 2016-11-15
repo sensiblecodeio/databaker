@@ -3,7 +3,9 @@
 from IPython.display import display
 from IPython.core.display import HTML
 import databaker.constants
-OBS = databaker.constants.OBS
+OBS = databaker.constants.OBS   # evaluates to -9
+
+from databaker.utils import TechnicalCSV, yield_dimension_values
 
 
 # copied out again
@@ -74,6 +76,7 @@ def tabletohtml(tab, tsubs):
     
     sty = [ ]
     sty.append("<style>\n")
+    sty.append("table.ex, table.exkey { border: thin black solid }\n")
     sty.append("table.ex td, table.ex tr { border: none }\n")
     sty.append("td.exbold { font-weight: bold }\n")
     sty.append("td.exnumber { color: green }\n")
@@ -83,7 +86,7 @@ def tabletohtml(tab, tsubs):
         sty.append("td.exc%d { background-color: %s }\n" % (i, "".join(lv.capitalize() for lv in colchange.get(col, col).split("_"))))
     sty.append("table.ex td:hover { border: thin blue solid }\n")
     sty.append("table.ex td.exc%d:hover { border: thin red solid }\n" % OBS)
-    sty.append("table.ex td.selected { background-color: red }\n")
+    sty.append("table.ex td.selected { background-color: red; border: thin blue dotted }\n")
     sty.append("</style>\n\n")
 
     htm = [ ]
@@ -144,13 +147,19 @@ Array.prototype.forEach.call(document.querySelectorAll("div#"+jdividNUM+" table.
 def inlinehtmldisplay(htm, hide=False):
     display(HTML('%s: <div id="%s" style="%s">%s</div>' % (dividNUM, dividNUM, "display:none" if hide else "display:inline", htm)))
 
-def inlinehtmljsactive(conversionsegment, batchcelllookup):
-    # generate the lookup table from titles to references
+# generate the lookup table from titles to references
+def calcjslookup(conversionsegment, batchcelllookup):
     tab, dimensions, segment = conversionsegment
     obslist = list(segment.unordered_cells)  # list(segment) otherwise gives bags of one element
-    dimvalues = [ batchcelllookup(tab, obslist, dimension)  for dimension in dimensions ]
-    jslookup = '{%s}' % ",".join('"%d %d":[%s]' % (k.x, k.y, ",".join("%d,%d" % (d.x, d.y)  for d in tup))  \
+
+    # should only apply to xypath.xypath.Bag types (alternative is str, which means it's a constant dimension
+    dimvalues = [ batchcelllookup(tab, obslist, dimension)  for dimension in dimensions  if type(dimension[0]) != str ]
+    jslookup = '{%s}' % ",".join('"%d %d":[%s]' % (k.x, k.y, ",".join("%d,%d" % (d.x, d.y)  for d in tup  if d))  \
                            for k, tup in zip(obslist, zip(*dimvalues)))
+    return jslookup
+    
+def inlinehtmljsactive(conversionsegment, batchcelllookup):
+    jslookup = calcjslookup(conversionsegment, batchcelllookup)
     display(HTML(jscode % (jslookup, dividNUM)))
     
 # could do this as a save and reload
@@ -168,4 +177,74 @@ else
 '''
     display(HTML(sjs % dividNUM))
     
+def savepreviewhtml(conversionsegment, batchcelllookup, fname):
+    tab, dimensions, segment = conversionsegment
+
+    incrementdividNUM()
+    print("opening file %s" % fname)
+    fout = open(fname, "w")
+    fout.write("<html>\n<head><title>%s</title></head>\n<body>\n" % tab.name)
+    htmtable = tabletohtml(tab, dsubsets(dimensions, segment))
+    fout.write('<div id="%s">\n' % dividNUM)
+    fout.write(htmtable)
+    fout.write('</div>\n')
+
+    print("table written")
+    if batchcelllookup:
+        jslookup = calcjslookup(conversionsegment, batchcelllookup)
+        print("javascript calculated")
+        fout.write(jscode % (jslookup, dividNUM))
+    fout.write("</body></html>\n")
+    fout.close()
     
+    
+    
+    
+def procvalue(dimvalue):
+    return [ c.value if c is not None else "" for c in dimvalue ]  # "2010²"
+
+def procbatch(tab, obslist, dimension, batchcelllookup):
+    if type(dimension[0]) == str:
+        return [ dimension[0] ]*len(obslist)
+    dimvalue = batchcelllookup(tab, obslist, dimension)
+    return procvalue(dimvalue)
+
+# make a shorter version of the bloated csv    
+def procrows(conversionsegment, batchcelllookup):
+    rows = [ ]
+    tab, dimensions, segment = conversionsegment
+    obslist = list(segment.unordered_cells)  # list(segment) otherwise gives bags of one element
+    obslist.sort(key=lambda cell: (cell.y, cell.x))
+    dimvalues = [ procbatch(tab, obslist, dimension, batchcelllookup)  for dimension in dimensions ]
+    dtuples = zip(*([procvalue(obslist)]+dimvalues))
+    keys = [OBS] + [ dimension[1]  for dimension in dimensions ]  # the labels
+    for dtup in dtuples:
+        dval = dict(zip(keys, dtup))
+        rows.append(dval)
+        
+        #row = [ dval.get(i, 0)  for i in range(OBS, 1) ]
+        #for k, v in dval.items():
+        #    if type(k) != int or k > 0:
+        #        row.append(k)
+        #        row.append(v)
+        #rows.append(row)
+    return rows
+    
+# In theory we can now call the template export to big CSV, like before at this point
+# But now we should seek to plot the stats ourselves as a sanity check that the data is good
+
+
+
+def writetechnicalCSV(outputfile, conversionsegments, batchcelllookup):
+    csvout = TechnicalCSV(outputfile, False)
+    print("converting and writing %d conversion segments into %s" % (len(conversionsegments), outputfile))
+    for conversionsegment in conversionsegments:
+        headernames = [None]+[dimension[1]  for dimension in conversionsegment[1]  if type(dimension[1]) != int ]
+        rows = procrows(conversionsegment, batchcelllookup)
+        print("conversion segment size %d" % len(rows))
+        for row in rows:
+            values = dict((k if type(k)==int else headernames.index(k), v)  for k, v in row.items())
+            output_row = yield_dimension_values(values, headernames)
+            csvout.output(output_row)
+    csvout.footer()
+

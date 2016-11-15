@@ -230,7 +230,7 @@ def DBSper_fileFUNC(spreadsheet, opt):
         for values, headernames in batchrows:
             output_row = yield_dimension_values(values, headernames)
             csv.output(output_row)
-        csv.footer()
+    csv.footer()
 
 
 def create_colourlist():

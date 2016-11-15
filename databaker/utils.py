@@ -138,9 +138,9 @@ def extract_dimension_values_for_ob(headers, ob, no_lookup_error):
 
 def yield_dimension_values(values, headernames):
     for dimension in range(OBS, LAST_METADATA + 1):
-        yield values[dimension]
+        yield values.get(dimension, None)
         if dimension in template.SH_Repeat:         # Calls special handling - repeats
-            yield values[dimension]
+            yield values.get(dimension, None)
         for i in range(0, template.SKIP_AFTER[dimension]):
             yield ''
 
