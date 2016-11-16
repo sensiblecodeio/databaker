@@ -297,6 +297,9 @@ xypath.Bag.is_date = is_date
 def is_number(bag):
     return bag.filter(lambda cell: isinstance(cell.value, (int, float, int)))
 xypath.Bag.is_number = is_number
+def is_not_number(bag):
+    return bag.filter(lambda cell: not isinstance(cell.value, (int, float, int)))
+xypath.Bag.is_not_number = is_not_number
 
 def group(bag, regex):
     """get the text"""

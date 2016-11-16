@@ -189,16 +189,27 @@ def savepreviewhtml(conversionsegment, batchcelllookup, fname):
     fout.write(htmtable)
     fout.write('</div>\n')
 
-    print("table written")
-    if batchcelllookup:
+    print("table '%s' written" % tab.name)
+    if batchcelllookup and conversionsegment[1] and conversionsegment[2]:
         jslookup = calcjslookup(conversionsegment, batchcelllookup)
         print("javascript calculated")
         fout.write(jscode % (jslookup, dividNUM))
     fout.write("</body></html>\n")
     fout.close()
     
-    
-    
+def savepreviewhtmlBAGS(param1, fname):
+    if type(param1) not in [tuple, list]:
+        param1 = [param1]
+    tab = None
+    dimensions = [ ]
+    for i, p in enumerate(param1):
+        if not tab:
+            tab = p.table
+        else:
+            assert tab is p.table, "must all be same table"
+        if "Table" not in str(type(p)):
+            dimensions.append((p, "item %d"%i, 1, 1))
+    savepreviewhtml((tab, dimensions, []), None, fname)    
     
 def procvalue(dimvalue):
     return [ c.value if c is not None else "" for c in dimvalue ]  # "2010²"
@@ -235,16 +246,20 @@ def procrows(conversionsegment, batchcelllookup):
 
 
 
-def writetechnicalCSV(outputfile, conversionsegments, batchcelllookup):
+def writetechnicalCSV(outputfile, conversionsegments, batchcelllookup_or_conversionsegments):
     csvout = TechnicalCSV(outputfile, False)
-    print("converting and writing %d conversion segments into %s" % (len(conversionsegments), outputfile))
-    for conversionsegment in conversionsegments:
+    print("writing %d conversion segments into %s" % (len(conversionsegments), outputfile))
+    for i, conversionsegment in enumerate(conversionsegments):
         headernames = [None]+[dimension[1]  for dimension in conversionsegment[1]  if type(dimension[1]) != int ]
-        rows = procrows(conversionsegment, batchcelllookup)
-        print("conversion segment size %d" % len(rows))
+        if type(batchcelllookup_or_conversionsegments) == list:
+            rows = batchcelllookup_or_conversionsegments[i]
+        else:
+            rows = procrows(conversionsegment, batchcelllookup_or_conversionsegments)
+        print("conversionwrite segment size %d" % len(rows))
         for row in rows:
             values = dict((k if type(k)==int else headernames.index(k), v)  for k, v in row.items())
             output_row = yield_dimension_values(values, headernames)
             csvout.output(output_row)
     csvout.footer()
+    
 
