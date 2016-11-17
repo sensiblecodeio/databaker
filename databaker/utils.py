@@ -37,7 +37,7 @@ def datematch(date, silent=False):
     d = date.strip()
     if re.match('\d{4}$', d):
         return 'Year'
-    if re.match('\d{4} [Qq]\d$', d):
+    if re.match('\d{4}\s*[Qq]\d$', d):
         return 'Quarter'
     if re.match('[A-Za-z]{3}-[A-Za-z]{3} \d{4}$', d):
         return 'Quarter'
@@ -138,9 +138,10 @@ def extract_dimension_values_for_ob(headers, ob, no_lookup_error):
 
 def yield_dimension_values(values, headernames):
     for dimension in range(OBS, LAST_METADATA + 1):
-        yield values.get(dimension, None)
+        v = values.get(dimension, "")
+        yield v
         if dimension in template.SH_Repeat:         # Calls special handling - repeats
-            yield values.get(dimension, None)
+            yield v
         for i in range(0, template.SKIP_AFTER[dimension]):
             yield ''
 
@@ -150,6 +151,22 @@ def yield_dimension_values(values, headernames):
         topic_headers = template.get_topic_headers(name, value)
         for col in topic_headers:
             yield col
+
+def DUPgenerate_header_row(headernames):
+    header_row = template.start.split(',')
+
+    # create new header row
+    for i in range(len(headernames)):
+        header_row.extend(template.repeat.format(num=i+1).split(','))
+
+    # overwrite dimensions/subject/name as column header (if requested)
+    if template.topic_headers_as_dims:
+        dims = []
+        for headername in headernames:
+            dims.append(headername)
+        header_row = rewrite_headers(header_row, dims)
+    return header_row
+
 
 
 LAST_METADATA = 0 # since they're numbered -9 for OBS, ... 0 for last one

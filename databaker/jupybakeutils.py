@@ -5,7 +5,7 @@ from IPython.core.display import HTML
 import databaker.constants
 OBS = databaker.constants.OBS   # evaluates to -9
 
-from databaker.utils import TechnicalCSV, yield_dimension_values
+from databaker.utils import TechnicalCSV, yield_dimension_values, DUPgenerate_header_row, datematch, template
 
 
 # copied out again
@@ -231,14 +231,15 @@ def procrows(conversionsegment, batchcelllookup):
     keys = [OBS] + [ dimension[1]  for dimension in dimensions ]  # the labels
     for dtup in dtuples:
         dval = dict(zip(keys, dtup))
-        rows.append(dval)
         
-        #row = [ dval.get(i, 0)  for i in range(OBS, 1) ]
-        #for k, v in dval.items():
-        #    if type(k) != int or k > 0:
-        #        row.append(k)
-        #        row.append(v)
-        #rows.append(row)
+        # insert the timeunit system
+        if template.SH_Create_ONS_time:
+            if not dval.get(template.TIMEUNIT) == '' and dval.get(template.TIME):
+                # we've not actually been given a timeunit, but we have a time
+                # determine the timeunit from the time
+                dval[template.TIMEUNIT] = datematch(dval[template.TIME])
+        rows.append(dval)
+
     return rows
     
 # In theory we can now call the template export to big CSV, like before at this point
@@ -251,6 +252,9 @@ def writetechnicalCSV(outputfile, conversionsegments, batchcelllookup_or_convers
     print("writing %d conversion segments into %s" % (len(conversionsegments), outputfile))
     for i, conversionsegment in enumerate(conversionsegments):
         headernames = [None]+[dimension[1]  for dimension in conversionsegment[1]  if type(dimension[1]) != int ]
+        if i == 0:   # only first segment
+            header_row = DUPgenerate_header_row(headernames)
+            csvout.output(header_row)
         if type(batchcelllookup_or_conversionsegments) == list:
             rows = batchcelllookup_or_conversionsegments[i]
         else:
