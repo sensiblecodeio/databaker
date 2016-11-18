@@ -6,7 +6,6 @@ import io
 
 import six
 
-from collections import namedtuple
 
 from IPython.display import display
 from IPython.core.display import HTML
@@ -218,15 +217,28 @@ def savepreviewhtmlBAGS(param1, fname):
         if "Table" not in str(type(p)):
             dimensions.append((p, "item %d"%i, 1, 1))
     savepreviewhtml((tab, dimensions, []), None, fname)    
+
+
+# Quick effort to convert the Dimension tuple into its own class for later work
+from collections import namedtuple
+class HDim(namedtuple('HDim', ['hbagset', 'name', 'direction', 'strict'])):
+    def __new__(self, hbagset, name, direction, strict):
+        return super(HDim, self).__new__(self, hbagset, name, direction, strict)
+
+    def __init__(self, hbagset, name, direction, strict):
+        self.cellvalueoverride = { }
+
     
-def procvalue(dimvalue):
-    return [ c.value if c is not None else "" for c in dimvalue ]  # "2010²"
+def procvalue(dimvalue, dimension):  
+    # (this is already applying to the unordered_cells which are naked _cell elements that were put into the lookup
+    cellvalueoverride = dimension.cellvalueoverride  if type(dimension) is HDim  else {}
+    return [ cellvalueoverride.get(c, c.value) if c is not None else ""   for c in dimvalue ]  # "2010²"
 
 def procbatch(tab, obslist, dimension, batchcelllookup):
     if type(dimension[0]) == str:
         return [ dimension[0] ]*len(obslist)
     dimvalue = batchcelllookup(tab, obslist, dimension)
-    return procvalue(dimvalue)
+    return procvalue(dimvalue, dimension)
 
 # make a shorter version of the bloated csv    
 def procrows(conversionsegment, batchcelllookup):
@@ -235,7 +247,7 @@ def procrows(conversionsegment, batchcelllookup):
     obslist = list(segment.unordered_cells)  # list(segment) otherwise gives bags of one element
     obslist.sort(key=lambda cell: (cell.y, cell.x))
     dimvalues = [ procbatch(tab, obslist, dimension, batchcelllookup)  for dimension in dimensions ]
-    dtuples = zip(*([procvalue(obslist)]+dimvalues))
+    dtuples = zip(*([procvalue(obslist, None)]+dimvalues))
     keys = [OBS] + [ dimension[1]  for dimension in dimensions ]  # the labels
     for dtup in dtuples:
         dval = dict(zip(keys, dtup))
@@ -275,7 +287,5 @@ def writetechnicalCSV(outputfile, conversionsegments, batchcelllookup_or_convers
     csvout.footer()
     
 
-class HDim(namedtuple('HDim', ['hbagset', 'name', 'direction', 'strict'])):
-    def __new__(self, hbagset, name, direction, strict):
-        return super(HDim, self).__new__(self, hbagset, name, direction, strict)
 
+        
