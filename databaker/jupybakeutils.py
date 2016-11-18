@@ -1,4 +1,10 @@
+# encoding: utf-8
 # HTML preview of the dimensions and table (will be moved to a function in databakersolo)
+from __future__ import unicode_literals, division
+
+import io
+
+import six
 
 from IPython.display import display
 from IPython.core.display import HTML
@@ -103,7 +109,7 @@ def tabletohtml(tab, tsubs):
             if c.is_date():                cs.append("exdate")
             if c.is_number():              cs.append("exnumber")
             htm.append('<td class="%s" title="%d %d">' % (" ".join(cs), c.x, c.y))
-            htm.append(str(c.value))
+            htm.append(six.text_type(c.value))
             htm.append("</td>")
         htm.append("</tr>\n")
     htm.append("</table>\n")
@@ -182,20 +188,20 @@ def savepreviewhtml(conversionsegment, batchcelllookup, fname):
 
     incrementdividNUM()
     print("opening file %s" % fname)
-    fout = open(fname, "w")
-    fout.write("<html>\n<head><title>%s</title></head>\n<body>\n" % tab.name)
-    htmtable = tabletohtml(tab, dsubsets(dimensions, segment))
-    fout.write('<div id="%s">\n' % dividNUM)
-    fout.write(htmtable)
-    fout.write('</div>\n')
 
-    print("table '%s' written" % tab.name)
-    if batchcelllookup and conversionsegment[1] and conversionsegment[2]:
-        jslookup = calcjslookup(conversionsegment, batchcelllookup)
-        print("javascript calculated")
-        fout.write(jscode % (jslookup, dividNUM))
-    fout.write("</body></html>\n")
-    fout.close()
+    with io.open(fname, "w", encoding='utf-8') as fout:
+        fout.write("<html>\n<head><title>%s</title></head>\n<body>\n" % tab.name)
+        htmtable = tabletohtml(tab, dsubsets(dimensions, segment))
+        fout.write('<div id="%s">\n' % dividNUM)
+        fout.write(htmtable)
+        fout.write('</div>\n')
+
+        print("table '%s' written" % tab.name)
+        if batchcelllookup and conversionsegment[1] and conversionsegment[2]:
+            jslookup = calcjslookup(conversionsegment, batchcelllookup)
+            print("javascript calculated")
+            fout.write(jscode % (jslookup, dividNUM))
+        fout.write("</body></html>\n")
     
 def savepreviewhtmlBAGS(param1, fname):
     if type(param1) not in [tuple, list]:
