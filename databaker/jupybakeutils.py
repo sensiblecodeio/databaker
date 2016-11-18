@@ -6,6 +6,8 @@ import io
 
 import six
 
+from collections import namedtuple
+
 from IPython.display import display
 from IPython.core.display import HTML
 import databaker.constants
@@ -272,4 +274,8 @@ def writetechnicalCSV(outputfile, conversionsegments, batchcelllookup_or_convers
             csvout.output(output_row)
     csvout.footer()
     
+
+class HDim(namedtuple('HDim', ['hbagset', 'name', 'direction', 'strict'])):
+    def __new__(self, hbagset, name, direction, strict):
+        return super(HDim, self).__new__(self, hbagset, name, direction, strict)
 

@@ -156,7 +156,7 @@ def DUPgenerate_header_row(headernames):
     header_row = template.start.split(',')
 
     # create new header row
-    for i in range(len(headernames)):
+    for i in range(len(headernames)-1):
         header_row.extend(template.repeat.format(num=i+1).split(','))
 
     # overwrite dimensions/subject/name as column header (if requested)
