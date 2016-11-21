@@ -3,9 +3,7 @@
 from __future__ import unicode_literals, division
 
 import io
-
 import six
-
 
 from IPython.display import display
 from IPython.core.display import HTML
@@ -13,6 +11,79 @@ import databaker.constants
 OBS = databaker.constants.OBS   # evaluates to -9
 
 from databaker.utils import TechnicalCSV, yield_dimension_values, DUPgenerate_header_row, datematch, template
+
+
+class HDim:
+    def __init__(self, hbagset, label, strict=None, direction=None):
+        self.name = self.label = label
+        if isinstance(label, int) and label < 0:
+            self.name = databaker.constants.template.dimension_names[len(databaker.constants.template.dimension_names)-1+label]
+        
+        if type(hbagset) == str:
+            self.hbagset = None
+            assert direction is None and strict is None
+            self.singlevalue = hbagset
+        else:
+            assert direction is not None and strict is not None
+            self.hbagset = hbagset
+            self.strict = strict
+            self.direction = direction
+            self.bbothdirtype = type(self.direction[0]) == tuple or type(self.direction[1]) == tuple
+            self.cellvalueoverride = { }
+            #self.default value??
+            
+    def celllookup(self, scell):
+        def mult(cell):
+            return cell.x * self.direction[0] + cell.y * self.direction[1]
+        def dgap(cell, target_cell):
+            if direction[1] == 0:
+                return abs(cell.x - target_cell.x)
+            return abs(cell.y - target_cell.y)
+        
+        def betweencells(scell, target_cell, best_cell):
+            if not self.bbothdirtype:
+                if mult(scell) <= mult(target_cell):
+                    if not best_cell or mult(target_cell) <= mult(best_cell):
+                        return True
+                return False
+            if not best_cell:
+                return True
+            return dgap(scell, target_cell) <= dgap(scell, best_cell)
+        
+        def same_row_col(a, b):
+            return  (a.x - b.x  == 0 and self.direction[0] == 0) or (a.y - b.y  == 0 and self.direction[1] == 0)
+    
+        hcells = self.hbagset.unordered_cells
+        best_cell = None
+        second_best_cell = None
+
+        #if strict:  print(len(list(hcells)), len(list(hbagset.unordered_cells)))
+        for target_cell in hcells:
+            if betweencells(scell, target_cell, best_cell):
+                if not self.strict or same_row_col(scell, target_cell):
+                    second_best_cell = best_cell
+                    best_cell = target_cell
+        if second_best_cell and not self.bbothdirtype and mult(best_cell) == mult(second_best_cell):
+            raise xypath.LookupConfusionError("{!r} is as good as {!r} for {!r}".format(best_cell, second_best_cell, scell))
+        if second_best_cell and self.bbothdirtype and dgap(scell, best_cell) == dgap(scell, second_best_cell):
+            raise xypath.LookupConfusionError("{!r} is as good as {!r} for {!r}".format(best_cell, second_best_cell, scell))
+        if best_cell is None:
+            return None
+        return best_cell
+
+    def batchcelllookup(self, segment):     
+        return [ self.celllookup(ob)  for ob in segment ]
+
+    def procvalue(self, dimvalue):
+        return [ self.cellvalueoverride.get(c, c.value)  for c in dimvalue ]
+
+    def procbatch(self, obslist):
+        if self.hbagset is None:
+            return [ self.singlevalue ]*len(obslist)
+        dimvalue = self.batchcelllookup(obslist)
+        return self.procvalue(dimvalue)
+
+
 
 
 # copied out again
@@ -48,11 +119,10 @@ def dsubsets(dimensions, segment):
     tsubs = [ ]
     if segment:
         tsubs.append((OBS, "OBS", segment))
-    for i, (header_bag, label, strict, direction) in enumerate(dimensions):
-        if direction is not None:   # filter out TempValue headers
-            if isinstance(label, int) and label < 0:
-                label = databaker.constants.template.dimension_names[len(databaker.constants.template.dimension_names)-1+label]
-            tsubs.append((i, label, header_bag))
+    for i, dimension in enumerate(dimensions):
+        assert type(dimension) != tuple, ("Upgrade to Hdim()", dimension[1])
+        if dimension.hbagset is not None:   # filter out TempValue headers
+            tsubs.append((i, dimension.name, dimension.hbagset))
     return tsubs
 
 
@@ -155,18 +225,18 @@ def inlinehtmldisplay(htm, hide=False):
     display(HTML('%s: <div id="%s" style="%s">%s</div>' % (dividNUM, dividNUM, "display:none" if hide else "display:inline", htm)))
 
 # generate the lookup table from titles to references
-def calcjslookup(conversionsegment, batchcelllookup):
+def calcjslookup(conversionsegment):
     tab, dimensions, segment = conversionsegment
     obslist = list(segment.unordered_cells)  # list(segment) otherwise gives bags of one element
 
     # should only apply to xypath.xypath.Bag types (alternative is str, which means it's a constant dimension
-    dimvalues = [ batchcelllookup(tab, obslist, dimension)  for dimension in dimensions  if type(dimension[0]) != str ]
+    dimvalues = [ dimension.batchcelllookup(obslist)  for dimension in dimensions  if dimension.hbagset is not None ]
     jslookup = '{%s}' % ",".join('"%d %d":[%s]' % (k.x, k.y, ",".join("%d,%d" % (d.x, d.y)  for d in tup  if d))  \
                            for k, tup in zip(obslist, zip(*dimvalues)))
     return jslookup
     
-def inlinehtmljsactive(conversionsegment, batchcelllookup):
-    jslookup = calcjslookup(conversionsegment, batchcelllookup)
+def inlinehtmljsactive(conversionsegment):
+    jslookup = calcjslookup(conversionsegment)
     display(HTML(jscode % (jslookup, dividNUM)))
     
 # could do this as a save and reload
@@ -184,7 +254,7 @@ else
 '''
     display(HTML(sjs % dividNUM))
     
-def savepreviewhtml(conversionsegment, batchcelllookup, fname):
+def savepreviewhtml(conversionsegment, fname):
     tab, dimensions, segment = conversionsegment
 
     incrementdividNUM()
@@ -198,8 +268,8 @@ def savepreviewhtml(conversionsegment, batchcelllookup, fname):
         fout.write('</div>\n')
 
         print("table '%s' written" % tab.name)
-        if batchcelllookup and conversionsegment[1] and conversionsegment[2]:
-            jslookup = calcjslookup(conversionsegment, batchcelllookup)
+        if conversionsegment[1] and conversionsegment[2]:
+            jslookup = calcjslookup(conversionsegment)
             print("javascript calculated")
             fout.write(jscode % (jslookup, dividNUM))
         fout.write("</body></html>\n")
@@ -215,40 +285,20 @@ def savepreviewhtmlBAGS(param1, fname):
         else:
             assert tab is p.table, "must all be same table"
         if "Table" not in str(type(p)):
-            dimensions.append((p, "item %d"%i, 1, 1))
-    savepreviewhtml((tab, dimensions, []), None, fname)    
+            dimensions.append(HDim(p, "item %d"%i, databaker.constants.DIRECTLY, databaker.constants.ABOVE))   # (fake lookup)
+    savepreviewhtml((tab, dimensions, []), fname)    
 
-
-# Quick effort to convert the Dimension tuple into its own class for later work
-from collections import namedtuple
-class HDim(namedtuple('HDim', ['hbagset', 'name', 'direction', 'strict'])):
-    def __new__(self, hbagset, name, direction, strict):
-        return super(HDim, self).__new__(self, hbagset, name, direction, strict)
-
-    def __init__(self, hbagset, name, direction, strict):
-        self.cellvalueoverride = { }
-
-    
-def procvalue(dimvalue, dimension):  
-    # (this is already applying to the unordered_cells which are naked _cell elements that were put into the lookup
-    cellvalueoverride = dimension.cellvalueoverride  if type(dimension) is HDim  else {}
-    return [ cellvalueoverride.get(c, c.value) if c is not None else ""   for c in dimvalue ]  # "2010²"
-
-def procbatch(tab, obslist, dimension, batchcelllookup):
-    if type(dimension[0]) == str:
-        return [ dimension[0] ]*len(obslist)
-    dimvalue = batchcelllookup(tab, obslist, dimension)
-    return procvalue(dimvalue, dimension)
 
 # make a shorter version of the bloated csv    
-def procrows(conversionsegment, batchcelllookup):
+def procrows(conversionsegment):
     rows = [ ]
     tab, dimensions, segment = conversionsegment
     obslist = list(segment.unordered_cells)  # list(segment) otherwise gives bags of one element
     obslist.sort(key=lambda cell: (cell.y, cell.x))
-    dimvalues = [ procbatch(tab, obslist, dimension, batchcelllookup)  for dimension in dimensions ]
-    dtuples = zip(*([procvalue(obslist, None)]+dimvalues))
-    keys = [OBS] + [ dimension[1]  for dimension in dimensions ]  # the labels
+    dimvalues = [ dimension.procbatch(obslist)  for dimension in dimensions ]
+    obsvalues = [ ob.value  for ob in obslist ]
+    dtuples = zip(*([ obsvalues ]+dimvalues))
+    keys = [OBS] + [ dimension.label  for dimension in dimensions ]  # the labels
     for dtup in dtuples:
         dval = dict(zip(keys, dtup))
         
@@ -266,19 +316,15 @@ def procrows(conversionsegment, batchcelllookup):
 # But now we should seek to plot the stats ourselves as a sanity check that the data is good
 
 
-
-def writetechnicalCSV(outputfile, conversionsegments, batchcelllookup_or_conversionsegments):
+def writetechnicalCSV(outputfile, conversionsegments):
     csvout = TechnicalCSV(outputfile, False)
     print("writing %d conversion segments into %s" % (len(conversionsegments), outputfile))
     for i, conversionsegment in enumerate(conversionsegments):
-        headernames = [None]+[dimension[1]  for dimension in conversionsegment[1]  if type(dimension[1]) != int ]
+        headernames = [None]+[dimension.label  for dimension in conversionsegment[1]  if type(dimension.label) != int ]
         if i == 0:   # only first segment
             header_row = DUPgenerate_header_row(headernames)
             csvout.output(header_row)
-        if type(batchcelllookup_or_conversionsegments) == list:
-            rows = batchcelllookup_or_conversionsegments[i]
-        else:
-            rows = procrows(conversionsegment, batchcelllookup_or_conversionsegments)
+        rows = procrows(conversionsegment)
         print("conversionwrite segment size %d" % len(rows))
         for row in rows:
             values = dict((k if type(k)==int else headernames.index(k), v)  for k, v in row.items())
