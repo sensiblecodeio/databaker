@@ -75,7 +75,7 @@ class HDim:
         return [ self.celllookup(ob)  for ob in segment ]
 
     def procvalue(self, dimvalue):
-        return [ self.cellvalueoverride.get(c, c.value)  for c in dimvalue ]
+        return [ self.cellvalueoverride.get(c, c.value) if c is not None else None  for c in dimvalue ]
 
     def procbatch(self, obslist):
         if self.hbagset is None:
@@ -323,7 +323,7 @@ def writetechnicalCSV(outputfile, conversionsegments):
         headernames = [None]+[dimension.label  for dimension in conversionsegment[1]  if type(dimension.label) != int ]
         if i == 0:   # only first segment
             header_row = DUPgenerate_header_row(headernames)
-            csvout.output(header_row)
+            csvout.csv_writer.writerow(header_row)
         rows = procrows(conversionsegment)
         print("conversionwrite segment size %d" % len(rows))
         for row in rows:
