@@ -112,6 +112,29 @@ class HDim:
 
 
 
+from collections import namedtuple
+class ConversionSegment(namedtuple('ConversionSegment', ['tab', 'dimensions', 'segment'])):
+    def __new__(self, tab, dimensions, segment):
+        return super(ConversionSegment, self).__new__(self, tab, dimensions, segment)
+        
+    def lookupobs(self, ob):
+        if "xypath.Bag" in str(type(ob)):
+            assert len(ob) == 1, "Can only lookupobs a single cell"
+            ob = ob._cell
+        dval = { OBS:ob.value }
+        for hdim in self.dimensions:
+            hcell = hdim.celllookup(ob)
+            val = hdim.Ghdimcellvaluefunc(hdim, hcell)
+            dval[hdim.label] = val
+        if template.SH_Create_ONS_time:
+            if not dval.get(template.TIMEUNIT) and dval.get(template.TIME):
+                dval[template.TIMEUNIT] = datematch(dval[template.TIME])
+        return dval
+        
+    def lookupall(self):
+        obslist = list(segment.unordered_cells)  # list(segment) otherwise gives bags of one element
+        obslist.sort(key=lambda cell: (cell.y, cell.x))
+        return [ lookupobs(ob)  for ob in obslist ]
 
 
 
@@ -120,8 +143,8 @@ def create_colourlist():
     # Function to dynamically assign colours to dimensions for preview
     "https://github.com/python-excel/xlwt/blob/master/xlwt/Style.py#L309"
     colours = ["lavender", "violet", "gray25", "sea_green",
-              "pale_blue", "blue", "gray25", "rose", "tan", "light_yellow", "light_green", "light_turquoise",
-              "light_blue", "sky_blue", "plum", "gold", "lime", "coral", "periwinkle", "ice_blue", "aqua"]
+              "pale_blue", "blue", "gray25", "rose", "tan", "aqua", "light_green", "light_turquoise",
+              "light_blue", "sky_blue", "plum", "gold", "lime", "coral", "periwinkle", "ice_blue", "light_yellow"]
     numbers = []
     for i in range(len(databaker.constants.template.dimension_names)-1, \
                    -(len(colours) - len(databaker.constants.template.dimension_names)), -1):
@@ -245,9 +268,6 @@ Array.prototype.forEach.call(document.querySelectorAll("div#"+jdividNUM+" table.
 </script>
 """
 
-def inlinehtmldisplay(htm, hide=False):
-    display(HTML('%s: <div id="%s" style="%s">%s</div>' % (dividNUM, dividNUM, "display:none" if hide else "display:inline", htm)))
-
 # generate the lookup table from titles to references
 def calcjslookup(conversionsegment):
     tab, dimensions, segment = conversionsegment
@@ -259,11 +279,8 @@ def calcjslookup(conversionsegment):
                            for k, tup in zip(obslist, zip(*dimvalues)))
     return jslookup
     
-def inlinehtmljsactive(conversionsegment):
-    jslookup = calcjslookup(conversionsegment)
-    display(HTML(jscode % (jslookup, dividNUM)))
     
-# could do this as a save and reload
+# could do this as a html-frame and reload
 def sidewindowhtmldisplay():
     sjs = '''
 <script type="text/Javascript">
@@ -277,6 +294,7 @@ else
 </script>
 '''
     display(HTML(sjs % dividNUM))
+    
     
 def savepreviewhtml(conversionsegment, fname=None):
     tab, dimensions, segment = conversionsegment
@@ -293,10 +311,12 @@ def savepreviewhtml(conversionsegment, fname=None):
     fout.write(htmtable)
     fout.write('</div>\n')
 
-    print("tablepart '%s' written" % tab.name)
+    if fname is not None:
+        print("tablepart '%s' written" % tab.name)
     if conversionsegment[1] and conversionsegment[2]:
         jslookup = calcjslookup(conversionsegment)
-        print("javascript calculated")
+        if fname is not None:
+            print("javascript calculated")
         fout.write(jscode % (jslookup, dividNUM))
     
     if fname is None:
