@@ -177,7 +177,7 @@ class TechnicalCSV(object):
         if six.PY2:
             mode = "wb"
         else:
-            mode = "w"
+            mode = "wb"
         self.no_lookup_error = no_lookup_error
         self.filehandle = open(filename, mode)
         self.csv_writer = UnicodeWriter(self.filehandle)
