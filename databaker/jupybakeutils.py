@@ -16,7 +16,9 @@ from databaker.utils import TechnicalCSV, yield_dimension_values, DUPgenerate_he
 def Ghdimcellvaluefunc(hdim, cell):
     if cell is None:
         return "blank"
-    hdim.cellvalueoverride.get(cell, cell.value)
+    if cell in hdim.cellvalueoverride:
+        return hdim.cellvalueoverride[cell]
+    return cell.value
     
 
 # This is the main class that does all the work for each dimension
@@ -74,7 +76,9 @@ class HDim:
             bxtype = (self.direction[1] == 0)
             hcells = self.samerowlookup.get(scell.y if bxtype else scell.x, [])
         else:
-            hcells = self.hbagset.unordered_cells        
+            hcells = self.hbagset.unordered_cells
+        hcells = self.hbagset.unordered_cells
+        
         
         best_cell = None
         second_best_cell = None
