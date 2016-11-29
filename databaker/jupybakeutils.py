@@ -13,6 +13,13 @@ OBS = databaker.constants.OBS   # evaluates to -9
 from databaker.utils import TechnicalCSV, yield_dimension_values, DUPgenerate_header_row, datematch, template
 
 
+def Ghdimcellvaluefunc(hdim, cell):
+    if cell is None:
+        return "blank"
+    hdim.cellvalueoverride.get(cell, cell.value)
+    
+
+# This is the main class that does all the work for each dimension
 class HDim:
     def __init__(self, hbagset, label, strict=None, direction=None):
         self.name = self.label = label
@@ -29,8 +36,18 @@ class HDim:
             self.strict = strict
             self.direction = direction
             self.bbothdirtype = type(self.direction[0]) == tuple or type(self.direction[1]) == tuple
+            if self.strict:
+                self.samerowlookup = {}
+                bxtype = (self.direction[1] == 0)
+                for hcell in self.hbagset.unordered_cells:
+                    k = hcell.y if bxtype else hcell.x
+                    if k not in self.samerowlookup:
+                        self.samerowlookup[k] = []
+                    self.samerowlookup[k].append(hcell)
+            
             self.cellvalueoverride = { }
-            #self.default value??
+            self.Ghdimcellvaluefunc = Ghdimcellvaluefunc
+            
             
     def celllookup(self, scell):
         def mult(cell):
@@ -53,7 +70,12 @@ class HDim:
         def same_row_col(a, b):
             return  (a.x - b.x  == 0 and self.direction[0] == 0) or (a.y - b.y  == 0 and self.direction[1] == 0)
     
-        hcells = self.hbagset.unordered_cells
+        if self.strict:
+            bxtype = (self.direction[1] == 0)
+            hcells = self.samerowlookup.get(scell.y if bxtype else scell.x, [])
+        else:
+            hcells = self.hbagset.unordered_cells        
+        
         best_cell = None
         second_best_cell = None
 
@@ -74,14 +96,17 @@ class HDim:
     def batchcelllookup(self, segment):     
         return [ self.celllookup(ob)  for ob in segment ]
 
-    def procvalue(self, dimvalue):
-        return [ self.cellvalueoverride.get(c, c.value) if c is not None else None  for c in dimvalue ]
-
     def procbatch(self, obslist):
         if self.hbagset is None:
-            return [ self.singlevalue ]*len(obslist)
+            return [ self.singlevalue ]*len(obslist)  # single value type
         dimvalue = self.batchcelllookup(obslist)
         return self.procvalue(dimvalue)
+
+    def procvalue(self, dimvalue):
+        # Ghdimcellvaluefunc is not really a member function
+        return [ self.Ghdimcellvaluefunc(self, c)  for c in dimvalue ]
+
+
 
 
 
@@ -135,19 +160,14 @@ def incrementdividNUM():
 
 def tabletohtml(tab, tsubs):
     key = [ ]
-    key.append('Table: ')
-    key.append('<b>')
-    key.append(tab.name); 
-    key.append('</b> ')
+    key.append('Table: <b>%s</b> ' % tab.name)
     key.append('<table class="exkey">\n')
     key.append('<tr>')
     ixyheaderlookup = { }
     for i, label, bag in tsubs:
         for h in bag:
             ixyheaderlookup[(h.x, h.y)] = i
-        key.append('<td class="exc%d">' % i)
-        key.append(label)
-        key.append('</td>')
+        key.append('<td class="exc%d">%s</td>' % (i, label))
     key.append('</tr>')
     key.append('</table>\n')
     
@@ -312,10 +332,9 @@ def procrows(conversionsegment):
 
     return rows
     
+    
 # In theory we can now call the template export to big CSV, like before at this point
 # But now we should seek to plot the stats ourselves as a sanity check that the data is good
-
-
 def writetechnicalCSV(outputfile, conversionsegments):
     csvout = TechnicalCSV(outputfile, False)
     print("writing %d conversion segments into %s" % (len(conversionsegments), outputfile))
