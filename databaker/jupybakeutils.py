@@ -278,27 +278,36 @@ else
 '''
     display(HTML(sjs % dividNUM))
     
-def savepreviewhtml(conversionsegment, fname):
+def savepreviewhtml(conversionsegment, fname=None):
     tab, dimensions, segment = conversionsegment
 
     incrementdividNUM()
-    print("opening file %s" % fname)
-
-    with io.open(fname, "w", encoding='utf-8') as fout:
+    if fname is None:
+        fout = io.StringIO()
+    else:
+        fout = io.open(fname, "w", encoding='utf-8')
         fout.write("<html>\n<head><title>%s</title></head>\n<body>\n" % tab.name)
-        htmtable = tabletohtml(tab, dsubsets(dimensions, segment))
-        fout.write('<div id="%s">\n' % dividNUM)
-        fout.write(htmtable)
-        fout.write('</div>\n')
+        
+    htmtable = tabletohtml(tab, dsubsets(dimensions, segment))
+    fout.write('<div id="%s">\n' % dividNUM)
+    fout.write(htmtable)
+    fout.write('</div>\n')
 
-        print("table '%s' written" % tab.name)
-        if conversionsegment[1] and conversionsegment[2]:
-            jslookup = calcjslookup(conversionsegment)
-            print("javascript calculated")
-            fout.write(jscode % (jslookup, dividNUM))
-        fout.write("</body></html>\n")
+    print("tablepart '%s' written" % tab.name)
+    if conversionsegment[1] and conversionsegment[2]:
+        jslookup = calcjslookup(conversionsegment)
+        print("javascript calculated")
+        fout.write(jscode % (jslookup, dividNUM))
     
-def savepreviewhtmlBAGS(param1, fname):
+    if fname is None:
+        display(HTML(fout.getvalue()))
+    else:
+        fout.write("</body></html>\n")
+        fout.close()
+        print("Written to file '%s'" % fname)
+    
+    
+def savepreviewhtmlBAGS(param1, fname=None):
     if type(param1) not in [tuple, list]:
         param1 = [param1]
     tab = None
