@@ -16,7 +16,7 @@ from databaker.utils import TechnicalCSV, yield_dimension_values, DUPgenerate_he
 
 # This is the main class that does all the work for each dimension
 class HDim:
-    def __init__(self, hbagset, label, strict=None, direction=None, cellvalueoverride={}):
+    def __init__(self, hbagset, label, strict=None, direction=None, cellvalueoverride=None):
         self.label = label
         if isinstance(label, int) and label < 0:   # handle human names of the elements for the ONS lookups
             self.name = databaker.constants.template.dimension_names[len(databaker.constants.template.dimension_names)-1+label]
@@ -27,7 +27,7 @@ class HDim:
         self.hbagset = hbagset
         self.strict = strict
         self.direction = direction
-        self.cellvalueoverride = cellvalueoverride
+        self.cellvalueoverride = cellvalueoverride or {} # do not put {} into default value otherwise there is only one static one for everything
         
         if self.hbagset is None:
             assert self.direction is None and self.strict is None
@@ -160,8 +160,12 @@ class ConversionSegment(namedtuple('ConversionSegment', ['tab', 'dimensions', 's
         return dval
         
     def lookupall(self):
-        obslist = list(self.segment.unordered_cells)  # list(segment) otherwise gives bags of one element
-        obslist.sort(key=lambda cell: (cell.y, cell.x))
+        if type(self.segment) is xypath.xypath.Bag:
+            obslist = list(self.segment.unordered_cells)  # list(segment) otherwise gives bags of one element
+            obslist.sort(key=lambda cell: (cell.y, cell.x))
+        else:
+            assert type(self.segment) in [tuple, list], "segment needs to be a Bag or a list, not a %s" % type(self.segment)
+            obslist = self.segment
         return [ self.lookupobs(ob)  for ob in obslist ]
 
 
@@ -230,7 +234,7 @@ def tabletohtml(tab, tsubs):
             ih = ixyheaderlookup.get((c.x, c.y))
             if ih is not None:             cs.append("exc%d" % ih)
             if c.properties.get_bold():    cs.append("exbold")
-            if c.is_date():                cs.append("exdate")
+            #if c.is_date():                cs.append("exdate")
             if c.is_number():              cs.append("exnumber")
             htm.append('<td class="%s" title="%d %d">' % (" ".join(cs), c.x, c.y))
             htm.append(six.text_type(c.value))

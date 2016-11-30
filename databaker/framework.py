@@ -2,7 +2,7 @@ import xlutils, xypath
 import databaker
 import os
 import databaker.constants
-from databaker.constants import *
+from databaker.constants import *      # also brings in template
 import databaker.databakersolo as ds   # causes the xypath.loader to be overwritten
 from databaker.jupybakeutils import HDim, HDimConst, savepreviewhtml, writetechnicalCSV, ConversionSegment
 
