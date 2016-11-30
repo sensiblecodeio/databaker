@@ -4,6 +4,7 @@ import re
 import warnings
 import six
 import xypath
+import io
 import databaker.richxlrd.richxlrd as richxlrd
 from datetime import datetime
 from databaker.utf8csv import UnicodeWriter
@@ -179,7 +180,11 @@ class TechnicalCSV(object):
         else:
             mode = "w"
         self.no_lookup_error = no_lookup_error
-        self.filehandle = open(filename, mode, newline='\n')
+        self.filename = filename
+        if filename is not None:
+            self.filehandle = open(filename, mode, newline='\n')
+        else:
+            self.filehandle = io.StringIO()
         self.csv_writer = UnicodeWriter(self.filehandle)
         self.row_count = 0
         self.table = None
@@ -206,7 +211,8 @@ class TechnicalCSV(object):
     def footer(self):
         # WDA Observation File Interface Specification Section 1.3
         self.csv_writer.writerow(["*"*9, str(self.row_count)])
-        self.filehandle.close()
+        if self.filename is not None:
+            self.filehandle.close()
 
     # try to put in the batching here
     def handle_observation(self, ob):

@@ -83,18 +83,6 @@ def Dcelllookup(header_bag, direction, strict, hcells, scell):
         raise xypath.NoLookupError("No lookup for {!r}".format(scell))
     return best_cell
 
-# this could do the sorting and more efficient batch looking up of the values (eg by calculating hcells locally)
-def batchcelllookup(tab, segment, dimension):     
-    dlookup = [ ]
-    header_bag, name, strict, direction = dimension
-    for ob in segment:
-        try:
-            h = Dcelllookup(header_bag, direction, strict, None, ob)
-            dlookup.append(h)
-        except xypath.NoLookupError:
-            dlookup.append(None)
-    return dlookup
-
 
 
 class Dimension(object):

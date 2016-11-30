@@ -89,27 +89,6 @@ class HDim:
             return None
         return best_cell
 
-    def batchcelllookup(self, segment):     
-        return [ self.celllookup(ob)  for ob in segment ]
-
-    def procbatch(self, obslist):
-        if self.hbagset is None:
-            return [ self.singlevalue ]*len(obslist)  # single value type
-        dimvalue = self.batchcelllookup(obslist)
-        return self.procvalue(dimvalue)
-
-    def Ghdimcellvaluefunc(self, cell):
-        if cell is None:
-            return "blank"
-        if cell in self.cellvalueoverride:
-            return self.cellvalueoverride[cell]
-        return cell.value
-
-
-    def procvalue(self, dimvalue):  # redundant
-        # Ghdimcellvaluefunc is not really a member function
-        return [ self.Ghdimcellvaluefunc(c)  for c in dimvalue ]
-
 
     # do the lookup and the value derivation of the cell, via cellvalueoverride{} redirections
     def cellvalobs(self, ob):
@@ -153,6 +132,16 @@ from collections import namedtuple
 class ConversionSegment(namedtuple('ConversionSegment', ['tab', 'dimensions', 'segment'])):
     def __new__(self, tab, dimensions, segment):
         return super(ConversionSegment, self).__new__(self, tab, dimensions, segment)
+
+    def dsubsets(self):
+        tsubs = [ ]
+        if self.segment:
+            tsubs.append((OBS, "OBS", self.segment))
+        for i, dimension in enumerate(self.dimensions):
+            assert type(dimension) != tuple, ("Upgrade to Hdim()", dimension[1])
+            if dimension.hbagset is not None:   # filter out TempValue headers
+                tsubs.append((i, dimension.name, dimension.hbagset))
+        return tsubs
         
     def lookupobs(self, ob):
         if type(ob) is xypath.xypath.Bag:
@@ -168,9 +157,9 @@ class ConversionSegment(namedtuple('ConversionSegment', ['tab', 'dimensions', 's
         return dval
         
     def lookupall(self):
-        obslist = list(segment.unordered_cells)  # list(segment) otherwise gives bags of one element
+        obslist = list(self.segment.unordered_cells)  # list(segment) otherwise gives bags of one element
         obslist.sort(key=lambda cell: (cell.y, cell.x))
-        return [ lookupobs(ob)  for ob in obslist ]
+        return [ self.lookupobs(ob)  for ob in obslist ]
 
 
 
@@ -189,29 +178,6 @@ def create_colourlist():
     return colourlist
 colourlist = create_colourlist()
 colchange = {"rose":"misty_rose", "ice_blue":"cornflower_blue", "periwinkle":"burly_wood", "pale_blue":"deep_sky_blue", "gray25":"light_gray", "light_turquoise":"pale_turquoise"}
-
-
-def tsubsets(headers, segment):
-    tsubs = [ ]
-    if segment:
-        tsubs.append((OBS, "OBS", segment))
-    for i, header in headers.items():
-        if header.direction is not None:   # filter out TempValue headers
-            label = header.Dlabel
-            if isinstance(label, int) and label < 0:
-                label = databaker.constants.template.dimension_names[len(databaker.constants.template.dimension_names)-1+label]
-            tsubs.append((i, label, header.bag))
-    return tsubs
-
-def dsubsets(dimensions, segment):
-    tsubs = [ ]
-    if segment:
-        tsubs.append((OBS, "OBS", segment))
-    for i, dimension in enumerate(dimensions):
-        assert type(dimension) != tuple, ("Upgrade to Hdim()", dimension[1])
-        if dimension.hbagset is not None:   # filter out TempValue headers
-            tsubs.append((i, dimension.name, dimension.hbagset))
-    return tsubs
 
 
 ndividNUM = 1000
@@ -306,13 +272,12 @@ Array.prototype.forEach.call(document.querySelectorAll("div#"+jdividNUM+" table.
 
 # generate the lookup table from titles to references
 def calcjslookup(conversionsegment):
-    tab, dimensions, segment = conversionsegment
-    obslist = list(segment.unordered_cells)  # list(segment) otherwise gives bags of one element
+    obslist = list(conversionsegment.segment.unordered_cells)  # list(segment) otherwise gives bags of one element
 
-    # should only apply to xypath.xypath.Bag types (alternative is str, which means it's a constant dimension
-    dimvalues = [ dimension.batchcelllookup(obslist)  for dimension in dimensions  if dimension.hbagset is not None ]
+    # this is where we could check/override the lookup values in some way
+    dimvalues = [ [ hdim.cellvalobs(ob)[0]  for hdim in conversionsegment.dimensions  if hdim.hbagset is not None ]  for ob in obslist ]
     jslookup = '{%s}' % ",".join('"%d %d":[%s]' % (k.x, k.y, ",".join("%d,%d" % (d.x, d.y)  for d in tup  if d))  \
-                           for k, tup in zip(obslist, zip(*dimvalues)))
+                           for k, tup in zip(obslist, dimvalues))
     return jslookup
     
     
@@ -333,23 +298,37 @@ else
     
     
 def savepreviewhtml(conversionsegment, fname=None):
-    tab, dimensions, segment = conversionsegment
-
+    # allow sets of lists of sets to be previewed by this function
+    if type(conversionsegment) is not ConversionSegment: 
+        param1 = conversionsegment
+        if type(param1) not in [tuple, list]:
+            param1 = [param1]
+        tab = None
+        dimensions = [ ]
+        for i, p in enumerate(param1):
+            if not tab:
+                tab = p.table
+            else:
+                assert tab is p.table, "must all be same table"
+            if "Table" not in str(type(p)):
+                dimensions.append(HDim(p, "item %d"%i, databaker.constants.DIRECTLY, databaker.constants.ABOVE))   # (fake lookup)
+        conversionsegment = ConversionSegment(tab, dimensions, [])
+    
     incrementdividNUM()
     if fname is None:
         fout = io.StringIO()
     else:
         fout = io.open(fname, "w", encoding='utf-8')
-        fout.write("<html>\n<head><title>%s</title></head>\n<body>\n" % tab.name)
+        fout.write("<html>\n<head><title>%s</title></head>\n<body>\n" % conversionsegment.tab.name)
         
-    htmtable = tabletohtml(tab, dsubsets(dimensions, segment))
-    fout.write('<div id="%s">\n' % dividNUM)
+    htmtable = tabletohtml(conversionsegment.tab, conversionsegment.dsubsets())
+    fout.write('<div id="%s">#%s\n' % (dividNUM, dividNUM))
     fout.write(htmtable)
     fout.write('</div>\n')
 
     if fname is not None:
-        print("tablepart '%s' written" % tab.name)
-    if conversionsegment[1] and conversionsegment[2]:
+        print("tablepart '%s' written #%s" % (conversionsegment.tab.name, dividNUM))
+    if conversionsegment.dimensions and conversionsegment.segment:
         jslookup = calcjslookup(conversionsegment)
         if fname is not None:
             print("javascript calculated")
@@ -361,65 +340,32 @@ def savepreviewhtml(conversionsegment, fname=None):
         fout.write("</body></html>\n")
         fout.close()
         print("Written to file '%s'" % fname)
-    
-    
-def savepreviewhtmlBAGS(param1, fname=None):
-    if type(param1) not in [tuple, list]:
-        param1 = [param1]
-    tab = None
-    dimensions = [ ]
-    for i, p in enumerate(param1):
-        if not tab:
-            tab = p.table
-        else:
-            assert tab is p.table, "must all be same table"
-        if "Table" not in str(type(p)):
-            dimensions.append(HDim(p, "item %d"%i, databaker.constants.DIRECTLY, databaker.constants.ABOVE))   # (fake lookup)
-    savepreviewhtml((tab, dimensions, []), fname)    
 
 
-# make a shorter version of the bloated csv    
-def procrows(conversionsegment):
-    rows = [ ]
-    tab, dimensions, segment = conversionsegment
-    obslist = list(segment.unordered_cells)  # list(segment) otherwise gives bags of one element
-    obslist.sort(key=lambda cell: (cell.y, cell.x))
-    dimvalues = [ dimension.procbatch(obslist)  for dimension in dimensions ]
-    obsvalues = [ ob.value  for ob in obslist ]
-    dtuples = zip(*([ obsvalues ]+dimvalues))
-    keys = [OBS] + [ dimension.label  for dimension in dimensions ]  # the labels
-    for dtup in dtuples:
-        dval = dict(zip(keys, dtup))
-        
-        # insert the timeunit system
-        if template.SH_Create_ONS_time:
-            if not dval.get(template.TIMEUNIT) == '' and dval.get(template.TIME):
-                # we've not actually been given a timeunit, but we have a time
-                # determine the timeunit from the time
-                dval[template.TIMEUNIT] = datematch(dval[template.TIME])
-        rows.append(dval)
-
-    return rows
-    
     
 # In theory we can now call the template export to big CSV, like before at this point
 # But now we should seek to plot the stats ourselves as a sanity check that the data is good
 def writetechnicalCSV(outputfile, conversionsegments):
+    if type(conversionsegments) is ConversionSegment:
+        conversionsegments = [conversionsegments]
     csvout = TechnicalCSV(outputfile, False)
-    print("writing %d conversion segments into %s" % (len(conversionsegments), outputfile))
+    if outputfile is not None:
+        print("writing %d conversion segments into %s" % (len(conversionsegments), outputfile))
     for i, conversionsegment in enumerate(conversionsegments):
-        headernames = [None]+[dimension.label  for dimension in conversionsegment[1]  if type(dimension.label) != int ]
+        headernames = [None]+[dimension.label  for dimension in conversionsegment.dimensions  if type(dimension.label) != int ]
         if i == 0:   # only first segment
             header_row = DUPgenerate_header_row(headernames)
             csvout.csv_writer.writerow(header_row)
-        rows = procrows(conversionsegment)
-        print("conversionwrite segment size %d" % len(rows))
+        rows = conversionsegment.lookupall()
+        if outputfile is not None:
+            print("conversionwrite segment size %d table %s" % (len(rows), conversionsegment.tab.name))
         for row in rows:
             values = dict((k if type(k)==int else headernames.index(k), v)  for k, v in row.items())
             output_row = yield_dimension_values(values, headernames)
             csvout.output(output_row)
     csvout.footer()
-    
+    if csvout.filename is None:
+        print(csvout.filehandle.getvalue())
 
 
         
