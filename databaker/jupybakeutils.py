@@ -4,52 +4,46 @@ from __future__ import unicode_literals, division
 
 import io
 import six
+import types
 
 from IPython.display import display
 from IPython.core.display import HTML
 import databaker.constants
 OBS = databaker.constants.OBS   # evaluates to -9
 
+import xypath
 from databaker.utils import TechnicalCSV, yield_dimension_values, DUPgenerate_header_row, datematch, template
-
-
-def Ghdimcellvaluefunc(hdim, cell):
-    if cell is None:
-        return "blank"
-    if cell in hdim.cellvalueoverride:
-        return hdim.cellvalueoverride[cell]
-    return cell.value
-    
 
 # This is the main class that does all the work for each dimension
 class HDim:
-    def __init__(self, hbagset, label, strict=None, direction=None):
-        self.name = self.label = label
-        if isinstance(label, int) and label < 0:
+    def __init__(self, hbagset, label, strict=None, direction=None, cellvalueoverride={}):
+        self.label = label
+        if isinstance(label, int) and label < 0:   # handle human names of the elements for the ONS lookups
             self.name = databaker.constants.template.dimension_names[len(databaker.constants.template.dimension_names)-1+label]
-        
-        if type(hbagset) == str:
-            self.hbagset = None
-            assert direction is None and strict is None
-            self.singlevalue = hbagset
         else:
-            assert direction is not None and strict is not None
-            self.hbagset = hbagset
-            self.strict = strict
-            self.direction = direction
-            self.bbothdirtype = type(self.direction[0]) == tuple or type(self.direction[1]) == tuple
-            if self.strict:
-                self.samerowlookup = {}
-                bxtype = (self.direction[1] == 0)
-                for hcell in self.hbagset.unordered_cells:
-                    k = hcell.y if bxtype else hcell.x
-                    if k not in self.samerowlookup:
-                        self.samerowlookup[k] = []
-                    self.samerowlookup[k].append(hcell)
+            self.name = label
             
-            self.cellvalueoverride = { }
-            self.Ghdimcellvaluefunc = Ghdimcellvaluefunc
-            
+        assert (type(hbagset) != str), "Use empty set and default value for single value dimension"
+        self.hbagset = hbagset
+        self.strict = strict
+        self.direction = direction
+        self.cellvalueoverride = cellvalueoverride
+        
+        if self.hbagset is None:
+            assert self.direction is None and self.strict is None
+            return
+        assert direction is not None and strict is not None
+
+        self.bxtype = (self.direction[1] == 0)
+        self.bbothdirtype = type(self.direction[0]) == tuple or type(self.direction[1]) == tuple
+        if self.strict:
+            self.samerowlookup = {}
+            for hcell in self.hbagset.unordered_cells:
+                k = hcell.y if self.bxtype else hcell.x
+                if k not in self.samerowlookup:
+                    self.samerowlookup[k] = []
+                self.samerowlookup[k].append(hcell)
+        
             
     def celllookup(self, scell):
         def mult(cell):
@@ -73,12 +67,10 @@ class HDim:
             return  (a.x - b.x  == 0 and self.direction[0] == 0) or (a.y - b.y  == 0 and self.direction[1] == 0)
     
         if self.strict:
-            bxtype = (self.direction[1] == 0)
-            hcells = self.samerowlookup.get(scell.y if bxtype else scell.x, [])
+            hcells = self.samerowlookup.get(scell.y if self.bxtype else scell.x, [])
         else:
             hcells = self.hbagset.unordered_cells
         hcells = self.hbagset.unordered_cells
-        
         
         best_cell = None
         second_best_cell = None
@@ -106,10 +98,55 @@ class HDim:
         dimvalue = self.batchcelllookup(obslist)
         return self.procvalue(dimvalue)
 
-    def procvalue(self, dimvalue):
-        # Ghdimcellvaluefunc is not really a member function
-        return [ self.Ghdimcellvaluefunc(self, c)  for c in dimvalue ]
+    def Ghdimcellvaluefunc(self, cell):
+        if cell is None:
+            return "blank"
+        if cell in self.cellvalueoverride:
+            return self.cellvalueoverride[cell]
+        return cell.value
 
+
+    def procvalue(self, dimvalue):  # redundant
+        # Ghdimcellvaluefunc is not really a member function
+        return [ self.Ghdimcellvaluefunc(c)  for c in dimvalue ]
+
+
+    # do the lookup and the value derivation of the cell, via cellvalueoverride{} redirections
+    def cellvalobs(self, ob):
+        if type(ob) is xypath.xypath.Bag:
+            assert len(ob) == 1, "Can only lookupobs a single cell"
+            ob = ob._cell
+        assert type(ob) is xypath.xypath._XYCell, "Lookups only allowed on an obs cell"
+        
+        # we do two steps through cellvalueoverride in three places on mutually distinct sets (obs, heading, strings)
+        # and not recursively as these are wholly different applications.  the celllookup is itself like a cellvalueoverride
+        if ob in self.cellvalueoverride:
+            val = self.cellvalueoverride[ob]  # knock out an individual obs for this cell
+            assert type(val) is str, "Override from obs should go directly to a string-value"
+            return None, val
+            
+        if self.hbagset is not None:
+            hcell = self.celllookup(ob)
+        else:
+            hcell = None
+            
+        if hcell is not None:
+            assert type(hcell) is xypath.xypath._XYCell, "celllookups should only go to an _XYCell"
+            if hcell in self.cellvalueoverride:
+                val = self.cellvalueoverride[hcell]
+                assert type(val) in (str, float, int), "Override from hcell value should go directly to a str,float,int,None-value (%s)" % type(val)
+                return hcell, val
+            val = hcell.value
+            assert val is None or type(val) in (str, float, int), "cell value should only be str,float,int,None (%s)" % type(val)
+        else:
+            val = None
+        
+        # It's allowed to have {None:defaultvalue} to set the NoLookupValue
+        if val in self.cellvalueoverride:
+            val = self.cellvalueoverride[val]
+            assert val is None or type(val) in (str, float, int), "Override from value should only be str,float,int,None (%s)" % type(val)
+            
+        return hcell, val
 
 
 from collections import namedtuple
@@ -118,13 +155,12 @@ class ConversionSegment(namedtuple('ConversionSegment', ['tab', 'dimensions', 's
         return super(ConversionSegment, self).__new__(self, tab, dimensions, segment)
         
     def lookupobs(self, ob):
-        if "xypath.Bag" in str(type(ob)):
+        if type(ob) is xypath.xypath.Bag:
             assert len(ob) == 1, "Can only lookupobs a single cell"
             ob = ob._cell
         dval = { OBS:ob.value }
         for hdim in self.dimensions:
-            hcell = hdim.celllookup(ob)
-            val = hdim.Ghdimcellvaluefunc(hdim, hcell)
+            hcell, val = hdim.cellvalobs(ob)
             dval[hdim.label] = val
         if template.SH_Create_ONS_time:
             if not dval.get(template.TIMEUNIT) and dval.get(template.TIME):
