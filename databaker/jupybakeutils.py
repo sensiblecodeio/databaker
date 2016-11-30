@@ -4,7 +4,7 @@ from __future__ import unicode_literals, division
 
 import io
 import six
-import types
+import os
 
 from IPython.display import display
 from IPython.core.display import HTML
@@ -127,6 +127,9 @@ class HDim:
             
         return hcell, val
 
+# convenience helper function/constructor
+def HDimConst(name, val):
+    return HDim(None, name, cellvalueoverride={None:val})
 
 from collections import namedtuple
 class ConversionSegment(namedtuple('ConversionSegment', ['tab', 'dimensions', 'segment'])):
@@ -160,6 +163,7 @@ class ConversionSegment(namedtuple('ConversionSegment', ['tab', 'dimensions', 's
         obslist = list(self.segment.unordered_cells)  # list(segment) otherwise gives bags of one element
         obslist.sort(key=lambda cell: (cell.y, cell.x))
         return [ self.lookupobs(ob)  for ob in obslist ]
+
 
 
 
@@ -339,8 +343,7 @@ def savepreviewhtml(conversionsegment, fname=None):
     else:
         fout.write("</body></html>\n")
         fout.close()
-        print("Written to file '%s'" % fname)
-
+        display(HTML('Written to file <a href="file://%s" title="It would work if this linked to something like: http://localhost:8888/files/ILCH/preview.html" >%s</a>' % (os.path.abspath(fname), os.path.abspath(fname))))
 
     
 # In theory we can now call the template export to big CSV, like before at this point
@@ -350,7 +353,7 @@ def writetechnicalCSV(outputfile, conversionsegments):
         conversionsegments = [conversionsegments]
     csvout = TechnicalCSV(outputfile, False)
     if outputfile is not None:
-        print("writing %d conversion segments into %s" % (len(conversionsegments), outputfile))
+        print("writing %d conversion segments into %s" % (len(conversionsegments), os.path.abspath(outputfile)))
     for i, conversionsegment in enumerate(conversionsegments):
         headernames = [None]+[dimension.label  for dimension in conversionsegment.dimensions  if type(dimension.label) != int ]
         if i == 0:   # only first segment
