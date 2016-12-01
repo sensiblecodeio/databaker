@@ -119,11 +119,15 @@ class HDim:
             assert val is None or type(val) in (str, float, int), "cell value should only be str,float,int,None (%s)" % type(val)
         else:
             val = None
-        
+         
         # It's allowed to have {None:defaultvalue} to set the NoLookupValue
         if val in self.cellvalueoverride:
             val = self.cellvalueoverride[val]
             assert val is None or type(val) in (str, float, int), "Override from value should only be str,float,int,None (%s)" % type(val)
+
+        # type call if no other things match
+        elif type(val) in self.cellvalueoverride:
+             val = self.cellvalueoverride[type(val)](val)
             
         return hcell, val
 

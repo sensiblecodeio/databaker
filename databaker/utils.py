@@ -30,7 +30,7 @@ def rewrite_headers(row,dims):
 def datematch(date, silent=False):
     """match mmm yyyy, mmm-mmm yyyy, yyyy Qn, yyyy"""
     if not isinstance(date, six.string_types):
-        if isinstance(date, float) and date>=1000 and date<=9999 and int(date)==date:
+        if (isinstance(date, float) or isinstance(date, int)) and date>=1000 and date<=9999 and int(date)==date:
             return "Year"
         if not silent:
             warnings.warn("Couldn't identify date {!r}".format(date))
