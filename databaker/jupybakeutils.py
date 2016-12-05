@@ -23,19 +23,21 @@ class HDim:
         else:
             self.name = label
             
-        assert (type(hbagset) != str), "Use empty set and default value for single value dimension"
+        self.cellvalueoverride = cellvalueoverride or {} # do not put {} into default value otherwise there is only one static one for everything
+        assert not isinstance(hbagset, str), "Use empty set and default value for single value dimension"
         self.hbagset = hbagset
+        if self.hbagset is None:   # single value type
+            assert direction is None and strict is None
+            assert len(cellvalueoverride) == 1 and None in cellvalueoverride, "single value type should have cellvalueoverride={None:defaultvalue}"
+            return
+        
+        assert isinstance(self.hbagset, xypath.xypath.Bag), "dimension should be made from xypath.Bag type, not %s" % type(self.hbagset)
         self.strict = strict
         self.direction = direction
-        self.cellvalueoverride = cellvalueoverride or {} # do not put {} into default value otherwise there is only one static one for everything
-        
-        if self.hbagset is None:
-            assert self.direction is None and self.strict is None
-            return
         assert direction is not None and strict is not None
 
         self.bxtype = (self.direction[1] == 0)
-        self.bbothdirtype = type(self.direction[0]) == tuple or type(self.direction[1]) == tuple
+        self.bbothdirtype = type(self.direction[0]) == tuple or type(self.direction[1]) == tuple   # prob want to kill off the bothdirtype
         if self.strict:
             self.samerowlookup = {}
             for hcell in self.hbagset.unordered_cells:
@@ -92,16 +94,16 @@ class HDim:
 
     # do the lookup and the value derivation of the cell, via cellvalueoverride{} redirections
     def cellvalobs(self, ob):
-        if type(ob) is xypath.xypath.Bag:
+        if isinstance(ob, xypath.xypath.Bag):
             assert len(ob) == 1, "Can only lookupobs a single cell"
             ob = ob._cell
-        assert type(ob) is xypath.xypath._XYCell, "Lookups only allowed on an obs cell"
+        assert isinstance(ob, xypath.xypath._XYCell), "Lookups only allowed on an obs cell"
         
         # we do two steps through cellvalueoverride in three places on mutually distinct sets (obs, heading, strings)
         # and not recursively as these are wholly different applications.  the celllookup is itself like a cellvalueoverride
         if ob in self.cellvalueoverride:
             val = self.cellvalueoverride[ob]  # knock out an individual obs for this cell
-            assert type(val) is str, "Override from obs should go directly to a string-value"
+            assert isinstance(val, str), "Override from obs should go directly to a string-value"
             return None, val
             
         if self.hbagset is not None:
@@ -110,20 +112,20 @@ class HDim:
             hcell = None
             
         if hcell is not None:
-            assert type(hcell) is xypath.xypath._XYCell, "celllookups should only go to an _XYCell"
+            assert isinstance(hcell, xypath.xypath._XYCell), "celllookups should only go to an _XYCell"
             if hcell in self.cellvalueoverride:
                 val = self.cellvalueoverride[hcell]
-                assert type(val) in (str, float, int), "Override from hcell value should go directly to a str,float,int,None-value (%s)" % type(val)
+                assert isinstance(val, (str, float, int)), "Override from hcell value should go directly to a str,float,int,None-value (%s)" % type(val)
                 return hcell, val
             val = hcell.value
-            assert val is None or type(val) in (str, float, int), "cell value should only be str,float,int,None (%s)" % type(val)
+            assert val is None or isinstance(val, (str, float, int)), "cell value should only be str,float,int,None (%s)" % type(val)
         else:
             val = None
          
         # It's allowed to have {None:defaultvalue} to set the NoLookupValue
         if val in self.cellvalueoverride:
             val = self.cellvalueoverride[val]
-            assert val is None or type(val) in (str, float, int), "Override from value should only be str,float,int,None (%s)" % type(val)
+            assert val is None or isinstance(val, (str, float, int)), "Override from value should only be str,float,int,None (%s)" % type(val)
 
         # type call if no other things match
         elif type(val) in self.cellvalueoverride:
@@ -131,21 +133,32 @@ class HDim:
             
         return hcell, val
 
-# convenience helper function/constructor
+# convenience helper function/constructor (perhaps to move to the framework module)
 def HDimConst(name, val):
     return HDim(None, name, cellvalueoverride={None:val})
 
-from collections import namedtuple
-class ConversionSegment(namedtuple('ConversionSegment', ['tab', 'dimensions', 'segment'])):
-    def __new__(self, tab, dimensions, segment):
-        return super(ConversionSegment, self).__new__(self, tab, dimensions, segment)
 
+
+class ConversionSegment:
+    def __init__(self, tab, dimensions, segment):
+        self.tab = tab
+        self.dimensions = dimensions
+        self.segment = segment   # obs list
+        
+        if isinstance(self.segment, xypath.xypath.Bag):
+            assert self.segment.table is tab, "segments from different tab"
+        else:
+            assert isinstance(self.segment, (tuple, list)), "segment needs to be a Bag or a list, not a %s" % type(self.segment)
+        for dimension in self.dimensions:
+            assert isinstance(dimension, HDim), ("Dimensions must have type HDim()")
+            assert dimension.hbagset is None or dimension.hbagset.table is tab, "dimension %s from different tab" % dimension.name
+
+    # used in tabletohtml for the subsets, and where we would find the mappings for over-ride values
     def dsubsets(self):
         tsubs = [ ]
         if self.segment:
             tsubs.append((OBS, "OBS", self.segment))
         for i, dimension in enumerate(self.dimensions):
-            assert type(dimension) != tuple, ("Upgrade to Hdim()", dimension[1])
             if dimension.hbagset is not None:   # filter out TempValue headers
                 tsubs.append((i, dimension.name, dimension.hbagset))
         return tsubs
@@ -158,17 +171,14 @@ class ConversionSegment(namedtuple('ConversionSegment', ['tab', 'dimensions', 's
         for hdim in self.dimensions:
             hcell, val = hdim.cellvalobs(ob)
             dval[hdim.label] = val
-        if template.SH_Create_ONS_time:
-            if not dval.get(template.TIMEUNIT) and dval.get(template.TIME):
-                dval[template.TIMEUNIT] = datematch(dval[template.TIME])
         return dval
         
     def lookupall(self):
-        if type(self.segment) is xypath.xypath.Bag:
+        if isinstance(self.segment, xypath.xypath.Bag):
             obslist = list(self.segment.unordered_cells)  # list(segment) otherwise gives bags of one element
             obslist.sort(key=lambda cell: (cell.y, cell.x))
         else:
-            assert type(self.segment) in [tuple, list], "segment needs to be a Bag or a list, not a %s" % type(self.segment)
+            assert isinstance(self.segment, (tuple, list)), "segment needs to be a Bag or a list, not a %s" % type(self.segment)
             obslist = self.segment
         return [ self.lookupobs(ob)  for ob in obslist ]
 
@@ -208,7 +218,7 @@ def tabletohtml(tab, tsubs):
     for i, label, bag in tsubs:
         for h in bag:
             ixyheaderlookup[(h.x, h.y)] = i
-        key.append('<td class="exc%d">%s</td>' % (i, label))
+        key.append('<td class="xc%d">%s</td>' % (i, label))
     key.append('</tr>')
     key.append('</table>\n')
     
@@ -216,12 +226,12 @@ def tabletohtml(tab, tsubs):
     sty.append("<style>\n")
     sty.append("table.ex, table.exkey { border: thin black solid }\n")
     sty.append("table.ex td, table.ex tr { border: none }\n")
-    sty.append("td.exbold { font-weight: bold }\n")
-    sty.append("td.exnumber { color: green }\n")
-    sty.append("td.exdate { color: purple }\n")
+    sty.append("td.xb { font-weight: bold }\n")
+    sty.append("td.xn { color: green }\n")
+    sty.append("td.xd { color: purple }\n")
     sty.append("table { border-collapse: collapse }\n")
     for i, col in colourlist.items():
-        sty.append("td.exc%d { background-color: %s }\n" % (i, "".join(lv.capitalize() for lv in colchange.get(col, col).split("_"))))
+        sty.append("td.xc%d { background-color: %s }\n" % (i, "".join(lv.capitalize() for lv in colchange.get(col, col).split("_"))))
     sty.append("table.ex td:hover { border: thin blue solid }\n")
     sty.append("table.ex td.exc%d:hover { border: thin red solid }\n" % OBS)
     sty.append("table.ex td.selected { background-color: red; border: thin blue dotted }\n")
@@ -236,10 +246,9 @@ def tabletohtml(tab, tsubs):
         for c in rrow:
             cs = [ ]
             ih = ixyheaderlookup.get((c.x, c.y))
-            if ih is not None:             cs.append("exc%d" % ih)
-            if c.properties.get_bold():    cs.append("exbold")
-            #if c.is_date():                cs.append("exdate")
-            if c.is_number():              cs.append("exnumber")
+            if ih is not None:             cs.append("xc%d" % ih)
+            if c.properties.get_bold():    cs.append("xb")
+            if c.is_number():              cs.append("xn")
             htm.append('<td class="%s" title="%d %d">' % (" ".join(cs), c.x, c.y))
             htm.append(six.text_type(c.value))
             htm.append("</td>")
@@ -310,10 +319,10 @@ else
     
     
 def savepreviewhtml(conversionsegment, fname=None):
-    # allow sets of lists of sets to be previewed by this function
-    if type(conversionsegment) is not ConversionSegment: 
+    # upgrade sets to ConversionSegment type
+    if not isinstance(conversionsegment, ConversionSegment): 
         param1 = conversionsegment
-        if type(param1) not in [tuple, list]:
+        if not isinstance(param1, (tuple, list)):
             param1 = [param1]
         tab = None
         dimensions = [ ]
@@ -326,6 +335,7 @@ def savepreviewhtml(conversionsegment, fname=None):
                 dimensions.append(HDim(p, "item %d"%i, databaker.constants.DIRECTLY, databaker.constants.ABOVE))   # (fake lookup)
         conversionsegment = ConversionSegment(tab, dimensions, [])
     
+    # now we have a ConversionSegment
     incrementdividNUM()
     if fname is None:
         fout = io.StringIO()
