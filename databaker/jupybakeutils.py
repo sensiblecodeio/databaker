@@ -2,9 +2,8 @@
 # HTML preview of the dimensions and table (will be moved to a function in databakersolo)
 from __future__ import unicode_literals, division
 
-import io
 import six
-import os
+import io, os, collections, re, warnings
 
 from IPython.display import display
 from IPython.core.display import HTML
@@ -144,14 +143,25 @@ class ConversionSegment:
         self.tab = tab
         self.dimensions = dimensions
         self.segment = segment   # obs list
-        
-        if isinstance(self.segment, xypath.xypath.Bag):
-            assert self.segment.table is tab, "segments from different tab"
-        else:
-            assert isinstance(self.segment, (tuple, list)), "segment needs to be a Bag or a list, not a %s" % type(self.segment)
+
         for dimension in self.dimensions:
             assert isinstance(dimension, HDim), ("Dimensions must have type HDim()")
             assert dimension.hbagset is None or dimension.hbagset.table is tab, "dimension %s from different tab" % dimension.name
+
+        # generate the ordered obslist here (so it is fixed here and can be reordered before processing)
+        if isinstance(self.segment, xypath.xypath.Bag):
+            assert self.segment.table is tab, "segments from different tab"
+            self.obslist = list(self.segment.unordered_cells)  # list(segment) otherwise gives bags of one element
+            self.obslist.sort(key=lambda cell: (cell.y, cell.x))
+        else:
+            assert isinstance(self.segment, (tuple, list)), "segment needs to be a Bag or a list, not a %s" % type(self.segment)
+            self.obslist = self.segment
+            
+        # holding place for output of processing.  
+        # technically no reason we shouldn't process at this point either, on this constructor, 
+        # but doing it in stages allows for interventions along the way
+        self.processedrows = None  
+            
 
     # used in tabletohtml for the subsets, and where we would find the mappings for over-ride values
     def dsubsets(self):
@@ -163,6 +173,7 @@ class ConversionSegment:
                 tsubs.append((i, dimension.name, dimension.hbagset))
         return tsubs
         
+    # individual lookup across the dimensions here
     def lookupobs(self, ob):
         if type(ob) is xypath.xypath.Bag:
             assert len(ob) == 1, "Can only lookupobs a single cell"
@@ -173,17 +184,31 @@ class ConversionSegment:
             dval[hdim.label] = val
         return dval
         
-    def lookupall(self):
-        if isinstance(self.segment, xypath.xypath.Bag):
-            obslist = list(self.segment.unordered_cells)  # list(segment) otherwise gives bags of one element
-            obslist.sort(key=lambda cell: (cell.y, cell.x))
-        else:
-            assert isinstance(self.segment, (tuple, list)), "segment needs to be a Bag or a list, not a %s" % type(self.segment)
-            obslist = self.segment
-        return [ self.lookupobs(ob)  for ob in obslist ]
+    def lookupall(self):   # defunct function
+        return [ self.lookupobs(ob)  for ob in self.obslist ]
 
-
-
+    def process(self):
+        assert self.processedrows is None, "Conversion segment already processed"
+        self.processedrows = [ self.lookupobs(ob)  for ob in self.obslist ]
+        
+    def guesstimeunit(self):
+        for dval in self.processedrows:
+            dval[template.TIMEUNIT] = datematch(dval[template.TIME])
+        ctu = collections.Counter(dval[template.TIMEUNIT]  for dval in self.processedrows)
+        if len(ctu) == 1:
+            return "TIMEUNIT='%s'" % list(ctu.keys())[0]
+        return "multiple TIMEUNITs: %s" % ", ".join("'%s'(%d)" % (k,v)  for k,v in ctu.items())
+        
+    def fixtimefromtimeunit(self):
+        for dval in self.processedrows:
+            if dval[template.TIMEUNIT] == 'Year':
+                st = str(dval[template.TIME]).strip()
+                mst = re.match("(\d\d\d\d)(?:\.0)?$", st)
+                if mst:
+                    dval[template.TIME] = mst.group(1)
+                else:
+                    warnings.warn("TIME %s disagrees with TIMEUNIT %s" % (st, dval[template.TIMEUNIT]))
+                
 
 # copied out again
 def create_colourlist():
@@ -372,15 +397,26 @@ def writetechnicalCSV(outputfile, conversionsegments):
     csvout = TechnicalCSV(outputfile, False)
     if outputfile is not None:
         print("writing %d conversion segments into %s" % (len(conversionsegments), os.path.abspath(outputfile)))
+        
     for i, conversionsegment in enumerate(conversionsegments):
         headernames = [None]+[dimension.label  for dimension in conversionsegment.dimensions  if type(dimension.label) != int ]
         if i == 0:   # only first segment
             header_row = DUPgenerate_header_row(headernames)
             csvout.csv_writer.writerow(header_row)
-        rows = conversionsegment.lookupall()
+            
+        if conversionsegment.processedrows is None: 
+            conversionsegment.process()  
+        kdim = dict((dimension.label, dimension)  for dimension in conversionsegment.dimensions)
+        if template.SH_Create_ONS_time and ((template.TIMEUNIT not in kdim) and (template.TIME in kdim)):
+            timeunitmessage = conversionsegment.guesstimeunit()
+        else:
+            timeunitmessage = ""
+        if template.TIME in kdim:
+            conversionsegment.fixtimefromtimeunit()
+
         if outputfile is not None:
-            print("conversionwrite segment size %d table %s" % (len(rows), conversionsegment.tab.name))
-        for row in rows:
+            print("conversionwrite segment size %d table '%s; %s" % (len(conversionsegment.processedrows), conversionsegment.tab.name, timeunitmessage))
+        for row in conversionsegment.processedrows:
             values = dict((k if type(k)==int else headernames.index(k), v)  for k, v in row.items())
             output_row = yield_dimension_values(values, headernames)
             csvout.output(output_row)
