@@ -331,7 +331,7 @@ def savepreviewhtml(conversionsegment, fname=None):
         fout = io.StringIO()
     else:
         fout = io.open(fname, "w", encoding='utf-8')
-        fout.write("<html>\n<head><title>%s</title></head>\n<body>\n" % conversionsegment.tab.name)
+        fout.write("<html>\n<head><title>%s</title><meta charset=\"UTF-8\"></head>\n<body>\n" % conversionsegment.tab.name)
         
     htmtable = tabletohtml(conversionsegment.tab, conversionsegment.dsubsets())
     fout.write('<div id="%s">#%s\n' % (dividNUM, dividNUM))
