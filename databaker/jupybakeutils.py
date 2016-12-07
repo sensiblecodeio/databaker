@@ -6,9 +6,10 @@ import six
 import io, os, collections, re, warnings
 import databaker.constants
 OBS = databaker.constants.OBS   # evaluates to -9
+LAST_METADATA = 0 # since they're numbered -9 for OBS, ... 0 for last one
 
 import xypath
-from databaker.utils import TechnicalCSV, yield_dimension_values, DUPgenerate_header_row, datematch, template
+from databaker.utils import datematch, template
 
 # This is the main class that does all the work for each dimension
 class HDim:
@@ -209,9 +210,82 @@ class ConversionSegment:
                 warnings.warn("TIME %s disagrees with TIMEUNIT %s" % (dval[template.TIME], dval[template.TIMEUNIT]))
                 
 
+
+
+
+
+
+
+
+def Lyield_dimension_values(values, headernames):
+    for dimension in range(OBS, LAST_METADATA + 1):
+        v = values.get(dimension, "")
+        yield v
+        if dimension in template.SH_Repeat:         # Calls special handling - repeats
+            yield v
+        for i in range(0, template.SKIP_AFTER[dimension]):
+            yield ''
+
+    for dimension in range(1, len(headernames)):
+        name = headernames[dimension]
+        value = values[dimension]
+        topic_headers = template.get_topic_headers(name, value)
+        for col in topic_headers:
+            yield col
+
+def LDUPgenerate_header_row(headernames):
+    header_row = template.start.split(',')
+
+    # create new header row
+    for i in range(len(headernames)-1):
+        header_row.extend(template.repeat.format(num=i+1).split(','))
+
+    # overwrite dimensions/subject/name as column header (if requested)
+    if template.topic_headers_as_dims:
+        dims = []
+        for headername in headernames:
+            dims.append(headername)
+        header_row = rewrite_headers(header_row, dims)
+    return header_row
+
+def LwritetechnicalCSV(outputfile, conversionsegments):
+    if type(conversionsegments) is ConversionSegment:
+        conversionsegments = [conversionsegments]
+    csvout = TechnicalCSV(outputfile, False)
+    if outputfile is not None:
+        print("writing %d conversion segments into %s" % (len(conversionsegments), os.path.abspath(outputfile)))
+        
+    for i, conversionsegment in enumerate(conversionsegments):
+        headernames = [None]+[dimension.label  for dimension in conversionsegment.dimensions  if type(dimension.label) != int ]
+        if i == 0:   # only first segment
+            header_row = LDUPgenerate_header_row(headernames)
+            csvout.csv_writer.writerow(header_row)
+            
+        if conversionsegment.processedrows is None: 
+            conversionsegment.process()  
+            
+        kdim = dict((dimension.label, dimension)  for dimension in conversionsegment.dimensions)
+        timeunitmessage = ""
+        if template.SH_Create_ONS_time and ((template.TIMEUNIT not in kdim) and (template.TIME in kdim)):
+            timeunitmessage = conversionsegment.guesstimeunit()
+            conversionsegment.fixtimefromtimeunit()
+        elif template.TIME in kdim and template.TIMEUNIT not in kdim:
+            conversionsegment.fixtimefromtimeunit()
+
+        if outputfile is not None:
+            print("conversionwrite segment size %d table '%s; %s" % (len(conversionsegment.processedrows), conversionsegment.tab.name, timeunitmessage))
+        for row in conversionsegment.processedrows:
+            values = dict((k if type(k)==int else headernames.index(k), v)  for k, v in row.items())
+            output_row = Lyield_dimension_values(values, headernames)
+            csvout.output(output_row)
+    csvout.footer()
+    if csvout.filename is None:
+        print(csvout.filehandle.getvalue())
+
+
+
     
-# In theory we can now call the template export to big CSV, like before at this point
-# But now we should seek to plot the stats ourselves as a sanity check that the data is good
+from databaker.utils import yield_dimension_values, DUPgenerate_header_row, TechnicalCSV
 def writetechnicalCSV(outputfile, conversionsegments):
     if type(conversionsegments) is ConversionSegment:
         conversionsegments = [conversionsegments]
@@ -244,7 +318,7 @@ def writetechnicalCSV(outputfile, conversionsegments):
             csvout.output(output_row)
     csvout.footer()
     if csvout.filename is None:
-        print(csvout.filehandle.getvalue())
+        return csvout.filehandle.getvalue()
 
 
         
