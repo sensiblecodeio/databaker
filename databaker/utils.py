@@ -38,7 +38,7 @@ def datematch(date, silent=False):
     d = date.strip()
     if re.match('\d{4}$', d):
         return 'Year'
-    if re.match('\d{4}\s*[Qq]\d$', d):
+    if re.match('\d{4}[Qq]\d$', d):
         return 'Quarter'
     if re.match('[A-Za-z]{3}-[A-Za-z]{3} \d{4}$', d):
         return 'Quarter'
