@@ -4,7 +4,8 @@ import os, warnings
 import databaker.constants
 from databaker.constants import *      # also brings in template
 import databaker.databakersolo as ds   # causes the xypath.loader to be overwritten
-from databaker.jupybakeutils import HDim, HDimConst, savepreviewhtml, writetechnicalCSV, ConversionSegment
+from databaker.jupybakeutils import HDim, HDimConst, writetechnicalCSV, ConversionSegment
+from databaker.jupybakehtml import savepreviewhtml
 
 def loadxlstabs(inputfile, sheetids="*"):
     print("Loading %s which has size %d bytes" % (inputfile, os.path.getsize(inputfile)))
@@ -27,3 +28,4 @@ def loadxlstabs(inputfile, sheetids="*"):
 import pandas as pd
 def topandas(conversionsegment):
     return pd.DataFrame.from_dict(conversionsegment.lookupall())
+
