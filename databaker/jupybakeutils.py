@@ -167,9 +167,9 @@ def Ldatetimeunitforce(st, timeunit):
             return "%s %s" % (mq2.group(1), mq2.group(2))
             
     elif timeunit == "Month":
-        mm1 = re.match('([A-Za-z]{3})\s*(\d{4})$', d)
+        mm1 = re.match('([A-Za-z]{3})\s*(\d{4})$', st)
         if mm1:
-            return "%s %s" % (mq2.group(1), mq2.group(2))
+            return "%s %s" % (mm1.group(1), mm1.group(2))
     else:
         timeunit = "unknown:%s" % timeunit
     warnings.warn("TIME %s disagrees with TIMEUNIT %s" % (st, timeunit))
