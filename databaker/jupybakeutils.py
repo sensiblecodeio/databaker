@@ -3,7 +3,7 @@
 from __future__ import unicode_literals, division
 
 import six
-import io, os, collections, re, warnings
+import io, os, collections, re, warnings, csv
 import databaker.constants
 OBS = databaker.constants.OBS   # evaluates to -9
 LAST_METADATA = 0 # since they're numbered -9 for OBS, ... 0 for last one
@@ -229,76 +229,15 @@ class ConversionSegment:
         assert self.processedrows is None, "Conversion segment already processed"
         self.processedrows = [ self.lookupobs(ob)  for ob in self.obslist ]
         
-    def guesstimeunit(self):
-        for dval in self.processedrows:
-            dval[template.TIMEUNIT] = Ldatetimeunitloose(dval[template.TIME])
-        ctu = collections.Counter(dval[template.TIMEUNIT]  for dval in self.processedrows)
-        if len(ctu) == 1:
-            return "TIMEUNIT='%s'" % list(ctu.keys())[0]
-        return "multiple TIMEUNITs: %s" % ", ".join("'%s'(%d)" % (k,v)  for k,v in ctu.items())
-        
-    def fixtimefromtimeunit(self):
-        for dval in self.processedrows:
-            dval[template.TIME] = Ldatetimeunitforce(dval[template.TIME], dval[template.TIMEUNIT])
-
-
-
-
-def Lyield_dimension_values(values, headernames):
-    for dimension in range(OBS, LAST_METADATA + 1):
-        v = values.get(dimension, "")
-        yield v
-        if dimension in template.SH_Repeat:         # Calls special handling - repeats
-            yield v
-        for i in range(0, template.SKIP_AFTER[dimension]):
-            yield ''
-
-    for dimension in range(1, len(headernames)):
-        name = headernames[dimension]
-        value = values[dimension]
-        topic_headers = template.get_topic_headers(name, value)
-        for col in topic_headers:
-            yield col
-
-def LDUPgenerate_header_row(headernames):
-    header_row = template.start.split(',')
-
-    # create new header row
-    for i in range(len(headernames)-1):
-        header_row.extend(template.repeat.format(num=i+1).split(','))
-
-    # overwrite dimensions/subject/name as column header (if requested)
-    if template.topic_headers_as_dims:
-        dims = []
-        for headername in headernames:
-            dims.append(headername)
-        header_row = rewrite_headers(header_row, dims)
-    return header_row
-
-def LwritetechnicalCSV(outputfile, conversionsegments):
-    if type(conversionsegments) is ConversionSegment:
-        conversionsegments = [conversionsegments]
-    csvout = TechnicalCSV(outputfile, False)
-    if outputfile is not None:
-        print("writing %d conversion segments into %s" % (len(conversionsegments), os.path.abspath(outputfile)))
-        
-    for i, conversionsegment in enumerate(conversionsegments):
-        headernames = [None]+[dimension.label  for dimension in conversionsegment.dimensions  if type(dimension.label) != int ]
-        if i == 0:   # only first segment
-            header_row = LDUPgenerate_header_row(headernames)
-            csvout.csv_writer.writerow(header_row)
-            
-        if conversionsegment.processedrows is None: 
-            conversionsegment.process()  
-            
-        kdim = dict((dimension.label, dimension)  for dimension in conversionsegment.dimensions)
+        kdim = dict((dimension.label, dimension)  for dimension in self.dimensions)
         timeunitmessage = ""
         if template.SH_Create_ONS_time and ((template.TIMEUNIT not in kdim) and (template.TIME in kdim)):
-            timeunitmessage = conversionsegment.guesstimeunit()
-            conversionsegment.fixtimefromtimeunit()
+            timeunitmessage = self.guesstimeunit()
+            self.fixtimefromtimeunit()
         elif template.TIME in kdim and template.TIMEUNIT not in kdim:
-            conversionsegment.fixtimefromtimeunit()
-            
+            self.fixtimefromtimeunit()
+        return timeunitmessage
+
         '''#Do something with this!
         if template.SH_Split_OBS:
             if not isinstance(values[OBS], float):  # NOTE xls specific!
@@ -312,15 +251,88 @@ def LwritetechnicalCSV(outputfile, conversionsegments):
                     warnings.warn("datamarker lost: {} on {!r}".format(dm_value, ob))
         '''
 
+        
+    def guesstimeunit(self):
+        for dval in self.processedrows:
+            dval[template.TIMEUNIT] = Ldatetimeunitloose(dval[template.TIME])
+        ctu = collections.Counter(dval[template.TIMEUNIT]  for dval in self.processedrows)
+        if len(ctu) == 1:
+            return "TIMEUNIT='%s'" % list(ctu.keys())[0]
+        return "multiple TIMEUNITs: %s" % ", ".join("'%s'(%d)" % (k,v)  for k,v in ctu.items())
+        
+    def fixtimefromtimeunit(self):
+        for dval in self.processedrows:
+            dval[template.TIME] = Ldatetimeunitforce(dval[template.TIME], dval[template.TIMEUNIT])
+
+
+    def LDUPgenerate_header_row(self):
+        for k in template.headermeasurements:
+            yield k[0] if isinstance(k, tuple) else k
+        i = 1
+        for dimension in self.dimensions:
+            if dimension.label not in template.headermeasurementnumvaluesSet:
+                for k in template.headeradditionals:
+                    if isinstance(k, tuple):
+                        sk = k[0]
+                    else:
+                        sk = k
+                    yield "%s_%d" % (sk, i)
+                i += 1
+
+    def Lyield_dimension_values(self, dval):
+        for k in template.headermeasurements:
+            yield dval.get(template.headermeasurementnumvalues[k[1]], '')  if isinstance(k, tuple)  else  ''
+        for dimension in self.dimensions:
+            if dimension.label not in template.headermeasurementnumvaluesSet:
+                for k in template.headeradditionals:
+                    if isinstance(k, tuple):
+                        if k[1] == "NAME":
+                            yield dimension.label
+                        else:
+                            assert k[1] == "VALUE"
+                            yield dval[dimension.label]
+                    else:
+                        yield ''
+            
+
+
+
+
+
+def LwritetechnicalCSV(outputfile, conversionsegments):
+    if type(conversionsegments) is ConversionSegment:
+        conversionsegments = [conversionsegments]
+        
+    if outputfile is not None:
+        print("writing %d conversion segments into %s" % (len(conversionsegments), os.path.abspath(outputfile)))
+        filehandle = open(outputfile, "w", newline='\n')
+    else:
+        filehandle = io.StringIO()
+    csv_writer = csv.writer(filehandle)
+    row_count = 0
+        
+    for i, conversionsegment in enumerate(conversionsegments):
+        if i == 0:   # only first segment
+            csv_writer.writerow(conversionsegment.LDUPgenerate_header_row())
+            
+        timeunitmessage = ""
+        if conversionsegment.processedrows is None: 
+            timeunitmessage = conversionsegment.process()  
+
         if outputfile is not None:
             print("conversionwrite segment size %d table '%s; %s" % (len(conversionsegment.processedrows), conversionsegment.tab.name, timeunitmessage))
         for row in conversionsegment.processedrows:
-            values = dict((k if type(k)==int else headernames.index(k), v)  for k, v in row.items())
-            output_row = Lyield_dimension_values(values, headernames)
-            csvout.output(output_row)
-    csvout.footer()
-    if csvout.filename is None:
-        print(csvout.filehandle.getvalue())
+            csv_writer.writerow(conversionsegment.Lyield_dimension_values(row))
+            row_count += 1
+            
+    csv_writer.writerow(["*"*9, row_count])
+    if outputfile is not None:
+        filehandle.close()
+    else:
+        return filehandle.getvalue()
+
+
+
 
 
 

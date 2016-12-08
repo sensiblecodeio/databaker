@@ -20,6 +20,13 @@ headermeasurements = [
             'statistical_population_label_cym', 'cdid', 'cdiddescrip', 'empty5', 'empty6', 'empty7', 'empty8', 'empty9', 'empty10', 'empty11', 'empty12'
 ]
 
+headeradditionals = [ 
+    ("dim_id",      "NAME"),  ("dimension_label_eng",      "NAME"),  "dimension_label_cym",
+    ("dim_item_id", "VALUE"), ("dimension_item_label_eng", "VALUE"), "dimension_item_label_cym",  
+    "is_total","is_sub_total"
+]
+
+      
 # derive the elements of the headernames above into the values below 
 start = ",".join((k[0] if isinstance(k, tuple) else k) for k in headermeasurements)
 headermeasurementnames = list(collections.OrderedDict.fromkeys(k[1]  for k in headermeasurements  if isinstance(k, tuple)))
@@ -27,6 +34,7 @@ dimension_names = headermeasurementnames  # for now
 
 # this will be using strings instead of numbers soon, which will remove this one dereference and make things more meaningful
 headermeasurementnumvalues = dict((item, -i)  for i, item in enumerate(reversed(headermeasurementnames)))
+headermeasurementnumvaluesSet = set(headermeasurementnumvalues.values())
 exec("%s = %s" % (", ".join(headermeasurementnumvalues.keys()), ", ".join(map(str, headermeasurementnumvalues.values()))))
 
 SKIP_AFTER = { }
@@ -80,7 +88,9 @@ def get_topic_headers(name, value):  # DONT alter this
     return ([name, name, '', value, value, '', '', ''])   # Change this line
 
 # Where are the values? (should match the above (minus the 'name entries)
-value_spread = ['', '', '', 'value', 'value', '', '', '']
+value_spread = get_topic_headers('', 'value')
+Dvalue_spread = ['', '', '', 'value', 'value', '', '', '']
+assert value_spread == Dvalue_spread
 
 # do you want to output the 'name' value in the header of the value columns?
 topic_headers_as_dims = False
