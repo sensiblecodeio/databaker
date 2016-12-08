@@ -135,6 +135,46 @@ def HDimConst(name, val):
     return HDim(None, name, cellvalueoverride={None:val})
 
 
+def Ldatetimeunitloose(date):
+    if not isinstance(date, str):
+        if isinstance(date, (float, int)) and 1000<=date<=9999 and int(date)==date:
+            return "Year"
+        return ''
+    d = date.strip()
+    if re.match('\d{4}$', d):
+        return 'Year'
+    if re.match('\d{4}\s*[Qq]\d$', d):
+        return 'Quarter'
+    if re.match('[A-Za-z]{3}-[A-Za-z]{3} \d{4}$', d):
+        return 'Quarter'
+    if re.match('[A-Za-z]{3} \d{4}$', d):
+        return 'Month'
+    return ''
+
+def Ldatetimeunitforce(st, timeunit):
+    st = str(st).strip()
+    if timeunit == 'Year':
+        mst = re.match("(\d\d\d\d)(?:\.0)?$", st)
+        if mst:
+            return mst.group(1)
+            
+    elif timeunit == "Quarter":
+        mq1 = re.match('(\d{4})\s*[Qq](\d)$', st)
+        mq2 = re.match('([A-Za-z]{3}-[A-Za-z]{3}) (\d{4})$', st)
+        if mq1:
+            return "%s Q%s" % (mq1.group(1), mq1.group(2))
+        if mq2:
+            return "%s %s" % (mq2.group(1), mq2.group(2))
+            
+    elif timeunit == "Month":
+        mm1 = re.match('([A-Za-z]{3})\s*(\d{4})$', d)
+        if mm1:
+            return "%s %s" % (mq2.group(1), mq2.group(2))
+    else:
+        timeunit = "unknown:%s" % timeunit
+    warnings.warn("TIME %s disagrees with TIMEUNIT %s" % (st, timeunit))
+    return st
+
 
 class ConversionSegment:
     def __init__(self, tab, dimensions, segment):
@@ -191,7 +231,7 @@ class ConversionSegment:
         
     def guesstimeunit(self):
         for dval in self.processedrows:
-            dval[template.TIMEUNIT] = datematch(dval[template.TIME])
+            dval[template.TIMEUNIT] = Ldatetimeunitloose(dval[template.TIME])
         ctu = collections.Counter(dval[template.TIMEUNIT]  for dval in self.processedrows)
         if len(ctu) == 1:
             return "TIMEUNIT='%s'" % list(ctu.keys())[0]
@@ -199,20 +239,7 @@ class ConversionSegment:
         
     def fixtimefromtimeunit(self):
         for dval in self.processedrows:
-            if dval[template.TIMEUNIT] == 'Year':
-                st = str(dval[template.TIME]).strip()
-                mst = re.match("(\d\d\d\d)(?:\.0)?$", st)
-                if mst:
-                    dval[template.TIME] = mst.group(1)
-                else:
-                    warnings.warn("TIME %s disagrees with TIMEUNIT %s" % (st, dval[template.TIMEUNIT]))
-            if datematch(dval[template.TIME]) != dval[template.TIMEUNIT]:
-                warnings.warn("TIME %s disagrees with TIMEUNIT %s" % (dval[template.TIME], dval[template.TIMEUNIT]))
-                
-
-
-
-
+            dval[template.TIME] = Ldatetimeunitforce(dval[template.TIME], dval[template.TIMEUNIT])
 
 
 
@@ -271,6 +298,19 @@ def LwritetechnicalCSV(outputfile, conversionsegments):
             conversionsegment.fixtimefromtimeunit()
         elif template.TIME in kdim and template.TIMEUNIT not in kdim:
             conversionsegment.fixtimefromtimeunit()
+            
+        '''#Do something with this!
+        if template.SH_Split_OBS:
+            if not isinstance(values[OBS], float):  # NOTE xls specific!
+                ob_value, dm_value = parse_ob(ob)
+                values[OBS] = ob_value
+                # the observation is not actually a number
+                # store it as a datamarker and nuke the observation field
+                if values[template.SH_Split_OBS] == '':
+                    values[template.SH_Split_OBS] = dm_value
+                elif dm_value:
+                    warnings.warn("datamarker lost: {} on {!r}".format(dm_value, ob))
+        '''
 
         if outputfile is not None:
             print("conversionwrite segment size %d table '%s; %s" % (len(conversionsegment.processedrows), conversionsegment.tab.name, timeunitmessage))
