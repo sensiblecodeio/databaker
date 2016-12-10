@@ -156,7 +156,7 @@ def Ldatetimeunitloose(date):
             return "Year"
         return ''
     d = date.strip()
-    if re.match('\d{4}$', d):
+    if re.match('\d{4}(?:\.0)?$', d):
         return 'Year'
     if re.match('\d{4}\s*[Qq]\d$', d):
         return 'Quarter'
@@ -395,3 +395,70 @@ def writetechnicalCSV(outputfile, conversionsegments):
 
 
         
+
+
+
+def readtechnicalCSV(wdafile):
+    if isinstance(wdafile, str):
+        if len(wdafile) > 200 and '\n' in wdafile:
+            filehandle = io.StringIO(wdafile)
+        else:
+            filehandle = open(wdafile, "r")
+    else:
+        assert isinstance(wdafile, io.StringIO)
+        filehandle = wdafile
+        
+    wdain = csv.reader(filehandle)
+    # First check that the headers are what we expect
+    wdaheaders = wdain.__next__()
+    numheaderadditionals = (len(wdaheaders) - len(template.headermeasurements))//len(template.headeradditionals)
+    if not (wdaheaders == HLDUPgenerate_header_row(numheaderadditionals)):
+        print("WDA heades don't match.  nothing is likely to work now")
+        
+    wdasegments = { }
+    for row in wdain:
+        if row[0] == '*********':
+            nrows = sum(map(len, wdasegments.values()))
+            assert int(row[1]) == nrows, ("row number doesn't match", int(row[1]), nrows)
+            assert len(list(wdain)) == 0
+            break
+
+        dval = { }
+        isegmentnumber = None
+        for r, k in zip(row, template.headermeasurements):
+            if isinstance(k, tuple):
+                nk = template.headermeasurementnumvalues[k[1]]
+                if r:
+                    assert nk not in dval or dval[nk] == r
+                    dval[nk] = r
+                else:
+                    assert not dval.get(nk)
+            elif k == template.conversionsegmentnumbercolumn:
+                isegmentnumber = int(r)
+            else:
+                assert not r
+                
+            lnumheaderadditionals = (len(row) - len(template.headermeasurements))
+            assert lnumheaderadditionals % len(template.headeradditionals) == 0
+            numheaderadditionals = lnumheaderadditionals//len(template.headeradditionals)
+            for i in range(numheaderadditionals):
+                rname, rvalue = None, None
+                i0 = len(template.headermeasurements) + i*len(template.headeradditionals)
+                for r, k in zip(row[i0:i0+len(template.headeradditionals)], template.headeradditionals):
+                    if isinstance(k, tuple):
+                        if k[1] == "NAME":
+                            assert rname is None or rname == r, (rname, r)
+                            rname = r
+                        else:
+                            assert k[1] == "VALUE"
+                            assert rvalue is None or rvalue == r
+                            rvalue = r
+                    else:
+                        assert not r
+                assert rname, (rname, dval, row)
+                dval[rname] = rvalue
+        if isegmentnumber not in wdasegments:
+            wdasegments[isegmentnumber] = [ ]
+        wdasegments[isegmentnumber].append(dval)
+    filehandle.close()
+    return wdasegments
