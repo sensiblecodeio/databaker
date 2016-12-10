@@ -3,13 +3,30 @@
 from __future__ import unicode_literals, division
 
 import six
-import io, os, collections, re, warnings, csv
+import io, os, collections, re, warnings, csv, datetime
 import databaker.constants
 OBS = databaker.constants.OBS   # evaluates to -9
 LAST_METADATA = 0 # since they're numbered -9 for OBS, ... 0 for last one
 
 import xypath
 from databaker.utils import datematch, template
+
+
+
+def svalue(cell):
+    if not isinstance(cell.value, datetime.datetime):
+        return cell.value
+    # the fmt string is some excel generated garbage format, like: '[$-809]dd\\ mmmm\\ yyyy;@'
+    # the xlrd module does its best and creates a date tuple, which messytables constructs into a datetime using xldate_as_tuple()
+    xls_format = cell.properties['formatting_string'].upper()
+    quarter = int((cell.value.month -1 ) // 3) + 1
+    if   'Q' in xls_format:   py_format = "%Y Q{quarter}"   # may be very rare
+    elif 'D' in xls_format:   py_format = "%Y-%m-%d"
+    elif 'M' in xls_format:   py_format = "%b %Y"
+    elif 'Y' in xls_format:   py_format = "%Y"
+    else:                     py_format = "%Y-%m-%d"
+    return cell.value.strftime(py_format).format(quarter=quarter)
+
 
 # This is the main class that does all the work for each dimension
 class HDim:
@@ -114,8 +131,8 @@ class HDim:
                 val = self.cellvalueoverride[hcell]
                 assert isinstance(val, (str, float, int)), "Override from hcell value should go directly to a str,float,int,None-value (%s)" % type(val)
                 return hcell, val
-            val = hcell.value
-            assert val is None or isinstance(val, (str, float, int)), "cell value should only be str,float,int,None (%s)" % type(val)
+            val = svalue(hcell)
+            #assert val is None or isinstance(val, (str, float, int)), "cell value should only be str,float,int,None (%s)" % type(val)
         else:
             val = None
          
@@ -216,7 +233,7 @@ class ConversionSegment:
         if type(ob) is xypath.xypath.Bag:
             assert len(ob) == 1, "Can only lookupobs a single cell"
             ob = ob._cell
-        dval = { OBS:ob.value }
+        dval = { OBS:svalue(ob.value) }
         for hdim in self.dimensions:
             hcell, val = hdim.cellvalobs(ob)
             dval[hdim.label] = val

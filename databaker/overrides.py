@@ -169,10 +169,13 @@ xypath.Bag.subdim = subdim
 
 # === XLSCell Overrides ===================================
 
+# disable this, and do it at the very end with the svalue(cell) function
+"""
 def text_date(cell):
     xls_format = cell.properties['formatting_string'].upper()
     quarter = int((cell.value.month -1 ) // 3) + 1  # TODO testme!
     print("quarter" + str(quarter))
+    print([xls_format, cell.value, (cell.properties["formatting_string"])])
     if 'Q' in xls_format:
         py_format = "%Y Q{quarter}"
     elif 'D' in xls_format:
@@ -196,6 +199,7 @@ def new_from_messy(messy_rowset):
             cell.value = text_date(cell)
     return new_table
 xypath.xypath.Table.from_messy = staticmethod(new_from_messy)
+"""
 
 # === Cell Overrides ======================================
 

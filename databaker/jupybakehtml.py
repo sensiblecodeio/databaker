@@ -6,7 +6,7 @@ from IPython.display import display
 from IPython.core.display import HTML
 import databaker.constants
 OBS = databaker.constants.OBS   # evaluates to -9
-from databaker.jupybakeutils import HDim, ConversionSegment
+from databaker.jupybakeutils import HDim, ConversionSegment, svalue
 
 # copied out again
 def create_colourlist():
@@ -73,7 +73,7 @@ def tabletohtml(tab, tsubs):
             if c.properties.get_bold():    cs.append("xb")
             if c.is_number():              cs.append("xn")
             htm.append('<td class="%s" title="%d %d">' % (" ".join(cs), c.x, c.y))
-            htm.append(six.text_type(c.value))
+            htm.append(svalue(c))
             htm.append("</td>")
         htm.append("</tr>\n")
     htm.append("</table>\n")
