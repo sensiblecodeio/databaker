@@ -5,8 +5,6 @@ from __future__ import unicode_literals, division
 import six
 import io, os, collections, re, warnings, csv, datetime
 import databaker.constants
-OBS = databaker.constants.OBS   # evaluates to -9
-LAST_METADATA = 0 # since they're numbered -9 for OBS, ... 0 for last one
 
 import xypath
 from databaker.utils import datematch, template
@@ -15,7 +13,7 @@ from databaker.utils import datematch, template
 
 def svalue(cell):
     if not isinstance(cell.value, datetime.datetime):
-        return cell.value
+        return str(cell.value)
     # the fmt string is some excel generated garbage format, like: '[$-809]dd\\ mmmm\\ yyyy;@'
     # the xlrd module does its best and creates a date tuple, which messytables constructs into a datetime using xldate_as_tuple()
     xls_format = cell.properties['formatting_string'].upper()
@@ -193,6 +191,18 @@ def Ldatetimeunitforce(st, timeunit):
     return st
 
 
+def HLDUPgenerate_header_row(numheaderadditionals):
+    res = [ (k[0] if isinstance(k, tuple) else k)  for k in template.headermeasurements ]
+    for i in range(numheaderadditionals):
+        for k in template.headeradditionals:
+            if isinstance(k, tuple):
+                sk = k[0]
+            else:
+                sk = k
+            res.append("%s_%d" % (sk, i+1))
+    return res
+
+
 class ConversionSegment:
     def __init__(self, tab, dimensions, segment):
         self.tab = tab
@@ -202,6 +212,8 @@ class ConversionSegment:
         for dimension in self.dimensions:
             assert isinstance(dimension, HDim), ("Dimensions must have type HDim()")
             assert dimension.hbagset is None or dimension.hbagset.table is tab, "dimension %s from different tab" % dimension.name
+            
+        self.numheaderadditionals = sum(1  for dimension in self.dimensions  if dimension.label not in template.headermeasurementnumvaluesSet)
 
         # generate the ordered obslist here (so it is fixed here and can be reordered before processing)
         if isinstance(self.segment, xypath.xypath.Bag):
@@ -222,7 +234,7 @@ class ConversionSegment:
     def dsubsets(self):
         tsubs = [ ]
         if self.segment:
-            tsubs.append((OBS, "OBS", self.segment))
+            tsubs.append((databaker.constants.OBS, "OBS", self.segment))
         for i, dimension in enumerate(self.dimensions):
             if dimension.hbagset is not None:   # filter out TempValue headers
                 tsubs.append((i, dimension.name, dimension.hbagset))
@@ -233,10 +245,26 @@ class ConversionSegment:
         if type(ob) is xypath.xypath.Bag:
             assert len(ob) == 1, "Can only lookupobs a single cell"
             ob = ob._cell
-        dval = { OBS:svalue(ob.value) }
+            
+        if not isinstance(ob.value, float):
+            if ob.properties['richtext']:  # should this case be implemented into the svalue() function?
+                sval = richxlrd.RichCell(ob.properties.cell.sheet, ob.y, ob.x).fragments.not_script.value
+            else:
+                sval = svalue(ob)
+            if template.SH_Split_OBS:
+                assert template.SH_Split_OBS == databaker.constants.DATAMARKER
+                ob_value, dm_value = re.match(r"([-+]?[0-9]+\.?[0-9]*)?(.*)", sval).groups()
+                dval = { databaker.constants.OBS:(ob_value or ""), template.SH_Split_OBS:dm_value }
+            else:
+                dval = { databaker.constants.OBS:sval }
+        else:
+            dval = { databaker.constants.OBS:ob.value }
+        
+        
         for hdim in self.dimensions:
             hcell, val = hdim.cellvalobs(ob)
             dval[hdim.label] = val
+            
         return dval
         
     def lookupall(self):   # defunct function
@@ -254,20 +282,6 @@ class ConversionSegment:
         elif template.TIME in kdim and template.TIMEUNIT not in kdim:
             self.fixtimefromtimeunit()
         return timeunitmessage
-
-        '''#Do something with this!
-        if template.SH_Split_OBS:
-            if not isinstance(values[OBS], float):  # NOTE xls specific!
-                ob_value, dm_value = parse_ob(ob)
-                values[OBS] = ob_value
-                # the observation is not actually a number
-                # store it as a datamarker and nuke the observation field
-                if values[template.SH_Split_OBS] == '':
-                    values[template.SH_Split_OBS] = dm_value
-                elif dm_value:
-                    warnings.warn("datamarker lost: {} on {!r}".format(dm_value, ob))
-        '''
-
         
     def guesstimeunit(self):
         for dval in self.processedrows:
@@ -281,24 +295,14 @@ class ConversionSegment:
         for dval in self.processedrows:
             dval[template.TIME] = Ldatetimeunitforce(dval[template.TIME], dval[template.TIMEUNIT])
 
-
-    def LDUPgenerate_header_row(self):
+    def Lyield_dimension_values(self, dval, isegmentnumber):
         for k in template.headermeasurements:
-            yield k[0] if isinstance(k, tuple) else k
-        i = 1
-        for dimension in self.dimensions:
-            if dimension.label not in template.headermeasurementnumvaluesSet:
-                for k in template.headeradditionals:
-                    if isinstance(k, tuple):
-                        sk = k[0]
-                    else:
-                        sk = k
-                    yield "%s_%d" % (sk, i)
-                i += 1
-
-    def Lyield_dimension_values(self, dval):
-        for k in template.headermeasurements:
-            yield dval.get(template.headermeasurementnumvalues[k[1]], '')  if isinstance(k, tuple)  else  ''
+            if isinstance(k, tuple):
+                yield dval.get(template.headermeasurementnumvalues[k[1]], '')
+            elif k == template.conversionsegmentnumbercolumn:
+                yield isegmentnumber
+            else:
+                yield ''
         for dimension in self.dimensions:
             if dimension.label not in template.headermeasurementnumvaluesSet:
                 for k in template.headeradditionals:
@@ -328,9 +332,9 @@ def LwritetechnicalCSV(outputfile, conversionsegments):
     csv_writer = csv.writer(filehandle)
     row_count = 0
         
-    for i, conversionsegment in enumerate(conversionsegments):
-        if i == 0:   # only first segment
-            csv_writer.writerow(conversionsegment.LDUPgenerate_header_row())
+    for isegmentnumber, conversionsegment in enumerate(conversionsegments):
+        if isegmentnumber == 0:   # only first segment
+            csv_writer.writerow(HLDUPgenerate_header_row(conversionsegment.numheaderadditionals))
             
         timeunitmessage = ""
         if conversionsegment.processedrows is None: 
@@ -339,7 +343,7 @@ def LwritetechnicalCSV(outputfile, conversionsegments):
         if outputfile is not None:
             print("conversionwrite segment size %d table '%s; %s" % (len(conversionsegment.processedrows), conversionsegment.tab.name, timeunitmessage))
         for row in conversionsegment.processedrows:
-            csv_writer.writerow(conversionsegment.Lyield_dimension_values(row))
+            csv_writer.writerow(conversionsegment.Lyield_dimension_values(row, isegmentnumber))
             row_count += 1
             
     csv_writer.writerow(["*"*9, row_count])

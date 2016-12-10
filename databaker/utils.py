@@ -112,7 +112,7 @@ def extract_dimension_values_for_ob(headers, ob, no_lookup_error):
     # Mutate values
     # Special handling per dimension.
     # NOTE  - variables beginning SH_ ... are dependent on user choices from the template file
-
+    print(values)
     if template.SH_Split_OBS:
         if not isinstance(values[OBS], float):  # NOTE xls specific!
             ob_value, dm_value = parse_ob(ob)

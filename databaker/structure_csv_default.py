@@ -26,7 +26,8 @@ headeradditionals = [
     "is_total","is_sub_total"
 ]
 
-      
+conversionsegmentnumbercolumn = "empty11"
+
 # derive the elements of the headernames above into the values below 
 start = ",".join((k[0] if isinstance(k, tuple) else k) for k in headermeasurements)
 headermeasurementnames = list(collections.OrderedDict.fromkeys(k[1]  for k in headermeasurements  if isinstance(k, tuple)))
