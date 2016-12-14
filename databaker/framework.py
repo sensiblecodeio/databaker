@@ -6,8 +6,11 @@ from databaker.constants import *      # also brings in template
 import databaker.databakersolo as ds   # causes the xypath.loader to be overwritten
 
 from databaker.jupybakeutils import HDim, HDimConst, ConversionSegment
-from databaker.jupybakeutils import writetechnicalCSV, LwritetechnicalCSV, readtechnicalCSV
+from databaker.jupybakecsv import writetechnicalCSV, OLDwritetechnicalCSV, readtechnicalCSV
+from databaker.jupybakecsv import headersfromwdasegment, extraheaderscheck, checktheconstantdimensions, checksegmentobsvalues
+from databaker.jupybakecsv import wdamsgstrings, CompareConversionSegments
 from databaker.jupybakehtml import savepreviewhtml
+
 
 def loadxlstabs(inputfile, sheetids="*"):
     print("Loading %s which has size %d bytes" % (inputfile, os.path.getsize(inputfile)))

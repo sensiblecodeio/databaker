@@ -258,8 +258,7 @@ class ConversionSegment:
             else:
                 dval = { databaker.constants.OBS:sval }
         else:
-            dval = { databaker.constants.OBS:ob.value }
-        
+            dval = { databaker.constants.OBS:str(ob.value) }
         
         for hdim in self.dimensions:
             hcell, val = hdim.cellvalobs(ob)
@@ -351,8 +350,6 @@ def LwritetechnicalCSV(outputfile, conversionsegments):
         filehandle.close()
     else:
         return filehandle.getvalue()
-
-
 
 
 
@@ -457,8 +454,12 @@ def readtechnicalCSV(wdafile):
                         assert not r
                 assert rname, (rname, dval, row)
                 dval[rname] = rvalue
+                
         if isegmentnumber not in wdasegments:
             wdasegments[isegmentnumber] = [ ]
         wdasegments[isegmentnumber].append(dval)
     filehandle.close()
     return wdasegments
+
+
+

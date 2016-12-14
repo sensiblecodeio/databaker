@@ -23,13 +23,22 @@ headermeasurements = [
 headeradditionals = [ 
     ("dim_id",      "NAME"),  ("dimension_label_eng",      "NAME"),  "dimension_label_cym",
     ("dim_item_id", "VALUE"), ("dimension_item_label_eng", "VALUE"), "dimension_item_label_cym",  
-    "is_total","is_sub_total"
+    "is_total", "is_sub_total"
 ]
 
 conversionsegmentnumbercolumn = "empty11"
 
+# Do we want to create a TIMEUNIT dimension using a TIME dimension - ONS specific
+SH_Create_ONS_time = True
+
+# Do you want to split the OBS, placing non float data into your next column.
+SH_Split_OBS = "DATAMARKER"  # see value set to int value below
+
+
+####  Below this point is derived data (used in old code) from the above tables
+
+
 # derive the elements of the headernames above into the values below 
-start = ",".join((k[0] if isinstance(k, tuple) else k) for k in headermeasurements)
 headermeasurementnames = list(collections.OrderedDict.fromkeys(k[1]  for k in headermeasurements  if isinstance(k, tuple)))
 dimension_names = headermeasurementnames  # for now
 
@@ -37,6 +46,12 @@ dimension_names = headermeasurementnames  # for now
 headermeasurementnumvalues = dict((item, -i)  for i, item in enumerate(reversed(headermeasurementnames)))
 headermeasurementnumvaluesSet = set(headermeasurementnumvalues.values())
 exec("%s = %s" % (", ".join(headermeasurementnumvalues.keys()), ", ".join(map(str, headermeasurementnumvalues.values()))))
+exec("SH_Split_OBS = %s" % SH_Split_OBS)
+
+
+####  Below this point is derived data only used in old code
+
+start = ",".join((k[0] if isinstance(k, tuple) else k) for k in headermeasurements)
 
 SKIP_AFTER = { }
 hm = None
@@ -104,8 +119,3 @@ topic_headers_as_dims = False
 # Standard Dimensions that need to be outputted twice in a row (i.e item|label combos)
 SH_Repeat = [TIME, STATPOP]
 
-# Do we want to create a TIMEUNIT dimension using a TIME dimension - ONS specific
-SH_Create_ONS_time = True
-
-# Do you want to split the OBS, placing non float data into your next column.
-SH_Split_OBS = DATAMARKER

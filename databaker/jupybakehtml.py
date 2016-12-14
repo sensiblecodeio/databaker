@@ -11,18 +11,19 @@ from databaker.jupybakeutils import HDim, ConversionSegment, svalue
 # copied out again
 def create_colourlist():
     # Function to dynamically assign colours to dimensions for preview
+    colchange = {"rose":"misty_rose", "ice_blue":"cornflower_blue", "periwinkle":"burly_wood", "pale_blue":"deep_sky_blue", "gray25":"light_gray", "light_turquoise":"pale_turquoise"}
     "https://github.com/python-excel/xlwt/blob/master/xlwt/Style.py#L309"
-    colours = ["lavender", "violet", "gray25", "sea_green",
+    ocolours = ["lavender", "violet", "gray25", "sea_green",
               "pale_blue", "blue", "gray25", "rose", "tan", "aqua", "light_green", "light_turquoise",
               "light_blue", "sky_blue", "plum", "gold", "lime", "coral", "periwinkle", "ice_blue", "light_yellow"]
-    numbers = []
+    colours = [ "".join(lv.capitalize()  for lv in colchange.get(col, col).split("_"))  for col in ocolours ]
+    numbers = [ ]
     for i in range(len(databaker.constants.template.dimension_names)-1, \
                    -(len(colours) - len(databaker.constants.template.dimension_names)), -1):
         numbers.append(-i)
     colourlist = dict(list(zip(numbers, colours)))
     return colourlist
 colourlist = create_colourlist()
-colchange = {"rose":"misty_rose", "ice_blue":"cornflower_blue", "periwinkle":"burly_wood", "pale_blue":"deep_sky_blue", "gray25":"light_gray", "light_turquoise":"pale_turquoise"}
 
 
 ndividNUM = 1000
@@ -32,7 +33,7 @@ def incrementdividNUM():
     ndividNUM += 1
     dividNUM = "injblock%d" % ndividNUM
 
-def tabletohtml(tab, tsubs):
+def tabletohtml(tab, tsubs, blocalstylesheet):
     key = [ ]
     key.append('Table: <b>%s</b> ' % tab.name)
     key.append('<table class="exkey">\n')
@@ -49,15 +50,18 @@ def tabletohtml(tab, tsubs):
     sty.append("<style>\n")
     sty.append("table.ex, table.exkey { border: thin black solid }\n")
     sty.append("table.ex td, table.ex tr { border: none }\n")
-    sty.append("td.xb { font-weight: bold }\n")
-    sty.append("td.xn { color: green }\n")
-    sty.append("td.xd { color: purple }\n")
-    sty.append("table { border-collapse: collapse }\n")
-    for i, col in colourlist.items():
-        sty.append("td.xc%d { background-color: %s }\n" % (i, "".join(lv.capitalize() for lv in colchange.get(col, col).split("_"))))
+    if blocalstylesheet:
+        sty.append("td.xb { font-weight: bold }\n")
+        sty.append("td.xn { color: green }\n")
+        sty.append("td.xd { color: purple }\n")
+        sty.append("table { border-collapse: collapse }\n")
+        sty.extend("td.xc%d { background-color: %s }\n" % (i, col)  for (i, col) in colourlist.items())
     sty.append("table.ex td:hover { border: thin blue solid }\n")
     sty.append("table.ex td.exc%d:hover { border: thin red solid }\n" % OBS)
-    sty.append("table.ex td.selected { background-color: red; border: thin blue dotted }\n")
+    if blocalstylesheet:
+        sty.append("table.ex td.selected { background-color: red; border: thin blue dotted }\n")
+    else:
+        sty.append("table.ex td.selected { border: thick red solid }\n")
     sty.append("</style>\n\n")
 
     htm = [ ]
@@ -67,12 +71,19 @@ def tabletohtml(tab, tsubs):
         assert len(row) == tab._max_x + 1
         rrow = sorted(row, key=lambda X: X.x)
         for c in rrow:
-            cs = [ ]
             ih = ixyheaderlookup.get((c.x, c.y))
-            if ih is not None:             cs.append("xc%d" % ih)
-            if c.properties.get_bold():    cs.append("xb")
-            if c.is_number():              cs.append("xn")
-            htm.append('<td class="%s" title="%d %d">' % (" ".join(cs), c.x, c.y))
+            if blocalstylesheet:
+                cs = [ ]
+                if ih is not None:             cs.append("xc%d" % ih)
+                if c.properties.get_bold():    cs.append("xb")
+                if c.is_number():              cs.append("xn")
+                htm.append('<td class="%s" title="%d %d">' % (" ".join(cs), c.x, c.y))
+            else:
+                ls = [ ]
+                if ih is not None:             ls.append("background-color:%s" % colourlist.get(ih,"white"))
+                if c.properties.get_bold():    ls.append("font-weight:bold")
+                lss = ' style="%s"' % ";".join(ls)  if ls  else ''
+                htm.append('<td%s title="%d %d">' % (lss, c.x, c.y))
             htm.append(svalue(c))
             htm.append("</td>")
         htm.append("</tr>\n")
@@ -162,11 +173,13 @@ def savepreviewhtml(conversionsegment, fname=None):
     incrementdividNUM()
     if fname is None:
         fout = io.StringIO()
+        blocalstylesheet = not (len(conversionsegment.tab) < 1500)
     else:
         fout = io.open(fname, "w", encoding='utf-8')
         fout.write("<html>\n<head><title>%s</title><meta charset=\"UTF-8\"></head>\n<body>\n" % conversionsegment.tab.name)
+        blocalstylesheet = True
         
-    htmtable = tabletohtml(conversionsegment.tab, conversionsegment.dsubsets())
+    htmtable = tabletohtml(conversionsegment.tab, conversionsegment.dsubsets(), blocalstylesheet)
     fout.write('<div id="%s">#%s\n' % (dividNUM, dividNUM))
     fout.write(htmtable)
     fout.write('</div>\n')
