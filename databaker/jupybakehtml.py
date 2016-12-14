@@ -42,9 +42,13 @@ def tabletohtml(tab, tsubs, blocalstylesheet):
     for i, label, bag in tsubs:
         for h in bag:
             ixyheaderlookup[(h.x, h.y)] = i
-        key.append('<td class="xc%d">%s</td>' % (i, label))
+        if blocalstylesheet:
+            key.append('<td class="xc%d">%s</td>' % (i, label))
+        else:
+            key.append('<td class="xc%d" style="background-color:%s">%s</td>' % (i, colourlist.get(i,"white"), label))
     key.append('</tr>')
     key.append('</table>\n')
+    
     
     sty = [ ]
     sty.append("<style>\n")
