@@ -94,7 +94,7 @@ def OLDwritetechnicalCSV(outputfile, conversionsegments):
 
 
 
-def readtechnicalCSV(wdafile):
+def readtechnicalCSV(wdafile, bverbose):
     if isinstance(wdafile, str):
         if len(wdafile) > 200 and '\n' in wdafile:
             filehandle = io.StringIO(wdafile)
@@ -112,6 +112,7 @@ def readtechnicalCSV(wdafile):
         print("WDA heades don't match.  nothing is likely to work now")
         
     wdasegments = { }
+    previsegmentnumber = None
     for row in wdain:
         if row[0] == '*********':
             nrows = sum(map(len, wdasegments.values()))
@@ -155,8 +156,14 @@ def readtechnicalCSV(wdafile):
                 dval[rname] = rvalue
                 
         if isegmentnumber not in wdasegments:
+            if bverbose and previsegmentnumber is not None:
+                print("segment %d loaded with %d rows" % (previsegmentnumber, len(wdasegments[previsegmentnumber])))
             wdasegments[isegmentnumber] = [ ]
+            
         wdasegments[isegmentnumber].append(dval)
+        previsegmentnumber = isegmentnumber
+    if bverbose and previsegmentnumber is not None:
+        print("segment %d loaded with %d rows" % (previsegmentnumber, len(wdasegments[previsegmentnumber])))
     filehandle.close()
     return wdasegments
 
@@ -239,11 +246,12 @@ def checksegmentobsvalues(processedrows, headers, wdaseg, msglist):
 
 
 def CompareConversionSegments(conversionsegments, wdafile, bprintwarnings):
+    bverbose = True
     if type(conversionsegments) is ConversionSegment:
         conversionsegments = [conversionsegments]
     
     msglistperseg = { }
-    wdasegs = readtechnicalCSV(wdafile)
+    wdasegs = readtechnicalCSV(wdafile, bverbose)
     extracsegs = [ c  for c in wdasegs.keys()  if not 0<=c<len(conversionsegments) ]
     if extracsegs:
         msglistperseg[-1] = [ ("EXTRAWDACONVERSIONSEGMENTS", extracsegs) ]

@@ -49,7 +49,6 @@ class HDim:
         assert direction is not None and strict is not None
 
         self.bxtype = (self.direction[1] == 0)
-        self.bbothdirtype = type(self.direction[0]) == tuple or type(self.direction[1]) == tuple   # prob want to kill off the bothdirtype
         if self.strict:
             self.samerowlookup = {}
             for hcell in self.hbagset.unordered_cells:
@@ -68,14 +67,10 @@ class HDim:
             return abs(cell.y - target_cell.y)
         
         def betweencells(scell, target_cell, best_cell):
-            if not self.bbothdirtype:
-                if mult(scell) <= mult(target_cell):
-                    if not best_cell or mult(target_cell) <= mult(best_cell):
-                        return True
-                return False
-            if not best_cell:
-                return True
-            return dgap(scell, target_cell) <= dgap(scell, best_cell)
+            if mult(scell) <= mult(target_cell):
+                if not best_cell or mult(target_cell) <= mult(best_cell):
+                    return True
+            return False
         
         def same_row_col(a, b):
             return  (a.x - b.x  == 0 and self.direction[0] == 0) or (a.y - b.y  == 0 and self.direction[1] == 0)
@@ -95,9 +90,7 @@ class HDim:
                 if not self.strict or same_row_col(scell, target_cell):
                     second_best_cell = best_cell
                     best_cell = target_cell
-        if second_best_cell and not self.bbothdirtype and mult(best_cell) == mult(second_best_cell):
-            raise xypath.LookupConfusionError("{!r} is as good as {!r} for {!r}".format(best_cell, second_best_cell, scell))
-        if second_best_cell and self.bbothdirtype and dgap(scell, best_cell) == dgap(scell, second_best_cell):
+        if second_best_cell and mult(best_cell) == mult(second_best_cell):
             raise xypath.LookupConfusionError("{!r} is as good as {!r} for {!r}".format(best_cell, second_best_cell, scell))
         if best_cell is None:
             return None
