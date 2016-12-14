@@ -33,7 +33,7 @@ def incrementdividNUM():
     ndividNUM += 1
     dividNUM = "injblock%d" % ndividNUM
 
-def tabletohtml(tab, tsubs, blocalstylesheet):
+def tabletohtml(tab, tsubs, consolidatedcellvalueoverride, blocalstylesheet):
     key = [ ]
     key.append('Table: <b>%s</b> ' % tab.name)
     key.append('<table class="exkey">\n')
@@ -58,6 +58,8 @@ def tabletohtml(tab, tsubs, blocalstylesheet):
         sty.append("td.xb { font-weight: bold }\n")
         sty.append("td.xn { color: green }\n")
         sty.append("td.xd { color: purple }\n")
+        sty.append("span.xo { text-decoration: line-through; }\n")
+        sty.append("span.xn { }\n")
         sty.append("table { border-collapse: collapse }\n")
         sty.extend("td.xc%d { background-color: %s }\n" % (i, col)  for (i, col) in colourlist.items())
     sty.append("table.ex td:hover { border: thin blue solid }\n")
@@ -88,7 +90,16 @@ def tabletohtml(tab, tsubs, blocalstylesheet):
                 if c.properties.get_bold():    ls.append("font-weight:bold")
                 lss = ' style="%s"' % ";".join(ls)  if ls  else ''
                 htm.append('<td%s title="%d %d">' % (lss, c.x, c.y))
-            htm.append(svalue(c))
+                
+            if (c.x, c.y) in consolidatedcellvalueoverride:
+                if blocalstylesheet:
+                    htm.append('<span class="xo">%s</span><span class="xn">%s</span>' % (svalue(c), consolidatedcellvalueoverride[(c.x, c.y)]))
+                else:
+                    htm.append('<strike>%s</strike>%s' % (svalue(c), consolidatedcellvalueoverride[(c.x, c.y)]))
+            else:
+                htm.append(svalue(c))
+            if (c.x, c.y) in consolidatedcellvalueoverride:
+                consolidatedcellvalueoverride
             htm.append("</td>")
         htm.append("</tr>\n")
     htm.append("</table>\n")
@@ -183,7 +194,7 @@ def savepreviewhtml(conversionsegment, fname=None):
         fout.write("<html>\n<head><title>%s</title><meta charset=\"UTF-8\"></head>\n<body>\n" % conversionsegment.tab.name)
         blocalstylesheet = True
         
-    htmtable = tabletohtml(conversionsegment.tab, conversionsegment.dsubsets(), blocalstylesheet)
+    htmtable = tabletohtml(conversionsegment.tab, conversionsegment.dsubsets(), conversionsegment.consolidatedcellvalueoverride(), blocalstylesheet)
     fout.write('<div id="%s">#%s\n' % (dividNUM, dividNUM))
     fout.write(htmtable)
     fout.write('</div>\n')

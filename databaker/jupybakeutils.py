@@ -233,6 +233,26 @@ class ConversionSegment:
                 tsubs.append((i, dimension.name, dimension.hbagset))
         return tsubs
         
+    # used in tabletohtml for the subsets, and where we would find the mappings for over-ride values
+    def consolidatedcellvalueoverride(self):
+        res = { }
+        for i, dimension in enumerate(self.dimensions):
+            if dimension.hbagset is not None:   # filter out TempValue headers
+                for hcell in dimension.hbagset.unordered_cells:
+                    sval = svalue(hcell)
+                    val = hcell.value
+                    if hcell in dimension.cellvalueoverride:
+                        val = str(dimension.cellvalueoverride[hcell])
+                    elif sval in dimension.cellvalueoverride:
+                        val = str(dimension.cellvalueoverride[val])
+                    elif type(hcell.value) in dimension.cellvalueoverride:
+                        val = str(dimension.cellvalueoverride[type(hcell.value)](hcell.value))
+                    else:
+                        val = sval
+                    if val != sval:
+                        res[(hcell.x, hcell.y)] = val
+        return res
+
     # individual lookup across the dimensions here
     def lookupobs(self, ob):
         if type(ob) is xypath.xypath.Bag:
