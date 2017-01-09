@@ -42,11 +42,25 @@ SH_Split_OBS = "DATAMARKER"  # see value set to int value below
 headermeasurementnames = list(collections.OrderedDict.fromkeys(k[1]  for k in headermeasurements  if isinstance(k, tuple)))
 dimension_names = headermeasurementnames  # for now
 
+# OLD WAY (to delete and will be over-written)
+# we are going to try and convert the values OBS=-9 to use OBS="OBS"
+if False:
+    headermeasurementnumvalues = dict((item, -i)  for i, item in enumerate(reversed(headermeasurementnames)))
+    headermeasurementnumvaluesSet = set(headermeasurementnumvalues.values())
+
+
+    # Create variables (This is terrible!)
+    exec("%s = %s" % (", ".join(headermeasurementnumvalues.keys()), ", ".join(map(str, headermeasurementnumvalues.values()))))
+    exec("SH_Split_OBS = %s" % SH_Split_OBS)
+
 # this will be using strings instead of numbers soon, which will remove this one dereference and make things more meaningful
-headermeasurementnumvalues = dict((item, -i)  for i, item in enumerate(reversed(headermeasurementnames)))
-headermeasurementnumvaluesSet = set(headermeasurementnumvalues.values())
-exec("%s = %s" % (", ".join(headermeasurementnumvalues.keys()), ", ".join(map(str, headermeasurementnumvalues.values()))))
-exec("SH_Split_OBS = %s" % SH_Split_OBS)
+# NEW WAY
+else:
+    headermeasurementnumvalues = dict((item, item)  for i, item in enumerate(reversed(headermeasurementnames)))
+    headermeasurementnumvaluesSet = set(headermeasurementnumvalues.values())
+    # Create variables (This is terrible!)
+    exec("%s = '%s'" % (", ".join(headermeasurementnames), "', '".join(map(str, headermeasurementnames))))
+    exec("SH_Split_OBS = %s" % SH_Split_OBS)
 
 
 ####  Below this point is derived data only used in old code
@@ -71,15 +85,16 @@ assert Dstart == start
 Ddimension_names = ['OBS', 'DATAMARKER', 'STATUNIT', 'MEASURETYPE', 'UNITMULTIPLIER', 'UNITOFMEASURE', 'GEOG', 'TIME', 'TIMEUNIT', 'STATPOP']
 assert headermeasurementnames == Ddimension_names
 
-# Create variables (This is terrible!)
-for i, item in enumerate(reversed(headermeasurementnames)):
-    exec("assert "+item+"==-i")
+# [Check] Create variables (This is terrible!)
+if isinstance(OBS, int):
+    for i, item in enumerate(reversed(headermeasurementnames)):
+        exec("assert "+item+"==-i")
 
 __all__ = list(headermeasurementnames) # don't expose unnecessary items when using `from foo import *`
 
 
 # used in the old code
-DSKIP_AFTER = {OBS: 0,            # 1..2  MANDATORY, must be here, must be called OBS
+DSKIP_AFTER = {OBS: 0,           # 1..2  MANDATORY, must be here, must be called OBS
               DATAMARKER: 0,     # 2..3
               STATUNIT: 1,       # 3..5
               MEASURETYPE: 4,    # 5..10
@@ -90,7 +105,7 @@ DSKIP_AFTER = {OBS: 0,            # 1..2  MANDATORY, must be here, must be calle
               TIMEUNIT: 1,       # 21..23/24
               STATPOP:11}        # 23/24..36/37
 
-assert SKIP_AFTER == DSKIP_AFTER
+assert SKIP_AFTER == DSKIP_AFTER, (SKIP_AFTER, DSKIP_AFTER)
 
 
 # = Topic Dimensions ========

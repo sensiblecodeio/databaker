@@ -5,7 +5,7 @@ import databaker.constants
 from databaker.constants import *      # also brings in template
 import databaker.databakersolo as ds   # causes the xypath.loader to be overwritten
 
-from databaker.jupybakeutils import HDim, HDimConst, ConversionSegment
+from databaker.jupybakeutils import HDim, HDimConst, ConversionSegment, LwritetechnicalCSV
 from databaker.jupybakecsv import writetechnicalCSV, OLDwritetechnicalCSV, readtechnicalCSV
 from databaker.jupybakecsv import headersfromwdasegment, extraheaderscheck, checktheconstantdimensions, checksegmentobsvalues
 from databaker.jupybakecsv import wdamsgstrings, CompareConversionSegments

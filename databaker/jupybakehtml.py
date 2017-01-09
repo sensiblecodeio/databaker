@@ -43,9 +43,9 @@ def tabletohtml(tab, tsubs, consolidatedcellvalueoverride, blocalstylesheet):
         for h in bag:
             ixyheaderlookup[(h.x, h.y)] = i
         if blocalstylesheet:
-            key.append('<td class="xc%d">%s</td>' % (i, label))
+            key.append('<td class="xc%s">%s</td>' % (i, label))
         else:
-            key.append('<td class="xc%d" style="background-color:%s">%s</td>' % (i, colourlist.get(i,"white"), label))
+            key.append('<td class="xc%s" style="background-color:%s">%s</td>' % (i, colourlist.get(i,"white"), label))
     key.append('</tr>')
     key.append('</table>\n')
     
@@ -63,7 +63,7 @@ def tabletohtml(tab, tsubs, consolidatedcellvalueoverride, blocalstylesheet):
         sty.append("table { border-collapse: collapse }\n")
         sty.extend("td.xc%d { background-color: %s }\n" % (i, col)  for (i, col) in colourlist.items())
     sty.append("table.ex td:hover { border: thin blue solid }\n")
-    sty.append("table.ex td.exc%d:hover { border: thin red solid }\n" % OBS)
+    sty.append("table.ex td.exc%s:hover { border: thin red solid }\n" % OBS)
     if blocalstylesheet:
         sty.append("table.ex td.selected { background-color: red; border: thin blue dotted }\n")
     else:
@@ -80,7 +80,7 @@ def tabletohtml(tab, tsubs, consolidatedcellvalueoverride, blocalstylesheet):
             ih = ixyheaderlookup.get((c.x, c.y))
             if blocalstylesheet:
                 cs = [ ]
-                if ih is not None:             cs.append("xc%d" % ih)
+                if ih is not None:             cs.append("xc%s" % ih)
                 if c.properties.get_bold():    cs.append("xb")
                 if c.is_number():              cs.append("xn")
                 htm.append('<td class="%s" title="%d %d">' % (" ".join(cs), c.x, c.y))
