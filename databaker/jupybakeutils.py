@@ -227,10 +227,10 @@ class ConversionSegment:
     def dsubsets(self):
         tsubs = [ ]
         if self.segment:
-            tsubs.append((databaker.constants.OBS, "OBS", self.segment))
+            tsubs.append((0, "OBS", self.segment))
         for i, dimension in enumerate(self.dimensions):
             if dimension.hbagset is not None:   # filter out TempValue headers
-                tsubs.append((i, dimension.name, dimension.hbagset))
+                tsubs.append((i+1, dimension.name, dimension.hbagset))
         return tsubs
         
     # used in tabletohtml for the subsets, and where we would find the mappings for over-ride values

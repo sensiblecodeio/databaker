@@ -13,14 +13,14 @@ def create_colourlist():
     # Function to dynamically assign colours to dimensions for preview
     colchange = {"rose":"misty_rose", "ice_blue":"cornflower_blue", "periwinkle":"burly_wood", "pale_blue":"deep_sky_blue", "gray25":"light_gray", "light_turquoise":"pale_turquoise"}
     "https://github.com/python-excel/xlwt/blob/master/xlwt/Style.py#L309"
-    ocolours = ["lavender", "violet", "gray25", "sea_green",
-              "pale_blue", "blue", "gray25", "rose", "tan", "aqua", "light_green", "light_turquoise",
-              "light_blue", "sky_blue", "plum", "gold", "lime", "coral", "periwinkle", "ice_blue", "light_yellow"]
+    ocolours = ["aqua", "light_green", "rose", "gray25", "periwinkle", "coral", "gold", "lime", 
+              "light_blue", "plum", "ice_blue", "light_yellow", 
+              "lavender", "violet", "sea_green", 
+              "pale_blue", "blue", "gray25", "light_turquoise", "tan", "sky_blue", 
+]
+              
     colours = [ "".join(lv.capitalize()  for lv in colchange.get(col, col).split("_"))  for col in ocolours ]
-    numbers = [ ]
-    for i in range(len(databaker.constants.template.dimension_names)-1, \
-                   -(len(colours) - len(databaker.constants.template.dimension_names)), -1):
-        numbers.append(-i)
+    numbers = list(range(len(colours)))
     colourlist = dict(list(zip(numbers, colours)))
     return colourlist
 colourlist = create_colourlist()
