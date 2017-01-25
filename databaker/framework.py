@@ -29,8 +29,25 @@ def loadxlstabs(inputfile, sheetids="*"):
     if len(set(tabnames)) != len(tabnames):
         warnings.warn("Duplicates found in table names list")
     return tabs
-    
+
+# try to mark up the data into a full pandas table (including tabname and cell position)
+from databaker.jupybakeutils import Ldatetimeunitloose, Ldatetimeunitforce
 import pandas as pd
+
 def topandas(conversionsegment):
-    return pd.DataFrame.from_dict(conversionsegment.lookupall())
+    dvals = [ ]
+    for ob in conversionsegment.obslist:
+        dval = conversionsegment.lookupobs(ob)
+        dval["x"] = ob.x
+        dval["y"] = ob.y
+        dval["tabname"] = ob.table.name
+        dval[OBS] = float(dval[OBS])
+        if TIME in dval:
+            dval[TIMEUNIT] = Ldatetimeunitloose(dval[TIME])
+            sdatetime = Ldatetimeunitforce(dval[TIME], dval[TIMEUNIT]).replace(" ", "")
+            dval[TIME] = pd.to_datetime(sdatetime)
+        dvals.append(dval)
+    df = pd.DataFrame.from_dict(dvals)
+    #df.TIME = pd.DatetimeIndex(df.TIME)  # this doesn't work since the column is not an index
+    return df
 

@@ -5,7 +5,7 @@ import io, os, collections, re, warnings, six
 from IPython.display import display
 from IPython.core.display import HTML
 import databaker.constants
-OBS = databaker.constants.OBS   # evaluates to -9
+OBS = databaker.constants.OBS   # used to evaluate to -9, does to "OBS" now
 from databaker.jupybakeutils import HDim, ConversionSegment, svalue
 
 # copied out again
