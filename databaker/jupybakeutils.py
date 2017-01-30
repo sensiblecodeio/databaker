@@ -102,6 +102,29 @@ class HDim:
             return None
         return best_cell
 
+    def headcellval(self, hcell):
+        if hcell is not None:
+            assert isinstance(hcell, xypath.xypath._XYCell), "celllookups should only go to an _XYCell"
+            if hcell in self.cellvalueoverride:
+                val = self.cellvalueoverride[hcell]
+                assert isinstance(val, (str, float, int)), "Override from hcell value should go directly to a str,float,int,None-value (%s)" % type(val)
+                return val
+            val = svalue(hcell)
+            #assert val is None or isinstance(val, (str, float, int)), "cell value should only be str,float,int,None (%s)" % type(val)
+        else:
+            val = None
+         
+        # It's allowed to have {None:defaultvalue} to set the NoLookupValue
+        if val in self.cellvalueoverride:
+            val = self.cellvalueoverride[val]
+            assert val is None or isinstance(val, (str, float, int)), "Override from value should only be str,float,int,None (%s)" % type(val)
+
+        # type call if no other things match
+        elif type(val) in self.cellvalueoverride:
+             val = self.cellvalueoverride[type(val)](val)
+            
+        return val
+
 
     # do the lookup and the value derivation of the cell, via cellvalueoverride{} redirections
     def cellvalobs(self, ob):
@@ -122,27 +145,7 @@ class HDim:
         else:
             hcell = None
             
-        if hcell is not None:
-            assert isinstance(hcell, xypath.xypath._XYCell), "celllookups should only go to an _XYCell"
-            if hcell in self.cellvalueoverride:
-                val = self.cellvalueoverride[hcell]
-                assert isinstance(val, (str, float, int)), "Override from hcell value should go directly to a str,float,int,None-value (%s)" % type(val)
-                return hcell, val
-            val = svalue(hcell)
-            #assert val is None or isinstance(val, (str, float, int)), "cell value should only be str,float,int,None (%s)" % type(val)
-        else:
-            val = None
-         
-        # It's allowed to have {None:defaultvalue} to set the NoLookupValue
-        if val in self.cellvalueoverride:
-            val = self.cellvalueoverride[val]
-            assert val is None or isinstance(val, (str, float, int)), "Override from value should only be str,float,int,None (%s)" % type(val)
-
-        # type call if no other things match
-        elif type(val) in self.cellvalueoverride:
-             val = self.cellvalueoverride[type(val)](val)
-            
-        return hcell, val
+        return hcell, self.headcellval(hcell)
         
         
     def AddCellValueOverride(self, overridecell, overridevalue):
@@ -163,6 +166,17 @@ class HDim:
             
         assert overridevalue is None or isinstance(overridevalue, (str, float, int)), "Override from value should only be str,float,int,None (%s)" % type(overridevalue)
         self.cellvalueoverride[overridecell] = overridevalue
+
+    def valueslist(self):
+        return [self.headcellval(cell)  for cell in sorted(self.hbagset.unordered_cells, key=lambda cell: (cell.y, cell.x))]
+
+    def checkvalues(self, vlist):
+        scells = sorted(self.hbagset.unordered_cells, key=lambda cell: (cell.y, cell.x))
+        assert len(scells) == len(vlist), "checkvalues list length doesn't match"
+        for cell, v in zip(scells, vlist):
+            nv = self.headcellval(cell)
+            assert nv == v, ("checkvalues mismatch in cell", (cell.x, cell.y), "cell value", nv, "doesn't match", v)
+
 
 
 # convenience helper function/constructor (perhaps to move to the framework module)
