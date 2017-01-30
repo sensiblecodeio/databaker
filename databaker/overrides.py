@@ -41,6 +41,50 @@ def string_cell_value(cell):
     return value.strip()
 
 
+def Dcelllookup(header_bag, direction, strict, hcells, scell):
+    bbothdirtype = type(direction[0]) == tuple or type(direction[1]) == tuple
+    def mult(cell):
+        return cell.x * direction[0] + cell.y * direction[1]
+    def dgap(cell, target_cell):
+        if direction[1] == 0:
+            return abs(cell.x - target_cell.x)
+        return abs(cell.y - target_cell.y)
+        
+    def betweencells(scell, target_cell, best_cell):
+        if not bbothdirtype:
+            if mult(scell) <= mult(target_cell):
+                if not best_cell or mult(target_cell) <= mult(best_cell):
+                    return True
+            return False
+        if not best_cell:
+            return True
+        return dgap(scell, target_cell) <= dgap(scell, best_cell)
+        
+    def same_row_col(a, b, direction):
+        return  (a.x - b.x  == 0 and direction[0] == 0) or (a.y - b.y  == 0 and direction[1] == 0)
+    
+    if hcells is None:
+        hcells = header_bag.unordered_cells
+
+    best_cell = None
+    second_best_cell = None
+
+    #if strict:  print(len(list(hcells)), len(list(header_bag.unordered_cells)))
+    for target_cell in hcells:
+        if betweencells(scell, target_cell, best_cell):
+            if not strict or same_row_col(scell, target_cell, direction):
+                second_best_cell = best_cell
+                best_cell = target_cell
+    if second_best_cell and not bbothdirtype and mult(best_cell) == mult(second_best_cell):
+        raise xypath.LookupConfusionError("{!r} is as good as {!r} for {!r}".format(best_cell, second_best_cell, scell))
+    if second_best_cell and bbothdirtype and dgap(scell, best_cell) == dgap(scell, second_best_cell):
+        raise xypath.LookupConfusionError("{!r} is as good as {!r} for {!r}".format(best_cell, second_best_cell, scell))
+    if best_cell is None:
+        raise xypath.NoLookupError("No lookup for {!r}".format(scell))
+    return best_cell
+
+
+
 class Dimension(object):
     # string signature: table.Dimension(label, string_literal)
     # bag signature:    bag.Dimension(label, direction, strictness)
@@ -58,6 +102,7 @@ class Dimension(object):
         self.bag = bag
         self.direction = direction
         self.Dlabel = label
+        self.Dnumber = None   # unknown yet
 
         # constant type
         if isinstance(param1, six.string_types):
@@ -87,36 +132,7 @@ class Dimension(object):
             self.string = None
             self.subdim = param1
         if primary_dimension:
-            self.bag.table.append_dimension(label, self)
-
-    def Dcelllookup(self, scell):
-        header_bag = self.bag
-        direction = self.direction
-        strict = self.strict
-        def mult(cell):
-            return cell.x * direction[0] + cell.y * direction[1]
-
-        def same_row_col(a, b, direction):
-            return  (a.x - b.x  == 0 and direction[0] == 0) or \
-                    (a.y - b.y  == 0 and direction[1] == 0)
-
-        best_cell = None
-        second_best_cell = None
-
-        bxtype = (self.direction[1] == 0)
-        hcells = header_bag.unordered_cells if not strict else self.samerowlookup.get(scell.y if bxtype else scell.x, [])
-        #if strict:  print(len(list(hcells)), len(list(header_bag.unordered_cells)))
-        for target_cell in hcells:
-            if mult(scell) <= mult(target_cell):
-                if not best_cell or mult(target_cell) <= mult(best_cell):
-                    if not strict or same_row_col(scell, target_cell, direction):
-                        second_best_cell = best_cell
-                        best_cell = target_cell
-        if second_best_cell and mult(best_cell) == mult(second_best_cell):
-            raise xypath.LookupConfusionError("{!r} is as good as {!r} for {!r}".format(best_cell, second_best_cell, scell))
-        if best_cell is None:
-            raise xypath.NoLookupError("No lookup for {!r}".format(scell))
-        return best_cell
+            self.Dnumber = self.bag.table.append_dimension(label, self)
 
     # This is done with this call because table.headers[number] takes "funcs"
     # in append_dimension (it shouldn't), which are lambda functions only in
@@ -125,7 +141,10 @@ class Dimension(object):
         if self.string is not None:
             return self.string
         if self.strict is not None:
-            hcell = self.Dcelllookup(cell)
+            bxtype = (self.direction[1] == 0)
+            scell = cell
+            hcells = self.bag.unordered_cells if not self.strict else self.samerowlookup.get(scell.y if bxtype else scell.x, [])
+            hcell = Dcelllookup(self.bag, self.direction, self.strict, hcells, scell)
             #hcell = cell.lookup(self.bag, self.direction, self.strict)
 
             # use this to test the lookup function is the same
@@ -150,10 +169,13 @@ xypath.Bag.subdim = subdim
 
 # === XLSCell Overrides ===================================
 
+# disable this, and do it at the very end with the svalue(cell) function
+"""
 def text_date(cell):
     xls_format = cell.properties['formatting_string'].upper()
     quarter = int((cell.value.month -1 ) // 3) + 1  # TODO testme!
     print("quarter" + str(quarter))
+    print([xls_format, cell.value, (cell.properties["formatting_string"])])
     if 'Q' in xls_format:
         py_format = "%Y Q{quarter}"
     elif 'D' in xls_format:
@@ -177,6 +199,7 @@ def new_from_messy(messy_rowset):
             cell.value = text_date(cell)
     return new_table
 xypath.xypath.Table.from_messy = staticmethod(new_from_messy)
+"""
 
 # === Cell Overrides ======================================
 
@@ -227,7 +250,9 @@ def append_dimension(table, label, func):
         assert isinstance(label, int)
         number = label
     table.headers[number] = func
+    assert number < 0 or max(table.headers.keys()) == table.max_header, (label, max(table.headers.keys()), table.max_header)
     utils.showtime("got header {}".format(utils.dim_name(label)))
+    return number
 xypath.Table.append_dimension = append_dimension
 
 def debug_dimensions(table):
@@ -264,6 +289,9 @@ xypath.Bag.is_date = is_date
 def is_number(bag):
     return bag.filter(lambda cell: isinstance(cell.value, (int, float, int)))
 xypath.Bag.is_number = is_number
+def is_not_number(bag):
+    return bag.filter(lambda cell: not isinstance(cell.value, (int, float, int)))
+xypath.Bag.is_not_number = is_not_number
 
 def group(bag, regex):
     """get the text"""

@@ -17,6 +17,10 @@ BELOW = DOWN
 DIRECTLY = True
 CLOSEST = False
 
+# disable feature (remove redundant code later)
+#LEFTRIGHT = ((-1,1), 0)
+#UPDOWN = (0, (-1,1))
+
 constant_params = [] # Overridden in main().
 
 class NotEnoughParams(Exception):
