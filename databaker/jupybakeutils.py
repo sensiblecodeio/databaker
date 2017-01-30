@@ -177,7 +177,13 @@ class HDim:
             nv = self.headcellval(cell)
             assert nv == v, ("checkvalues mismatch in cell", (cell.x, cell.y), "cell value", nv, "doesn't match", v)
 
-
+    # inefficient but works code
+    def discardcellsnotlookedup(self, obs):
+        hbagsetT = xypath.xypath.Bag(self.hbagset.table)
+        for ob in obs.unordered_cells:
+            hbagsetT.add(self.celllookup(ob))
+        self.hbagset = hbagsetT
+        
 
 # convenience helper function/constructor (perhaps to move to the framework module)
 def HDimConst(name, val):
