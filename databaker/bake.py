@@ -43,8 +43,8 @@ try:
     import structure_csv_user as template
     from structure_csv_user import *
 except ImportError:
-    import structure_csv_default as template
-    from structure_csv_default import *
+    import databaker.structure_csv_default as template
+    from databaker.structure_csv_default import *
 
 
 __version__ = "1.2.1"
