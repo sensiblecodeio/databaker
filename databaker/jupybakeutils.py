@@ -51,7 +51,13 @@ class HDim:
         assert direction is not None and strict is not None
 
         self.bxtype = (self.direction[1] == 0)
-        if self.strict:
+        self.samerowlookup = None
+    
+            
+    def celllookup(self, scell):
+        
+        # caching that can be removed in AddCellValueOverride
+        if self.strict and self.samerowlookup is None:
             self.samerowlookup = {}
             for hcell in self.hbagset.unordered_cells:
                 k = hcell.y if self.bxtype else hcell.x
@@ -59,8 +65,6 @@ class HDim:
                     self.samerowlookup[k] = []
                 self.samerowlookup[k].append(hcell)
         
-            
-    def celllookup(self, scell):
         def mult(cell):
             return cell.x * self.direction[0] + cell.y * self.direction[1]
         def dgap(cell, target_cell):
@@ -153,6 +157,7 @@ class HDim:
                 self.hbagset = self.hbagset | (self.hbagset.by_index(1) if len(self.hbagset) else self.hbagset)  # force copy by adding element from itself
                 self.bhbagsetCopied = True  # avoid inefficient copying every single time
             self.hbagset.add(overridecell)
+            self.samerowlookup = None  # abolish any caching
         else:
             assert overridecell not in self.cellvalueoverride, "cell already added into override, is this a mistake?"
             
