@@ -92,12 +92,15 @@ def tabletohtml(tab, tsubs, consolidatedcellvalueoverride, blocalstylesheet):
                 htm.append('<td%s title="%d %d">' % (lss, c.x, c.y))
                 
             if (c.x, c.y) in consolidatedcellvalueoverride:
+                prevcellval = svalue(c) or "*blank*" # want to see empty cells that have been overwritten
+                overridecellval = consolidatedcellvalueoverride[(c.x, c.y)]
                 if blocalstylesheet:
-                    htm.append('<span class="xo">%s</span><span class="xn">%s</span>' % (svalue(c), consolidatedcellvalueoverride[(c.x, c.y)]))
+                    htm.append('<span class="xo">%s</span><span class="xn">%s</span>' % (prevcellval, overridecellval))
                 else:
-                    htm.append('<strike>%s</strike>%s' % (svalue(c), consolidatedcellvalueoverride[(c.x, c.y)]))
+                    htm.append('<strike>%s</strike>%s' % (prevcellval, overridecellval))
             else:
                 htm.append(svalue(c))
+                
             if (c.x, c.y) in consolidatedcellvalueoverride:
                 consolidatedcellvalueoverride
             htm.append("</td>")
