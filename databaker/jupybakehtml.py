@@ -168,20 +168,34 @@ else
     
     
 def savepreviewhtml(conversionsegment, fname=None):
-    # upgrade sets to ConversionSegment type
+    
+    # wrap a singleton or list of bags, tables and HDims to a ConversionSegment
     if not isinstance(conversionsegment, ConversionSegment): 
         param1 = conversionsegment
         if not isinstance(param1, (tuple, list)):
             param1 = [param1]
+            
         tab = None
         dimensions = [ ]
         for i, p in enumerate(param1):
-            if not tab:
-                tab = p.table
+            if "Table" in str(type(p)):
+                ltab = p
+                lhdim = None
+            elif isinstance(p, HDim):
+                ltab = p.hbagset.table
+                lhdim = p
             else:
-                assert tab is p.table, "must all be same table"
-            if "Table" not in str(type(p)):
-                dimensions.append(HDim(p, "item %d"%i, databaker.constants.DIRECTLY, databaker.constants.ABOVE))   # (fake lookup)
+                ltab = p.table
+                lhdim = HDim(p, "item %d"%i, databaker.constants.DIRECTLY, databaker.constants.ABOVE)   # (fake lookup)
+            
+            if not tab:
+                tab = ltab
+            else:
+                assert ltab is tab, "must all be same table"
+
+            if lhdim:
+                dimensions.append(lhdim)
+                
         conversionsegment = ConversionSegment(tab, dimensions, [])
     
     # now we have a ConversionSegment
