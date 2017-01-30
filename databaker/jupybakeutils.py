@@ -38,6 +38,8 @@ class HDim:
         self.cellvalueoverride = cellvalueoverride or {} # do not put {} into default value otherwise there is only one static one for everything
         assert not isinstance(hbagset, str), "Use empty set and default value for single value dimension"
         self.hbagset = hbagset
+        self.bhbagsetCopied = False
+        
         if self.hbagset is None:   # single value type
             assert direction is None and strict is None
             assert len(cellvalueoverride) == 1 and None in cellvalueoverride, "single value type should have cellvalueoverride={None:defaultvalue}"
@@ -137,6 +139,26 @@ class HDim:
              val = self.cellvalueoverride[type(val)](val)
             
         return hcell, val
+        
+        
+    def AddCellValueOverride(self, overridecell, overridevalue):
+        if isinstance(overridecell, xypath.xypath.Bag):
+            assert len(overridecell) == 1, "Can only lookupobs a single cell"
+            overridecell = overridecell._cell
+        assert isinstance(overridecell, xypath.xypath._XYCell), "Lookups only allowed on an obs cell"
+        
+        # add the cell into the base set of cells if it's new 
+        if overridecell not in self.hbagset.unordered_cells:
+            if not self.bhbagsetCopied:
+                self.hbagset = self.hbagset | (self.hbagset.by_index(1) if len(self.hbagset) else self.hbagset)  # force copy by adding element from itself
+                self.bhbagsetCopied = True  # avoid inefficient copying every single time
+            self.hbagset.add(overridecell)
+        else:
+            assert overridecell not in self.cellvalueoverride, "cell already added into override, is this a mistake?"
+            
+        assert overridevalue is None or isinstance(overridevalue, (str, float, int)), "Override from value should only be str,float,int,None (%s)" % type(overridevalue)
+        self.cellvalueoverride[overridecell] = overridevalue
+
 
 # convenience helper function/constructor (perhaps to move to the framework module)
 def HDimConst(name, val):
