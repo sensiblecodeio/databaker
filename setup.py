@@ -33,8 +33,9 @@ conf = dict(
     tests_require=[],
     entry_points={
         'console_scripts': [
+            'tutorial = databaker.tutorial.tutorial:main',
             'bake = databaker.bake:main',
-            'sortcsv = databaker.sortcsv:main'
+            'sortcsv = databaker.sortcsv:main',
         ]
     })
 
