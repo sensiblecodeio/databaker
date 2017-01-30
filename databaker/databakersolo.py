@@ -20,9 +20,6 @@ import atexit
 # import databaker.databakersolo
 # databaker.databakersolo.runall(per_file, per_tab)
 
-# also get the paths working with
-# export PYTHONPATH=${PYTHONPATH}:/home/goatchurch/sensiblecode/databaker:/home/goatchurch/sensiblecode/xypath:/home/goatchurch/sensiblecode/messytables
-
 # test script calls (for regression)
 # python3 ../../quickcode-ons-recipes/abs/ABS01.py --preview ../../quickcode-ons-recipes/abs/Annual\ Business\ Survey\ Standard\ Extracts\ 2014P\ \(2\).xlsx 
 # python3 bake.py --preview ../../quickcode-ons-recipes/abs/ABS01.py ../../quickcode-ons-recipes/abs/Annual\ Business\ Survey\ Standard\ Extracts\ 2014P\ \(2\).xlsx 

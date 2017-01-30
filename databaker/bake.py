@@ -25,11 +25,6 @@ from six.moves import zip
 if six.PY2:
     sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
-sys.path.insert(0, "/home/goatchurch/sensiblecode/databaker")
-sys.path.insert(0, "/home/goatchurch/sensiblecode/xypath")
-sys.path.insert(0, "/home/goatchurch/sensiblecode/messytables")
-
-
 import xlutils.copy
 import xlwt
 from docopt import docopt
