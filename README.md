@@ -8,5 +8,5 @@ We currently support Python 2.7, 3.4 and 3.5.
 
 ## Documentation
 
-Reference, usage and a tutorial is hosted on [GitHub
-Pages](https://sensiblecodeio.github.io/quickcode-ons-docs/).
+The current documentation is in the form of Jupyter notebooks located
+inside the [tutorial](databaker/tutorial) directory.
