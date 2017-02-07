@@ -8,7 +8,7 @@ import databaker.constants
 
 import xypath
 from databaker.utils import datematch, template
-
+from databaker import richxlrd
 
 
 def svalue(cell):
