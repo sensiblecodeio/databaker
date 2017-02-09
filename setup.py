@@ -34,7 +34,6 @@ conf = dict(
     entry_points={
         'console_scripts': [
             'bake = databaker.bake:main',
-            'sortcsv = databaker.sortcsv:main',
         ]
     })
 
