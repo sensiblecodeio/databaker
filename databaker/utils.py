@@ -182,7 +182,7 @@ class TechnicalCSV(object):
         self.no_lookup_error = no_lookup_error
         self.filename = filename
         if filename is not None:
-            self.filehandle = open(filename, mode, newline='\n')
+            self.filehandle = open(filename, mode, newline='\n', encoding='utf-8')
         else:
             self.filehandle = io.StringIO()
         self.csv_writer = UnicodeWriter(self.filehandle)
