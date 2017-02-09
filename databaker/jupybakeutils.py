@@ -385,7 +385,7 @@ def LwritetechnicalCSV(outputfile, conversionsegments):
         
     if outputfile is not None:
         print("writing %d conversion segments into %s" % (len(conversionsegments), os.path.abspath(outputfile)))
-        filehandle = open(outputfile, "w", newline='\n')
+        filehandle = open(outputfile, "w", newline='\n', encoding='utf-8')
     else:
         filehandle = io.StringIO()
     csv_writer = csv.writer(filehandle)

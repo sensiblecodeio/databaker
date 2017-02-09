@@ -27,7 +27,7 @@ def writetechnicalCSV(outputfile, conversionsegments):
         
     if outputfile is not None:
         print("writing %d conversion segments into %s" % (len(conversionsegments), os.path.abspath(outputfile)))
-        filehandle = open(outputfile, "w", newline='\n')
+        filehandle = open(outputfile, "w", newline='\n', encoding='utf-8')
     else:
         filehandle = io.StringIO()
     csv_writer = csv.writer(filehandle)
@@ -99,7 +99,7 @@ def readtechnicalCSV(wdafile, bverbose):
         if len(wdafile) > 200 and '\n' in wdafile:
             filehandle = io.StringIO(wdafile)
         else:
-            filehandle = open(wdafile, "r")
+            filehandle = open(wdafile, "r", encoding='utf-8')
     else:
         assert isinstance(wdafile, io.StringIO)
         filehandle = wdafile
