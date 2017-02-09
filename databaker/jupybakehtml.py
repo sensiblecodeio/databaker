@@ -2,7 +2,7 @@
 
 import io, os, collections, re, warnings, six
 
-from IPython.display import display
+from IPython.display import display, FileLink
 from IPython.core.display import HTML
 import databaker.constants
 OBS = databaker.constants.OBS   # used to evaluate to -9, does to "OBS" now
@@ -229,4 +229,6 @@ def savepreviewhtml(conversionsegment, fname=None):
     else:
         fout.write("</body></html>\n")
         fout.close()
-        display(HTML('Written to file <a href="file://%s" title="It would work if this linked to something like: http://localhost:8888/files/ILCH/preview.html" >%s</a>' % (os.path.abspath(fname), os.path.abspath(fname))))
+        local_file = FileLink(path=os.path.basename(fname),
+                              result_html_prefix="Written to file: ")
+        display(local_file)
