@@ -23,8 +23,8 @@ def svalue(cell):
     return cell.value.strftime(py_format).format(quarter=quarter)
 
 
-# This is the main class that does all the work for each dimension
 class HDim:
+    "Dimension object which defines the lookup between an observation cell and a bag of header cells"
     def __init__(self, hbagset, label, strict=None, direction=None, cellvalueoverride=None):
         self.label = label
         self.name = label
@@ -49,6 +49,7 @@ class HDim:
     
             
     def celllookup(self, scell):
+        "Lookup function from a given cell to the matching header cell"
         
         # caching that can be removed in AddCellValueOverride
         if self.strict and self.samerowlookup is None:
@@ -97,6 +98,7 @@ class HDim:
         return best_cell
 
     def headcellval(self, hcell):
+        "Extract the string value of a member header cell (including any value overrides)"
         if hcell is not None:
             assert isinstance(hcell, xypath.xypath._XYCell), "celllookups should only go to an _XYCell"
             if hcell in self.cellvalueoverride:
@@ -120,8 +122,8 @@ class HDim:
         return val
 
 
-    # do the lookup and the value derivation of the cell, via cellvalueoverride{} redirections
     def cellvalobs(self, ob):
+        "Full lookup from a observation cell to its dimensional value (which can apply before lookup)"
         if isinstance(ob, xypath.xypath.Bag):
             assert len(ob) == 1, "Can only lookupobs a single cell"
             ob = ob._cell
@@ -141,8 +143,8 @@ class HDim:
             
         return hcell, self.headcellval(hcell)
         
-        
     def AddCellValueOverride(self, overridecell, overridevalue):
+        "Override the value of a header cell (and insert it if not present in the bag)" 
         if isinstance(overridecell, xypath.xypath.Bag):
             assert len(overridecell) == 1, "Can only lookupobs a single cell"
             overridecell = overridecell._cell
@@ -161,26 +163,29 @@ class HDim:
         assert overridevalue is None or isinstance(overridevalue, (str, float, int)), "Override from value should only be str,float,int,None (%s)" % type(overridevalue)
         self.cellvalueoverride[overridecell] = overridevalue
 
+    def discardcellsnotlookedup(self, obs):
+        "Remove header cells to which none of the observation cells looks up to"
+        hbagsetT = xypath.xypath.Bag(self.hbagset.table)
+        for ob in obs.unordered_cells:
+            hbagsetT.add(self.celllookup(ob))
+        self.hbagset = hbagsetT
+
     def valueslist(self):
+        "List of all the header cell values"
         return [self.headcellval(cell)  for cell in sorted(self.hbagset.unordered_cells, key=lambda cell: (cell.y, cell.x))]
 
     def checkvalues(self, vlist):
+        "Check that the header cell values match"
         scells = sorted(self.hbagset.unordered_cells, key=lambda cell: (cell.y, cell.x))
         assert len(scells) == len(vlist), "checkvalues list length doesn't match"
         for cell, v in zip(scells, vlist):
             nv = self.headcellval(cell)
             assert nv == v, ("checkvalues mismatch in cell", (cell.x, cell.y), "cell value", nv, "doesn't match", v)
 
-    # inefficient but works code
-    def discardcellsnotlookedup(self, obs):
-        hbagsetT = xypath.xypath.Bag(self.hbagset.table)
-        for ob in obs.unordered_cells:
-            hbagsetT.add(self.celllookup(ob))
-        self.hbagset = hbagsetT
         
 
-# convenience helper function/constructor (perhaps to move to the framework module)
 def HDimConst(name, val):
+    "Define a constant value dimension across the whole segment"
     return HDim(None, name, cellvalueoverride={None:val})
 
 
@@ -238,7 +243,14 @@ def HLDUPgenerate_header_row(numheaderadditionals):
 
 
 class ConversionSegment:
-    def __init__(self, tab, dimensions, segment):
+    "Single output table object generated from a bag of observations that look up to a list of dimensions"
+    def __init__(self, observations, dimensions, segment=None):
+        if segment is None:   # new format that drops the unnecessary table element
+            tab = observations.table
+            segment = observations
+        else:
+            tab = observations
+            
         self.tab = tab
         self.dimensions = dimensions
         self.segment = segment   # obs list
