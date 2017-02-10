@@ -54,6 +54,7 @@ def writetechnicalCSV(outputfile, conversionsegments):
 
 
 def readtechnicalCSV(wdafile, bverbose=False):
+    "Read a WDA CSV back from its file into an lookup table from segment number to (each a list of dicts)"
     if isinstance(wdafile, str):
         if len(wdafile) > 200 and '\n' in wdafile:
             filehandle = io.StringIO(wdafile)
@@ -72,11 +73,13 @@ def readtechnicalCSV(wdafile, bverbose=False):
         
     wdasegments = { }
     previsegmentnumber = None
+    segmentheaderssegmentL = [ ]  # to use for old WDA values where isegmentnumber doesn't exist
     for row in wdain:
         if row[0] == '*********':
             nrows = sum(map(len, wdasegments.values()))
-            assert int(row[1]) == nrows, ("row number doesn't match", int(row[1]), nrows)
-            assert len(list(wdain)) == 0
+            if int(row[1]) != nrows:
+                warnings.warn("row number doesn't match %d should be %d" % (int(row[1]), nrows))
+            assert len(list(wdain)) == 0, "***** must be on last row"
             break
 
         dval = { }
@@ -89,30 +92,38 @@ def readtechnicalCSV(wdafile, bverbose=False):
                     dval[nk] = r
                 else:
                     assert not dval.get(nk)
-            elif k == template.conversionsegmentnumbercolumn:
-                isegmentnumber = int(r or '0')
+            elif k == template.conversionsegmentnumbercolumn and r:
+                isegmentnumber = int(r)
             else:
                 assert not r
                 
-            lnumheaderadditionals = (len(row) - len(template.headermeasurements))
-            assert lnumheaderadditionals % len(template.headeradditionals) == 0
-            numheaderadditionals = lnumheaderadditionals//len(template.headeradditionals)
-            for i in range(numheaderadditionals):
-                rname, rvalue = None, None
-                i0 = len(template.headermeasurements) + i*len(template.headeradditionals)
-                for r, k in zip(row[i0:i0+len(template.headeradditionals)], template.headeradditionals):
-                    if isinstance(k, tuple):
-                        if k[1] == "NAME":
-                            assert rname is None or rname == r, (rname, r)
-                            rname = r
-                        else:
-                            assert k[1] == "VALUE"
-                            assert rvalue is None or rvalue == r
-                            rvalue = r
+        lnumheaderadditionals = (len(row) - len(template.headermeasurements))
+        assert lnumheaderadditionals % len(template.headeradditionals) == 0
+        numheaderadditionals = lnumheaderadditionals//len(template.headeradditionals)
+        
+        segmentheaderssegmentJ = [ ]  # to use for old WDA values where isegmentnumber doesn't exist
+        for i in range(numheaderadditionals):
+            rname, rvalue = None, None
+            i0 = len(template.headermeasurements) + i*len(template.headeradditionals)
+            for r, k in zip(row[i0:i0+len(template.headeradditionals)], template.headeradditionals):
+                if isinstance(k, tuple):
+                    if k[1] == "NAME":
+                        assert rname is None or rname == r, (rname, r)
+                        rname = r
                     else:
-                        assert not r
-                assert rname, (rname, dval, row)
-                dval[rname] = rvalue
+                        assert k[1] == "VALUE"
+                        assert rvalue is None or rvalue == r
+                        rvalue = r
+                else:
+                    assert not r
+            assert rname, (rname, dval, row)
+            dval[rname] = rvalue
+            segmentheaderssegmentJ.append(rname)
+                
+        if isegmentnumber is None:
+            if not segmentheaderssegmentL or segmentheaderssegmentL[-1] != segmentheaderssegmentJ:
+                segmentheaderssegmentL.append(segmentheaderssegmentJ)
+            isegmentnumber = len(segmentheaderssegmentL) - 1
                 
         if isegmentnumber not in wdasegments:
             if bverbose and previsegmentnumber is not None:
