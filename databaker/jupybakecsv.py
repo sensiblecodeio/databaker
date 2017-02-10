@@ -55,10 +55,6 @@ def writetechnicalCSV(outputfile, conversionsegments):
 
 
 
-
-# old version of writing    
-from databaker.utils import yield_dimension_values, DUPgenerate_header_row, TechnicalCSV
-
 def readtechnicalCSV(wdafile, bverbose=False):
     if isinstance(wdafile, str):
         if len(wdafile) > 200 and '\n' in wdafile:

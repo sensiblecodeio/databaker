@@ -251,7 +251,6 @@ def append_dimension(table, label, func):
         number = label
     table.headers[number] = func
     assert number < 0 or max(table.headers.keys()) == table.max_header, (label, max(table.headers.keys()), table.max_header)
-    utils.showtime("got header {}".format(utils.dim_name(label)))
     return number
 xypath.Table.append_dimension = append_dimension
 

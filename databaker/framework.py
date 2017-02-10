@@ -7,12 +7,11 @@ from databaker.constants import *      # also brings in template
 import xypath.loader
 import databaker.overrides as overrides       # warning: changes xypath and messytables
 
-from databaker.jupybakeutils import HDim, HDimConst, ConversionSegment, LwritetechnicalCSV
+from databaker.jupybakeutils import HDim, HDimConst, ConversionSegment
 from databaker.jupybakecsv import writetechnicalCSV, readtechnicalCSV
 from databaker.jupybakecsv import headersfromwdasegment, extraheaderscheck, checktheconstantdimensions, checksegmentobsvalues
 from databaker.jupybakecsv import wdamsgstrings, CompareConversionSegments
 from databaker.jupybakehtml import savepreviewhtml
-
 
 def loadxlstabs(inputfile, sheetids="*"):
     print("Loading %s which has size %d bytes" % (inputfile, os.path.getsize(inputfile)))
