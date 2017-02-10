@@ -27,10 +27,7 @@ def svalue(cell):
 class HDim:
     def __init__(self, hbagset, label, strict=None, direction=None, cellvalueoverride=None):
         self.label = label
-        if isinstance(label, int) and label < 0:   # handle human names of the elements for the ONS lookups
-            self.name = databaker.constants.template.dimension_names[len(databaker.constants.template.dimension_names)-1+label]
-        else:
-            self.name = label
+        self.name = label
             
         self.cellvalueoverride = cellvalueoverride or {} # do not put {} into default value otherwise there is only one static one for everything
         assert not isinstance(hbagset, str), "Use empty set and default value for single value dimension"
