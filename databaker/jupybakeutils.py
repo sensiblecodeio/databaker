@@ -1,8 +1,6 @@
 # encoding: utf-8
 # HTML preview of the dimensions and table (will be moved to a function in databakersolo)
-from __future__ import unicode_literals, division
 
-import six
 import io, os, collections, re, warnings, csv, datetime
 import databaker.constants
 import xypath

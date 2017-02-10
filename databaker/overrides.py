@@ -9,10 +9,6 @@ import warnings
 
 import xypath
 import messytables
-import six
-from six.moves import range
-
-
 
 class MatchNotFound(Exception):
     """failed to find match in bag.group"""
@@ -92,7 +88,7 @@ xypath.Table.excel_ref = excel_ref
 # copied in just for one function to enable deletion of utils.py
 def Ddatematch(date, silent=False):
     """match mmm yyyy, mmm-mmm yyyy, yyyy Qn, yyyy"""
-    if not isinstance(date, six.string_types):
+    if not isinstance(date, str):
         if (isinstance(date, float) or isinstance(date, int)) and date>=1000 and date<=9999 and int(date)==date:
             return "Year"
         if not silent:
