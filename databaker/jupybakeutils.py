@@ -5,10 +5,9 @@ from __future__ import unicode_literals, division
 import six
 import io, os, collections, re, warnings, csv, datetime
 import databaker.constants
-
 import xypath
-from databaker.utils import datematch, template
 from databaker import richxlrd
+template = databaker.constants.template
 
 
 def svalue(cell):
