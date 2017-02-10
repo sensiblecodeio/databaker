@@ -1,5 +1,0 @@
-#!/bin/bash
-set -e
-bake params.py rich.xls 1 2 3 4 5 > /dev/null
-diff data-rich-params.csv keepme_data-rich-params.csv
-echo Success!
