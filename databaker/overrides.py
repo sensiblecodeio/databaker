@@ -255,6 +255,7 @@ def append_dimension(table, label, func):
     return number
 xypath.Table.append_dimension = append_dimension
 
+
 def debug_dimensions(table):
     table.append_dimension("ref", lambda cell: xypath.contrib.excel.excel_location(cell))
     table.append_dimension("table", lambda cell: cell.table.name)

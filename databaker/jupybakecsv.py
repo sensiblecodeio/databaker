@@ -94,7 +94,7 @@ def OLDwritetechnicalCSV(outputfile, conversionsegments):
 
 
 
-def readtechnicalCSV(wdafile, bverbose):
+def readtechnicalCSV(wdafile, bverbose=False):
     if isinstance(wdafile, str):
         if len(wdafile) > 200 and '\n' in wdafile:
             filehandle = io.StringIO(wdafile)
@@ -131,7 +131,7 @@ def readtechnicalCSV(wdafile, bverbose):
                 else:
                     assert not dval.get(nk)
             elif k == template.conversionsegmentnumbercolumn:
-                isegmentnumber = int(r)
+                isegmentnumber = int(r or '0')
             else:
                 assert not r
                 
