@@ -58,41 +58,6 @@ def writetechnicalCSV(outputfile, conversionsegments):
 
 # old version of writing    
 from databaker.utils import yield_dimension_values, DUPgenerate_header_row, TechnicalCSV
-def OLDwritetechnicalCSV(outputfile, conversionsegments):
-    if type(conversionsegments) is ConversionSegment:
-        conversionsegments = [conversionsegments]
-    csvout = TechnicalCSV(outputfile, False)
-    if outputfile is not None:
-        print("writing %d conversion segments into %s" % (len(conversionsegments), os.path.abspath(outputfile)))
-        
-    for i, conversionsegment in enumerate(conversionsegments):
-        headernames = [None]+[dimension.label  for dimension in conversionsegment.dimensions  if type(dimension.label) != int ]
-        if i == 0:   # only first segment
-            header_row = DUPgenerate_header_row(headernames)
-            csvout.csv_writer.writerow(header_row)
-            
-        if conversionsegment.processedrows is None: 
-            conversionsegment.process()  
-            
-        kdim = dict((dimension.label, dimension)  for dimension in conversionsegment.dimensions)
-        timeunitmessage = ""
-        if template.SH_Create_ONS_time and ((template.TIMEUNIT not in kdim) and (template.TIME in kdim)):
-            timeunitmessage = conversionsegment.guesstimeunit()
-            conversionsegment.fixtimefromtimeunit()
-        elif template.TIME in kdim and template.TIMEUNIT not in kdim:
-            conversionsegment.fixtimefromtimeunit()
-
-        if outputfile is not None:
-            print("conversionwrite segment size %d table '%s; %s" % (len(conversionsegment.processedrows), conversionsegment.tab.name, timeunitmessage))
-        for row in conversionsegment.processedrows:
-            values = dict((k if type(k)==int else headernames.index(k), v)  for k, v in row.items())
-            output_row = yield_dimension_values(values, headernames)
-            csvout.output(output_row)
-    csvout.footer()
-    if csvout.filename is None:
-        return csvout.filehandle.getvalue()
-
-
 
 def readtechnicalCSV(wdafile, bverbose=False):
     if isinstance(wdafile, str):
