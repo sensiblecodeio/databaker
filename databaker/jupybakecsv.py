@@ -5,8 +5,8 @@ from __future__ import unicode_literals, division
 import six
 import io, os, collections, re, warnings, csv, datetime
 import databaker.constants
-from databaker.utils import template
 from databaker.jupybakeutils import ConversionSegment
+template = databaker.constants.template
 
 def HLDUPgenerate_header_row(numheaderadditionals):
     res = [ (k[0] if isinstance(k, tuple) else k)  for k in template.headermeasurements ]

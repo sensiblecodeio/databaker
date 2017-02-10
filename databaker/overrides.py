@@ -9,7 +9,6 @@ import warnings
 
 import xypath
 import messytables
-import databaker.utils as utils
 import six
 from six.moves import range
 
@@ -90,13 +89,34 @@ def excel_ref(table, reference):
         return bag
 xypath.Table.excel_ref = excel_ref
 
+# copied in just for one function to enable deletion of utils.py
+def Ddatematch(date, silent=False):
+    """match mmm yyyy, mmm-mmm yyyy, yyyy Qn, yyyy"""
+    if not isinstance(date, six.string_types):
+        if (isinstance(date, float) or isinstance(date, int)) and date>=1000 and date<=9999 and int(date)==date:
+            return "Year"
+        if not silent:
+            warnings.warn("Couldn't identify date {!r}".format(date))
+        return ''
+    d = date.strip()
+    if re.match('\d{4}$', d):
+        return 'Year'
+    if re.match('\d{4} [Qq]\d$', d):
+        return 'Quarter'
+    if re.match('[A-Za-z]{3}-[A-Za-z]{3} \d{4}$', d):
+        return 'Quarter'
+    if re.match('[A-Za-z]{3} \d{4}$', d):
+        return 'Month'
+    if not silent:
+        warnings.warn("Couldn't identify date {!r}".format(date))
+    return ''
 
 # === Bag Overrides =======================================
 
 xypath.Bag.regex = lambda self, x: self.filter(re.compile(x))
 
 def is_date(bag):
-    return bag.filter(lambda cell: utils.datematch(cell.value, silent=True))
+    return bag.filter(lambda cell: Ddatematch(cell.value, silent=True))
 xypath.Bag.is_date = is_date
 
 def is_number(bag):
