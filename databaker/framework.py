@@ -1,17 +1,18 @@
-import xlutils, xypath
-import databaker
 import os, warnings
+import xypath
+import xypath.loader
 import databaker.constants
 from databaker.constants import *      # also brings in template
+import databaker.overrides as overrides       # warning: injects additional class functions into xypath and messytables
 
-import xypath.loader
-import databaker.overrides as overrides       # warning: changes xypath and messytables
-
+# core classes and functionality
 from databaker.jupybakeutils import HDim, HDimConst, ConversionSegment
-from databaker.jupybakecsv import writetechnicalCSV, readtechnicalCSV
+from databaker.jupybakecsv import writetechnicalCSV, readtechnicalCSV, readtechnicalCSVaspandas
+from databaker.jupybakehtml import savepreviewhtml
+
+# this lot should be deprecated
 from databaker.jupybakecsv import headersfromwdasegment, extraheaderscheck, checktheconstantdimensions, checksegmentobsvalues
 from databaker.jupybakecsv import wdamsgstrings, CompareConversionSegments
-from databaker.jupybakehtml import savepreviewhtml
 
 def loadxlstabs(inputfile, sheetids="*"):
     print("Loading %s which has size %d bytes" % (inputfile, os.path.getsize(inputfile)))
@@ -30,25 +31,4 @@ def loadxlstabs(inputfile, sheetids="*"):
     if len(set(tabnames)) != len(tabnames):
         warnings.warn("Duplicates found in table names list")
     return tabs
-
-# try to mark up the data into a full pandas table (including tabname and cell position)
-from databaker.jupybakeutils import Ldatetimeunitloose, Ldatetimeunitforce
-import pandas as pd
-
-def topandas(conversionsegment):
-    dvals = [ ]
-    for ob in conversionsegment.obslist:
-        dval = conversionsegment.lookupobs(ob)
-        dval["x"] = ob.x
-        dval["y"] = ob.y
-        dval["tabname"] = ob.table.name
-        dval[OBS] = float(dval[OBS])
-        if TIME in dval:
-            dval[TIMEUNIT] = Ldatetimeunitloose(dval[TIME])
-            sdatetime = Ldatetimeunitforce(dval[TIME], dval[TIMEUNIT]).replace(" ", "")
-            dval[TIME] = pd.to_datetime(sdatetime)
-        dvals.append(dval)
-    df = pd.DataFrame.from_dict(dvals)
-    #df.TIME = pd.DatetimeIndex(df.TIME)  # this doesn't work since the column is not an index
-    return df
 

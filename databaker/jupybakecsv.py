@@ -5,6 +5,7 @@ import io, os, collections, re, warnings, csv, datetime
 import databaker.constants
 from databaker.jupybakeutils import ConversionSegment
 template = databaker.constants.template
+import pandas
 
 def HLDUPgenerate_header_row(numheaderadditionals):
     res = [ (k[0] if isinstance(k, tuple) else k)  for k in template.headermeasurements ]
@@ -18,33 +19,71 @@ def HLDUPgenerate_header_row(numheaderadditionals):
     return res
 
 
-# new version of write CSV
+
+def Lyield_dimension_values(dval, isegmentnumber, Cheaderadditionals):
+    for k in template.headermeasurements:
+        if isinstance(k, tuple):
+            yield dval.get(k[1], '')
+        elif k == template.conversionsegmentnumbercolumn:
+            yield isegmentnumber
+        else:
+            yield ''
+            
+    for dlab in Cheaderadditionals:
+        for k in template.headeradditionals:
+            if isinstance(k, tuple):
+                if k[1] == "NAME":
+                    yield dlab
+                else:
+                    assert k[1] == "VALUE"
+                    yield dval[dlab]
+            else:
+                yield ''
+
+
 def writetechnicalCSV(outputfile, conversionsegments):
-    if type(conversionsegments) is ConversionSegment:
-        conversionsegments = [conversionsegments]
+    "Output the CSV into the bloated WDA format (takes lists of conversionsegments or pandas tables)"
+    if not isinstance(conversionsegments, (list, tuple)):
+        conversionsegments = [ conversionsegments ]
         
     if outputfile is not None:
         print("writing %d conversion segments into %s" % (len(conversionsegments), os.path.abspath(outputfile)))
         filehandle = open(outputfile, "w", newline='\n', encoding='utf-8')
     else:
-        filehandle = io.StringIO()
+        filehandle = io.StringIO()  # to return as string for print preview perhaps
     csv_writer = csv.writer(filehandle)
     row_count = 0
         
     for isegmentnumber, conversionsegment in enumerate(conversionsegments):
-        if isegmentnumber == 0:   # only first segment
-            csv_writer.writerow(HLDUPgenerate_header_row(conversionsegment.numheaderadditionals))
-            
-        timeunitmessage = ""
-        if conversionsegment.processedrows is None: 
-            timeunitmessage = conversionsegment.process()  
+        if isegmentnumber == 0:   # only first segment gets a CSV header for the whole file (even if it is not consistent for the remaining segments)
+            if isinstance(conversionsegment, ConversionSegment):
+                Cheaderadditionals = [ dimension.label  for dimension in conversionsegment.dimensions  if dimension.label not in template.headermeasurementnamesSet ]
+                assert len(Cheaderadditionals) == conversionsegment.numheaderadditionals
+            else:
+                assert isinstance(conversionsegment, pandas.DataFrame), "function takes only ConversionSegments of pandas.DataFrames"
+                if not isinstance(conversionsegment.index, pandas.RangeIndex):
+                    conversionsegment = conversionsegment.reset_index()  # in case of playing around with indexes
+                Cheaderadditionals = [colname  for colname in conversionsegment.columns  if colname not in template.headermeasurementnamesSet and colname[:2] != "__"]
+            csv_writer.writerow(HLDUPgenerate_header_row(len(Cheaderadditionals)))
 
-        if outputfile is not None:
-            print("conversionwrite segment size %d table '%s; %s" % (len(conversionsegment.processedrows), conversionsegment.tab.name, timeunitmessage))
-        for row in conversionsegment.processedrows:
-            csv_writer.writerow(conversionsegment.Lyield_dimension_values(row, isegmentnumber))
-            row_count += 1
-            
+        if isinstance(conversionsegment, ConversionSegment):
+            timeunitmessage = ""
+            if conversionsegment.processedrows is None: 
+                timeunitmessage = conversionsegment.process()  
+
+            if outputfile is not None:
+                print("conversionwrite segment size %d table '%s; %s" % (len(conversionsegment.processedrows), conversionsegment.tab.name, timeunitmessage))
+            for row in conversionsegment.processedrows:
+                csv_writer.writerow(Lyield_dimension_values(row, isegmentnumber, Cheaderadditionals))
+                row_count += 1
+
+        else:  # pandas.Dataframe case
+            if outputfile is not None:
+                print("pdconversionwrite segment size %d table '%s; %s" % (len(conversionsegment.processedrows), conversionsegment.tab.name, timeunitmessage))
+            for i in range(len(conversionsegment)):  # quick and dirty to use same dict-based function
+                csv_writer.writerow(Lyield_dimension_values(dict(conversionsegment.iloc[i].dropna()), isegmentnumber, Cheaderadditionals))
+                row_count += 1
+
     csv_writer.writerow(["*"*9, row_count])
     if outputfile is not None:
         filehandle.close()
@@ -86,7 +125,7 @@ def readtechnicalCSV(wdafile, bverbose=False):
         isegmentnumber = None
         for r, k in zip(row, template.headermeasurements):
             if isinstance(k, tuple):
-                nk = template.headermeasurementnumvalues[k[1]]
+                nk = k[1]
                 if r:
                     assert nk not in dval or dval[nk] == r
                     dval[nk] = r
@@ -137,6 +176,12 @@ def readtechnicalCSV(wdafile, bverbose=False):
     filehandle.close()
     return wdasegments
 
+def readtechnicalCSVaspandas(wdafile, bverbose=False):
+    wdasegments = readtechnicalCSVaspandas(wdafile, bverbose)
+    return [ pandas.from_dict(wdasegment)  for wdasegment in wdasegments ]
+
+
+# code below should probably be deprecated, or at least upgraded to pandas comparison functionality
 
 # separated out so we can decide the severity of them before printing them out
 wdamsgstrings = { 

@@ -39,10 +39,8 @@ SH_Split_OBS = "DATAMARKER"  # see value set to int value below
 
 # derive the elements of the headernames above into the values below 
 headermeasurementnames = list(collections.OrderedDict.fromkeys(k[1]  for k in headermeasurements  if isinstance(k, tuple)))
-dimension_names = headermeasurementnames  # for now
+headermeasurementnamesSet = set(headermeasurementnames) 
 
-headermeasurementnumvalues = dict((item, item)  for i, item in enumerate(reversed(headermeasurementnames)))
-headermeasurementnumvaluesSet = set(headermeasurementnumvalues.values())
 # Create variables (This is terrible!)
 exec("%s = '%s'" % (", ".join(headermeasurementnames), "', '".join(map(str, headermeasurementnames))))
 exec("SH_Split_OBS = %s" % SH_Split_OBS)

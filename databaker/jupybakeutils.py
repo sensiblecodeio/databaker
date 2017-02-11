@@ -5,6 +5,7 @@ import io, os, collections, re, warnings, csv, datetime
 import databaker.constants
 import xypath
 from databaker import richxlrd
+import pandas
 template = databaker.constants.template
 
 
@@ -259,7 +260,7 @@ class ConversionSegment:
             assert isinstance(dimension, HDim), ("Dimensions must have type HDim()")
             assert dimension.hbagset is None or dimension.hbagset.table is tab, "dimension %s from different tab" % dimension.name
             
-        self.numheaderadditionals = sum(1  for dimension in self.dimensions  if dimension.label not in template.headermeasurementnumvaluesSet)
+        self.numheaderadditionals = sum(1  for dimension in self.dimensions  if dimension.label not in template.headermeasurementnamesSet)
 
         # generate the ordered obslist here (so it is fixed here and can be reordered before processing)
         if isinstance(self.segment, xypath.xypath.Bag):
@@ -309,31 +310,51 @@ class ConversionSegment:
     # individual lookup across the dimensions here
     def lookupobs(self, ob):
         if type(ob) is xypath.xypath.Bag:
-            assert len(ob) == 1, "Can only lookupobs a single cell"
+            assert len(ob) == 1, "Can only lookupobs on a single cell"
             ob = ob._cell
-            
+
+        # force it to be float and split off anything not float into the datamarker
         if not isinstance(ob.value, float):
             if ob.properties['richtext']:  # should this case be implemented into the svalue() function?
                 sval = richxlrd.RichCell(ob.properties.cell.sheet, ob.y, ob.x).fragments.not_script.value
             else:
                 sval = svalue(ob)
+                
             if template.SH_Split_OBS:
                 assert template.SH_Split_OBS == databaker.constants.DATAMARKER, (template.SH_Split_OBS, databaker.constants.DATAMARKER)
                 ob_value, dm_value = re.match(r"([-+]?[0-9]+\.?[0-9]*)?(.*)", sval).groups()
-                dval = { databaker.constants.OBS:(ob_value or ""), template.SH_Split_OBS:dm_value }
+                dval = { }
+                if dm_value:
+                    dval[template.SH_Split_OBS] = dm_value
+                if ob_value:
+                    dval[databaker.constants.OBS] = float(ob_value)
+                else:
+                    dval[databaker.constants.OBS] = ""
             else:
                 dval = { databaker.constants.OBS:sval }
         else:
-            dval = { databaker.constants.OBS:str(ob.value) }
+            dval = { databaker.constants.OBS:ob.value }
         
         for hdim in self.dimensions:
             hcell, val = hdim.cellvalobs(ob)
             dval[hdim.label] = val
             
+        dval["__x"] = ob.x
+        dval["__y"] = ob.y
+        dval["__tablename"] = self.tab.name
         return dval
+
+    def guesstimeunit(self):
+        for dval in self.processedrows:
+            dval[template.TIMEUNIT] = Ldatetimeunitloose(dval[template.TIME])
+        ctu = collections.Counter(dval[template.TIMEUNIT]  for dval in self.processedrows)
+        if len(ctu) == 1:
+            return "TIMEUNIT='%s'" % list(ctu.keys())[0]
+        return "multiple TIMEUNITs: %s" % ", ".join("'%s'(%d)" % (k,v)  for k,v in ctu.items())
         
-    def lookupall(self):   # defunct function
-        return [ self.lookupobs(ob)  for ob in self.obslist ]
+    def fixtimefromtimeunit(self):  # this works individually and not across the whole segment homogeneously
+        for dval in self.processedrows:
+            dval[template.TIME] = Ldatetimeunitforce(dval[template.TIME], dval[template.TIMEUNIT])
 
     def process(self):
         assert self.processedrows is None, "Conversion segment already processed"
@@ -348,36 +369,35 @@ class ConversionSegment:
             self.fixtimefromtimeunit()
         return timeunitmessage
         
-    def guesstimeunit(self):
-        for dval in self.processedrows:
-            dval[template.TIMEUNIT] = Ldatetimeunitloose(dval[template.TIME])
-        ctu = collections.Counter(dval[template.TIMEUNIT]  for dval in self.processedrows)
-        if len(ctu) == 1:
-            return "TIMEUNIT='%s'" % list(ctu.keys())[0]
-        return "multiple TIMEUNITs: %s" % ", ".join("'%s'(%d)" % (k,v)  for k,v in ctu.items())
         
-    def fixtimefromtimeunit(self):
-        for dval in self.processedrows:
-            dval[template.TIME] = Ldatetimeunitforce(dval[template.TIME], dval[template.TIMEUNIT])
-
-    def Lyield_dimension_values(self, dval, isegmentnumber):
+    def topandas(self):
+        timeunitmessage = ""
+        if self.processedrows is None: 
+            timeunitmessage = self.process()  
+        print(timeunitmessage)
+        df = pandas.DataFrame.from_dict(self.processedrows)
+        
+        # sort the columns
+        dfcols = list(df.columns)
+        newdfcols = [ ]
         for k in template.headermeasurements:
             if isinstance(k, tuple):
-                yield dval.get(template.headermeasurementnumvalues[k[1]], '')
-            elif k == template.conversionsegmentnumbercolumn:
-                yield isegmentnumber
-            else:
-                yield ''
+                if k[1] in dfcols:
+                    newdfcols.append(k[1])
+                    dfcols.remove(k[1])
         for dimension in self.dimensions:
-            if dimension.label not in template.headermeasurementnumvaluesSet:
-                for k in template.headeradditionals:
-                    if isinstance(k, tuple):
-                        if k[1] == "NAME":
-                            yield dimension.label
-                        else:
-                            assert k[1] == "VALUE"
-                            yield dval[dimension.label]
-                    else:
-                        yield ''
-            
+            if dimension.label not in template.headermeasurementnamesSet:
+                assert dimension.label in dfcols
+                newdfcols.append(dimension.label)
+                dfcols.remove(dimension.label)
+                
+        for excol in ["__x", "__y", "__tablename"]:
+            if excol in dfcols:
+                newdfcols.append(excol)
+                dfcols.remove(excol)
+        assert not dfcols, ("unexplained extra columns", dfcols)
+        
+        df = df[newdfcols]   # map the new column list in
+        return df
+
 
