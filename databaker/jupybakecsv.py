@@ -92,7 +92,7 @@ def writetechnicalCSV(outputfile, conversionsegments):
 
 
 
-def readtechnicalCSV(wdafile, bverbose=False):
+def readtechnicalCSV(wdafile, bverbose=False, baspandas=True):
     "Read a WDA CSV back from its file into an lookup table from segment number to (each a list of dicts)"
     if isinstance(wdafile, str):
         if len(wdafile) > 200 and '\n' in wdafile:
@@ -110,12 +110,13 @@ def readtechnicalCSV(wdafile, bverbose=False):
     if not (wdaheaders == HLDUPgenerate_header_row(numheaderadditionals)):
         print("WDA heades don't match.  nothing is likely to work now")
         
-    wdasegments = { }
+    wdasegments = { }             # { segmentnumber: ( [ data_dicts ], [ordered_header_list] ) }
     previsegmentnumber = None
-    segmentheaderssegmentL = [ ]  # to use for old WDA values where isegmentnumber doesn't exist
+    segmentheaderssegmentL = [ ]  # [ [ordered_header_list] ]
+    
     for row in wdain:
         if row[0] == '*********':
-            nrows = sum(map(len, wdasegments.values()))
+            nrows = sum(len(wdasegment)  for wdasegment, segmentheaders in wdasegments.values())
             if int(row[1]) != nrows:
                 warnings.warn("row number doesn't match %d should be %d" % (int(row[1]), nrows))
             assert len(list(wdain)) == 0, "***** must be on last row"
@@ -140,7 +141,7 @@ def readtechnicalCSV(wdafile, bverbose=False):
         assert lnumheaderadditionals % len(template.headeradditionals) == 0
         numheaderadditionals = lnumheaderadditionals//len(template.headeradditionals)
         
-        segmentheaderssegmentJ = [ ]  # to use for old WDA values where isegmentnumber doesn't exist
+        segmentheaderssegmentJ = [ ]  
         for i in range(numheaderadditionals):
             rname, rvalue = None, None
             i0 = len(template.headermeasurements) + i*len(template.headeradditionals)
@@ -163,22 +164,44 @@ def readtechnicalCSV(wdafile, bverbose=False):
             if not segmentheaderssegmentL or segmentheaderssegmentL[-1] != segmentheaderssegmentJ:
                 segmentheaderssegmentL.append(segmentheaderssegmentJ)
             isegmentnumber = len(segmentheaderssegmentL) - 1
+        elif isegmentnumber in wdasegments:
+            assert wdasegments[isegmentnumber][1] == segmentheaderssegmentJ
                 
         if isegmentnumber not in wdasegments:
             if bverbose and previsegmentnumber is not None:
-                print("segment %d loaded with %d rows" % (previsegmentnumber, len(wdasegments[previsegmentnumber])))
-            wdasegments[isegmentnumber] = [ ]
+                print("segment %d loaded with %d rows" % (previsegmentnumber, len(wdasegments[previsegmentnumber][0])))
+            wdasegments[isegmentnumber] = ([ ], segmentheaderssegmentJ)
             
-        wdasegments[isegmentnumber].append(dval)
+        wdasegments[isegmentnumber][0].append(dval)
         previsegmentnumber = isegmentnumber
     if bverbose and previsegmentnumber is not None:
-        print("segment %d loaded with %d rows" % (previsegmentnumber, len(wdasegments[previsegmentnumber])))
+        print("segment %d loaded with %d rows" % (previsegmentnumber, len(wdasegments[previsegmentnumber][0])))
     filehandle.close()
-    return wdasegments
-
-def readtechnicalCSVaspandas(wdafile, bverbose=False):
-    wdasegments = readtechnicalCSVaspandas(wdafile, bverbose)
-    return [ pandas.from_dict(wdasegment)  for wdasegment in wdasegments ]
+    
+    if not baspandas:
+        return [ wdasegment  for wdasegment, segmentheaders in wdasegments.values() ]
+    
+    res = [ ]
+    for wdasegment, segmentheaders in wdasegments.values():
+        df = pandas.DataFrame.from_dict(wdasegment)
+        
+        # sort the columns (problem with using from_dict)
+        dfcols = list(df.columns)
+        newdfcols = [ ]
+        for k in template.headermeasurements:
+            if isinstance(k, tuple):
+                if k[1] in dfcols:
+                    newdfcols.append(k[1])
+                    dfcols.remove(k[1])
+        for segmentheader in segmentheaders:
+            assert segmentheader in dfcols
+            newdfcols.append(segmentheader)
+            dfcols.remove(segmentheader)
+        assert not dfcols, ("unexplained extra columns", dfcols)
+        
+        res.append(df[newdfcols])   # map the new column list in
+    return res
+        
 
 
 # code below should probably be deprecated, or at least upgraded to pandas comparison functionality

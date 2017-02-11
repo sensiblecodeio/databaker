@@ -7,7 +7,7 @@ import databaker.overrides as overrides       # warning: injects additional clas
 
 # core classes and functionality
 from databaker.jupybakeutils import HDim, HDimConst, ConversionSegment
-from databaker.jupybakecsv import writetechnicalCSV, readtechnicalCSV, readtechnicalCSVaspandas
+from databaker.jupybakecsv import writetechnicalCSV, readtechnicalCSV
 from databaker.jupybakehtml import savepreviewhtml
 
 # this lot should be deprecated
