@@ -173,7 +173,7 @@ else
     
     
 def savepreviewhtml(conversionsegment, fname=None):
-    
+    "Preview a highlighted table, cellbag, dimension, list of bags or ConversionSegment inline or into a secondary html file"
     # wrap a singleton or list of bags, tables and HDims to a ConversionSegment
     if not isinstance(conversionsegment, ConversionSegment): 
         param1 = conversionsegment
