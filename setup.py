@@ -31,11 +31,8 @@ conf = dict(
     zip_safe=False,
     install_requires=['docopt', 'xypath>=1.1.0', 'xlutils', 'pyhamcrest'],
     tests_require=[],
-    entry_points={
-        'console_scripts': [
-            'bake = databaker.bake:main',
-        ]
-    })
+    entry_points={},
+    )
 
 if __name__ == '__main__':
     setup(**conf)
