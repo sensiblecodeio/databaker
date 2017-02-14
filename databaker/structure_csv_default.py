@@ -42,6 +42,7 @@ headermeasurementnames = list(collections.OrderedDict.fromkeys(k[1]  for k in he
 headermeasurementnamesSet = set(headermeasurementnames) 
 
 # Create variables (This is terrible!)
+# TODO: Do this more cleanly e.g. as in https://stackoverflow.com/q/4859217/
 exec("%s = '%s'" % (", ".join(headermeasurementnames), "', '".join(map(str, headermeasurementnames))))
 exec("SH_Split_OBS = %s" % SH_Split_OBS)
 
