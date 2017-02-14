@@ -1,14 +1,12 @@
 # encoding: utf-8
 # HTML preview of the dimensions and table (will be moved to a function in databakersolo)
-from __future__ import unicode_literals, division
 
-import six
 import io, os, collections, re, warnings, csv, datetime
 import databaker.constants
-
 import xypath
-from databaker.utils import datematch, template
 from databaker import richxlrd
+import pandas
+template = databaker.constants.template
 
 
 def svalue(cell):
@@ -26,14 +24,11 @@ def svalue(cell):
     return cell.value.strftime(py_format).format(quarter=quarter)
 
 
-# This is the main class that does all the work for each dimension
 class HDim:
+    "Dimension object which defines the lookup between an observation cell and a bag of header cells"
     def __init__(self, hbagset, label, strict=None, direction=None, cellvalueoverride=None):
         self.label = label
-        if isinstance(label, int) and label < 0:   # handle human names of the elements for the ONS lookups
-            self.name = databaker.constants.template.dimension_names[len(databaker.constants.template.dimension_names)-1+label]
-        else:
-            self.name = label
+        self.name = label
             
         self.cellvalueoverride = cellvalueoverride or {} # do not put {} into default value otherwise there is only one static one for everything
         assert not isinstance(hbagset, str), "Use empty set and default value for single value dimension"
@@ -55,6 +50,7 @@ class HDim:
     
             
     def celllookup(self, scell):
+        "Lookup function from a given cell to the matching header cell"
         
         # caching that can be removed in AddCellValueOverride
         if self.strict and self.samerowlookup is None:
@@ -103,6 +99,7 @@ class HDim:
         return best_cell
 
     def headcellval(self, hcell):
+        "Extract the string value of a member header cell (including any value overrides)"
         if hcell is not None:
             assert isinstance(hcell, xypath.xypath._XYCell), "celllookups should only go to an _XYCell"
             if hcell in self.cellvalueoverride:
@@ -126,8 +123,8 @@ class HDim:
         return val
 
 
-    # do the lookup and the value derivation of the cell, via cellvalueoverride{} redirections
     def cellvalobs(self, ob):
+        "Full lookup from a observation cell to its dimensional value (which can apply before lookup)"
         if isinstance(ob, xypath.xypath.Bag):
             assert len(ob) == 1, "Can only lookupobs a single cell"
             ob = ob._cell
@@ -147,8 +144,8 @@ class HDim:
             
         return hcell, self.headcellval(hcell)
         
-        
     def AddCellValueOverride(self, overridecell, overridevalue):
+        "Override the value of a header cell (and insert it if not present in the bag)" 
         if isinstance(overridecell, xypath.xypath.Bag):
             assert len(overridecell) == 1, "Can only lookupobs a single cell"
             overridecell = overridecell._cell
@@ -167,26 +164,29 @@ class HDim:
         assert overridevalue is None or isinstance(overridevalue, (str, float, int)), "Override from value should only be str,float,int,None (%s)" % type(overridevalue)
         self.cellvalueoverride[overridecell] = overridevalue
 
+    def discardcellsnotlookedup(self, obs):
+        "Remove header cells to which none of the observation cells looks up to"
+        hbagsetT = xypath.xypath.Bag(self.hbagset.table)
+        for ob in obs.unordered_cells:
+            hbagsetT.add(self.celllookup(ob))
+        self.hbagset = hbagsetT
+
     def valueslist(self):
+        "List of all the header cell values"
         return [self.headcellval(cell)  for cell in sorted(self.hbagset.unordered_cells, key=lambda cell: (cell.y, cell.x))]
 
     def checkvalues(self, vlist):
+        "Check that the header cell values match"
         scells = sorted(self.hbagset.unordered_cells, key=lambda cell: (cell.y, cell.x))
         assert len(scells) == len(vlist), "checkvalues list length doesn't match"
         for cell, v in zip(scells, vlist):
             nv = self.headcellval(cell)
             assert nv == v, ("checkvalues mismatch in cell", (cell.x, cell.y), "cell value", nv, "doesn't match", v)
 
-    # inefficient but works code
-    def discardcellsnotlookedup(self, obs):
-        hbagsetT = xypath.xypath.Bag(self.hbagset.table)
-        for ob in obs.unordered_cells:
-            hbagsetT.add(self.celllookup(ob))
-        self.hbagset = hbagsetT
         
 
-# convenience helper function/constructor (perhaps to move to the framework module)
 def HDimConst(name, val):
+    "Define a constant value dimension across the whole segment"
     return HDim(None, name, cellvalueoverride={None:val})
 
 
@@ -244,7 +244,14 @@ def HLDUPgenerate_header_row(numheaderadditionals):
 
 
 class ConversionSegment:
-    def __init__(self, tab, dimensions, segment):
+    "Single output table object generated from a bag of observations that look up to a list of dimensions"
+    def __init__(self, observations, dimensions, segment=None):
+        if segment is None:   # new format that drops the unnecessary table element
+            tab = observations.table
+            segment = observations
+        else:
+            tab = observations
+            
         self.tab = tab
         self.dimensions = dimensions
         self.segment = segment   # obs list
@@ -253,7 +260,7 @@ class ConversionSegment:
             assert isinstance(dimension, HDim), ("Dimensions must have type HDim()")
             assert dimension.hbagset is None or dimension.hbagset.table is tab, "dimension %s from different tab" % dimension.name
             
-        self.numheaderadditionals = sum(1  for dimension in self.dimensions  if dimension.label not in template.headermeasurementnumvaluesSet)
+        self.numheaderadditionals = sum(1  for dimension in self.dimensions  if dimension.label not in template.headermeasurementnamesSet)
 
         # generate the ordered obslist here (so it is fixed here and can be reordered before processing)
         if isinstance(self.segment, xypath.xypath.Bag):
@@ -303,31 +310,51 @@ class ConversionSegment:
     # individual lookup across the dimensions here
     def lookupobs(self, ob):
         if type(ob) is xypath.xypath.Bag:
-            assert len(ob) == 1, "Can only lookupobs a single cell"
+            assert len(ob) == 1, "Can only lookupobs on a single cell"
             ob = ob._cell
-            
+
+        # force it to be float and split off anything not float into the datamarker
         if not isinstance(ob.value, float):
             if ob.properties['richtext']:  # should this case be implemented into the svalue() function?
                 sval = richxlrd.RichCell(ob.properties.cell.sheet, ob.y, ob.x).fragments.not_script.value
             else:
                 sval = svalue(ob)
+                
             if template.SH_Split_OBS:
                 assert template.SH_Split_OBS == databaker.constants.DATAMARKER, (template.SH_Split_OBS, databaker.constants.DATAMARKER)
                 ob_value, dm_value = re.match(r"([-+]?[0-9]+\.?[0-9]*)?(.*)", sval).groups()
-                dval = { databaker.constants.OBS:(ob_value or ""), template.SH_Split_OBS:dm_value }
+                dval = { }
+                if dm_value:
+                    dval[template.SH_Split_OBS] = dm_value
+                if ob_value:
+                    dval[databaker.constants.OBS] = float(ob_value)
+                else:
+                    dval[databaker.constants.OBS] = ""
             else:
                 dval = { databaker.constants.OBS:sval }
         else:
-            dval = { databaker.constants.OBS:str(ob.value) }
+            dval = { databaker.constants.OBS:ob.value }
         
         for hdim in self.dimensions:
             hcell, val = hdim.cellvalobs(ob)
             dval[hdim.label] = val
             
+        dval["__x"] = ob.x
+        dval["__y"] = ob.y
+        dval["__tablename"] = self.tab.name
         return dval
+
+    def guesstimeunit(self):
+        for dval in self.processedrows:
+            dval[template.TIMEUNIT] = Ldatetimeunitloose(dval[template.TIME])
+        ctu = collections.Counter(dval[template.TIMEUNIT]  for dval in self.processedrows)
+        if len(ctu) == 1:
+            return "TIMEUNIT='%s'" % list(ctu.keys())[0]
+        return "multiple TIMEUNITs: %s" % ", ".join("'%s'(%d)" % (k,v)  for k,v in ctu.items())
         
-    def lookupall(self):   # defunct function
-        return [ self.lookupobs(ob)  for ob in self.obslist ]
+    def fixtimefromtimeunit(self):  # this works individually and not across the whole segment homogeneously
+        for dval in self.processedrows:
+            dval[template.TIME] = Ldatetimeunitforce(dval[template.TIME], dval[template.TIMEUNIT])
 
     def process(self):
         assert self.processedrows is None, "Conversion segment already processed"
@@ -342,116 +369,35 @@ class ConversionSegment:
             self.fixtimefromtimeunit()
         return timeunitmessage
         
-    def guesstimeunit(self):
-        for dval in self.processedrows:
-            dval[template.TIMEUNIT] = Ldatetimeunitloose(dval[template.TIME])
-        ctu = collections.Counter(dval[template.TIMEUNIT]  for dval in self.processedrows)
-        if len(ctu) == 1:
-            return "TIMEUNIT='%s'" % list(ctu.keys())[0]
-        return "multiple TIMEUNITs: %s" % ", ".join("'%s'(%d)" % (k,v)  for k,v in ctu.items())
         
-    def fixtimefromtimeunit(self):
-        for dval in self.processedrows:
-            dval[template.TIME] = Ldatetimeunitforce(dval[template.TIME], dval[template.TIMEUNIT])
-
-    def Lyield_dimension_values(self, dval, isegmentnumber):
+    def topandas(self):
+        timeunitmessage = ""
+        if self.processedrows is None: 
+            timeunitmessage = self.process()  
+        print(timeunitmessage)
+        df = pandas.DataFrame.from_dict(self.processedrows)
+        
+        # sort the columns
+        dfcols = list(df.columns)
+        newdfcols = [ ]
         for k in template.headermeasurements:
             if isinstance(k, tuple):
-                yield dval.get(template.headermeasurementnumvalues[k[1]], '')
-            elif k == template.conversionsegmentnumbercolumn:
-                yield isegmentnumber
-            else:
-                yield ''
+                if k[1] in dfcols:
+                    newdfcols.append(k[1])
+                    dfcols.remove(k[1])
         for dimension in self.dimensions:
-            if dimension.label not in template.headermeasurementnumvaluesSet:
-                for k in template.headeradditionals:
-                    if isinstance(k, tuple):
-                        if k[1] == "NAME":
-                            yield dimension.label
-                        else:
-                            assert k[1] == "VALUE"
-                            yield dval[dimension.label]
-                    else:
-                        yield ''
-            
-
-
-
-
-
-def LwritetechnicalCSV(outputfile, conversionsegments):
-    if type(conversionsegments) is ConversionSegment:
-        conversionsegments = [conversionsegments]
+            if dimension.label not in template.headermeasurementnamesSet:
+                assert dimension.label in dfcols
+                newdfcols.append(dimension.label)
+                dfcols.remove(dimension.label)
+                
+        for excol in ["__x", "__y", "__tablename"]:
+            if excol in dfcols:
+                newdfcols.append(excol)
+                dfcols.remove(excol)
+        assert not dfcols, ("unexplained extra columns", dfcols)
         
-    if outputfile is not None:
-        print("writing %d conversion segments into %s" % (len(conversionsegments), os.path.abspath(outputfile)))
-        filehandle = open(outputfile, "w", newline='\n', encoding='utf-8')
-    else:
-        filehandle = io.StringIO()
-    csv_writer = csv.writer(filehandle)
-    row_count = 0
-        
-    for isegmentnumber, conversionsegment in enumerate(conversionsegments):
-        if isegmentnumber == 0:   # only first segment
-            csv_writer.writerow(HLDUPgenerate_header_row(conversionsegment.numheaderadditionals))
-            
-        timeunitmessage = ""
-        if conversionsegment.processedrows is None: 
-            timeunitmessage = conversionsegment.process()  
-
-        if outputfile is not None:
-            print("conversionwrite segment size %d table '%s; %s" % (len(conversionsegment.processedrows), conversionsegment.tab.name, timeunitmessage))
-        for row in conversionsegment.processedrows:
-            csv_writer.writerow(conversionsegment.Lyield_dimension_values(row, isegmentnumber))
-            row_count += 1
-            
-    csv_writer.writerow(["*"*9, row_count])
-    if outputfile is not None:
-        filehandle.close()
-    else:
-        return filehandle.getvalue()
-
-
-
-
-    
-from databaker.utils import yield_dimension_values, DUPgenerate_header_row, TechnicalCSV
-def writetechnicalCSV(outputfile, conversionsegments):
-    if type(conversionsegments) is ConversionSegment:
-        conversionsegments = [conversionsegments]
-    csvout = TechnicalCSV(outputfile, False)
-    if outputfile is not None:
-        print("writing %d conversion segments into %s" % (len(conversionsegments), os.path.abspath(outputfile)))
-        
-    for i, conversionsegment in enumerate(conversionsegments):
-        headernames = [None]+[dimension.label  for dimension in conversionsegment.dimensions  if type(dimension.label) != int ]
-        if i == 0:   # only first segment
-            header_row = DUPgenerate_header_row(headernames)
-            csvout.csv_writer.writerow(header_row)
-            
-        if conversionsegment.processedrows is None: 
-            conversionsegment.process()  
-            
-        kdim = dict((dimension.label, dimension)  for dimension in conversionsegment.dimensions)
-        timeunitmessage = ""
-        if template.SH_Create_ONS_time and ((template.TIMEUNIT not in kdim) and (template.TIME in kdim)):
-            timeunitmessage = conversionsegment.guesstimeunit()
-            conversionsegment.fixtimefromtimeunit()
-        elif template.TIME in kdim and template.TIMEUNIT not in kdim:
-            conversionsegment.fixtimefromtimeunit()
-
-        if outputfile is not None:
-            print("conversionwrite segment size %d table '%s; %s" % (len(conversionsegment.processedrows), conversionsegment.tab.name, timeunitmessage))
-        for row in conversionsegment.processedrows:
-            values = dict((k if type(k)==int else headernames.index(k), v)  for k, v in row.items())
-            output_row = yield_dimension_values(values, headernames)
-            csvout.output(output_row)
-    csvout.footer()
-    if csvout.filename is None:
-        return csvout.filehandle.getvalue()
-
-
-        
-
+        df = df[newdfcols]   # map the new column list in
+        return df
 
 

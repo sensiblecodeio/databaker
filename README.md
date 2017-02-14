@@ -1,12 +1,32 @@
-# databaker
+Databaker Jupyter notebook tool for converting data that is laid out in a formatted excel 
+spreadsheet into a normalized form for use by databases.  
+It depends on [okfn/messytables](https://github.com/okfn/messytables) and 
+[sensiblecodeio/xypath](https://github.com/sensiblecodeio/xypath)
 
-Databaker is a command line tool to convert spreadsheets to databases,
-made for the UK's Office for National Statistics by the [Sensible Code
-Company](http://sensiblecode.io).
+See the documentation is in the Jupyter notebooks in
+**[tutorial](databaker/tutorial)**.
 
-We currently support Python 2.7, 3.4 and 3.5.
+## Starting up
 
-## Documentation
+To install for development, go into the virtualenv with 
+
+`source bin/activate`
+
+and then type
+
+`pip install -e git+https://github.com/sensiblecodeio/databaker.git#egg=databaker`
+
+This will install the code into src/databaker where you can edit and commit it.  
+Then type:
+
+`jupyter notebook` 
+
+to start it up.  
+
+## Authors
+
+Made by the [Sensible Code Company](http://sensiblecode.io) on behalf of the 
+[Office of National Statistics](https://www.ons.gov.uk/) (UK).
 
 The current documentation is in the form of Jupyter notebooks located
 inside the [tutorial](databaker/tutorial) directory.

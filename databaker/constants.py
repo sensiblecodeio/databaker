@@ -1,4 +1,3 @@
-from __future__ import absolute_import, division
 from xypath import DOWN, UP, LEFT, RIGHT
 from hamcrest import *
 
@@ -17,20 +16,4 @@ BELOW = DOWN
 DIRECTLY = True
 CLOSEST = False
 
-# disable feature (remove redundant code later)
-#LEFTRIGHT = ((-1,1), 0)
-#UPDOWN = (0, (-1,1))
 
-constant_params = [] # Overridden in main().
-
-class NotEnoughParams(Exception):
-    pass
-
-def PARAMS(position=None):
-    if position is None:
-        return constant_params
-    else:
-        try:
-            return constant_params[position]
-        except IndexError:
-            raise NotEnoughParams("Unable to find PARAM({!r}). Only {!r} parameters were passed on the command line: {!r}".format(position, len(constant_params), constant_params))

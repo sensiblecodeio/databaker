@@ -1,4 +1,3 @@
-from __future__ import absolute_import, division
 import xlrd
 
 "Horrid workaround! Can get 'no' every time from LibreOffice xls"

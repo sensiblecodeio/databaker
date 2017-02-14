@@ -1,9 +1,0 @@
-filter(is_number):
-
-...
-
-if there's an unknown method on Bag of the form 'is_foo', 'is_not_foo', check if cells have a .property['foo'] (boolean)
-
-if there's an unknown method of the form 'foo_is(bar)', 'foo_is_not(bar)', check if the .property['foo'] is equal to bar.
-
-

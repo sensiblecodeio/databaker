@@ -1,11 +1,13 @@
 # encoding: utf-8
 
-import io, os, collections, re, warnings, six
+import io, os, collections, re, warnings
 
 from IPython.display import display, FileLink
 from IPython.core.display import HTML
 import databaker.constants
+
 OBS = databaker.constants.OBS   # used to evaluate to -9, does to "OBS" now
+
 from databaker.jupybakeutils import HDim, ConversionSegment, svalue
 
 # copied out again
@@ -171,7 +173,7 @@ else
     
     
 def savepreviewhtml(conversionsegment, fname=None):
-    
+    "Preview a highlighted table, cellbag, dimension, list of bags or ConversionSegment inline or into a secondary html file"
     # wrap a singleton or list of bags, tables and HDims to a ConversionSegment
     if not isinstance(conversionsegment, ConversionSegment): 
         param1 = conversionsegment
