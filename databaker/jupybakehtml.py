@@ -172,7 +172,7 @@ else
     display(HTML(sjs % dividNUM))
     
     
-def savepreviewhtml(conversionsegment, fname=None):
+def savepreviewhtml(conversionsegment, fname=None, verbose=True):
     "Preview a highlighted table, cellbag, dimension, list of bags or ConversionSegment inline or into a secondary html file"
     # wrap a singleton or list of bags, tables and HDims to a ConversionSegment
     if not isinstance(conversionsegment, ConversionSegment): 
@@ -218,11 +218,11 @@ def savepreviewhtml(conversionsegment, fname=None):
     fout.write(htmtable)
     fout.write('</div>\n')
 
-    if fname is not None:
+    if fname is not None and verbose:
         print("tablepart '%s' written #%s" % (conversionsegment.tab.name, dividNUM))
     if conversionsegment.dimensions and conversionsegment.segment:
         jslookup = calcjslookup(conversionsegment)
-        if fname is not None:
+        if fname is not None and verbose:
             print("javascript calculated")
         fout.write(jscode % (jslookup, dividNUM))
     

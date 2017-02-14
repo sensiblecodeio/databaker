@@ -14,12 +14,14 @@ from databaker.jupybakehtml import savepreviewhtml
 from databaker.jupybakecsv import headersfromwdasegment, extraheaderscheck, checktheconstantdimensions, checksegmentobsvalues
 from databaker.jupybakecsv import wdamsgstrings, CompareConversionSegments
 
-def loadxlstabs(inputfile, sheetids="*"):
-    print("Loading %s which has size %d bytes" % (inputfile, os.path.getsize(inputfile)))
+def loadxlstabs(inputfile, sheetids="*", verbose=True):
+    if verbose:
+        print("Loading %s which has size %d bytes" % (inputfile, os.path.getsize(inputfile)))
     tableset = xypath.loader.table_set(inputfile, extension='xls')
     tabs = list(xypath.loader.get_sheets(tableset, sheetids))
     tabnames = [ tab.name  for tab in tabs ]
-    print("Table names: %s" % str(tabnames))
+    if verbose:
+        print("Table names: %s" % str(tabnames))
     
     if sheetids != "*":
         if type(sheetids) == str:
