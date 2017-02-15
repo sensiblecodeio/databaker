@@ -74,7 +74,7 @@ def tabletohtml(tab, tsubs, consolidatedcellvalueoverride, blocalstylesheet):
 
     htm = [ ]
     htm.append('<table class="ex">\n')
-    htm.append('<caption style="text-align:center; padding:0px">%s</caption>\n' % tab.name)  # I can't seem to get this to render in any other style
+    htm.append('<caption style="text-align:center; padding:0px; caption-side:bottom">%s</caption>\n' % tab.name)
     for row in tab.rows():
         htm.append("<tr>")
         assert len(row) == tab._max_x + 1

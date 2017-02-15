@@ -196,13 +196,15 @@ def Ldatetimeunitloose(date):
             return "Year"
         return ''
     d = date.strip()
-    if re.match('\d{4}(?:\.0)?$', d):
+    if re.match('\s*\d{4}(?:\.0)?\s*$', d):
         return 'Year'
-    if re.match('\d{4}\s*[Qq]\d$', d):
+    if re.match('\s*\d{4}\s*[Qq]\d\s*$', d):
         return 'Quarter'
-    if re.match('[A-Za-z]{3}-[A-Za-z]{3} \d{4}$', d):
+    if re.match('\s*[Qq]\d\s*\d{4}\s*$', d):
         return 'Quarter'
-    if re.match('[A-Za-z]{3} \d{4}$', d):
+    if re.match('\s*[A-Za-z]{3}-[A-Za-z]{3}\s*\d{4}\s*$', d):
+        return 'Quarter'
+    if re.match('\s*[A-Za-z]{3}\s*\d{4}\s*$', d):
         return 'Month'
     return ''
 
@@ -216,15 +218,20 @@ def Ldatetimeunitforce(st, timeunit):
     elif timeunit == "Quarter":
         mq1 = re.match('(\d{4})\s*[Qq](\d)$', st)
         mq2 = re.match('([A-Za-z]{3}-[A-Za-z]{3}) (\d{4})$', st)
+        mq3 = re.match('[Qq](\d)\s*(\d{4})$', st)
         if mq1:
             return "%s Q%s" % (mq1.group(1), mq1.group(2))
         if mq2:
             return "%s %s" % (mq2.group(1), mq2.group(2))
+        if mq3:
+            return "%s Q%s" % (mq3.group(2), mq3.group(1))
             
     elif timeunit == "Month":
-        mm1 = re.match('([A-Za-z]{3})\s*(\d{4})$', st)
+        mm1 = re.match('\s*([A-Za-z]{3})\s*(\d{4})$', st)
         if mm1:
             return "%s %s" % (mm1.group(1), mm1.group(2))
+    elif timeunit == "":
+        return st
     else:
         timeunit = "unknown:%s" % timeunit
     warnings.warn("TIME %s disagrees with TIMEUNIT %s" % (st, timeunit))
@@ -400,4 +407,8 @@ class ConversionSegment:
         df = df[newdfcols]   # map the new column list in
         return df
 
+def pdguessforceTIMEUNIT(df):
+    df["TIMEUNIT"] = df.apply(lambda row: Ldatetimeunitloose(row.TIME), axis=1)
+    df["TIME"] = df.apply(lambda row: Ldatetimeunitforce(row.TIME, row.TIMEUNIT), axis=1)
+    
 

@@ -72,14 +72,14 @@ def writetechnicalCSV(outputfile, conversionsegments):
                 timeunitmessage = conversionsegment.process()  
 
             if outputfile is not None:
-                print("conversionwrite segment size %d table '%s; %s" % (len(conversionsegment.processedrows), conversionsegment.tab.name, timeunitmessage))
+                print("conversionwrite segment size %d table '%s'; %s" % (len(conversionsegment.processedrows), conversionsegment.tab.name, timeunitmessage))
             for row in conversionsegment.processedrows:
                 csv_writer.writerow(Lyield_dimension_values(row, isegmentnumber, Cheaderadditionals))
                 row_count += 1
 
         else:  # pandas.Dataframe case
             if outputfile is not None:
-                print("pdconversionwrite segment size %d table '%s; %s" % (len(conversionsegment.processedrows), conversionsegment.tab.name, timeunitmessage))
+                print("pdconversionwrite segment size %d" % (len(conversionsegment)))
             for i in range(len(conversionsegment)):  # quick and dirty to use same dict-based function
                 csv_writer.writerow(Lyield_dimension_values(dict(conversionsegment.iloc[i].dropna()), isegmentnumber, Cheaderadditionals))
                 row_count += 1
