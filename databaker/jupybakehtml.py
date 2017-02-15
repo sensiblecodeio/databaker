@@ -37,19 +37,19 @@ def incrementdividNUM():
 
 def tabletohtml(tab, tsubs, consolidatedcellvalueoverride, blocalstylesheet):
     key = [ ]
-    key.append('Table: <b>%s</b> ' % tab.name)
-    key.append('<table class="exkey">\n')
-    key.append('<tr>')
     ixyheaderlookup = { }
-    for i, label, bag in tsubs:
-        for h in bag:
-            ixyheaderlookup[(h.x, h.y)] = i
-        if blocalstylesheet:
-            key.append('<td class="xc%s">%s</td>' % (i, label))
-        else:
-            key.append('<td class="xc%s" style="background-color:%s">%s</td>' % (i, colourlist.get(i,"white"), label))
-    key.append('</tr>')
-    key.append('</table>\n')
+    if tsubs:
+        key.append('<table class="exkey">\n')
+        key.append('<tr>')
+        for i, label, bag in tsubs:
+            for h in bag:
+                ixyheaderlookup[(h.x, h.y)] = i
+            if blocalstylesheet:
+                key.append('<td class="xc%s">%s</td>' % (i, label))
+            else:
+                key.append('<td class="xc%s" style="background-color:%s">%s</td>' % (i, colourlist.get(i,"white"), label))
+        key.append('</tr>')
+        key.append('</table>\n')
     
     
     sty = [ ]
@@ -74,6 +74,7 @@ def tabletohtml(tab, tsubs, consolidatedcellvalueoverride, blocalstylesheet):
 
     htm = [ ]
     htm.append('<table class="ex">\n')
+    htm.append('<caption style="text-align:center; padding:0px">%s</caption>\n' % tab.name)  # I can't seem to get this to render in any other style
     for row in tab.rows():
         htm.append("<tr>")
         assert len(row) == tab._max_x + 1
@@ -214,7 +215,7 @@ def savepreviewhtml(conversionsegment, fname=None, verbose=True):
         blocalstylesheet = True
         
     htmtable = tabletohtml(conversionsegment.tab, conversionsegment.dsubsets(), conversionsegment.consolidatedcellvalueoverride(), blocalstylesheet)
-    fout.write('<div id="%s">#%s\n' % (dividNUM, dividNUM))
+    fout.write('<div id="%s">\n' % (dividNUM))
     fout.write(htmtable)
     fout.write('</div>\n')
 
