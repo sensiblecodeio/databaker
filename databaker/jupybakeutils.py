@@ -146,6 +146,12 @@ class HDim:
         
     def AddCellValueOverride(self, overridecell, overridevalue):
         "Override the value of a header cell (and insert it if not present in the bag)" 
+        if isinstance(overridecell, str):
+            self.cellvalueoverride[overridecell] = overridevalue
+            return
+        if overridecell is None:
+            self.cellvalueoverride[overridecell] = overridevalue
+            return
         if isinstance(overridecell, xypath.xypath.Bag):
             assert len(overridecell) == 1, "Can only lookupobs a single cell"
             overridecell = overridecell._cell
@@ -159,7 +165,9 @@ class HDim:
             self.hbagset.add(overridecell)
             self.samerowlookup = None  # abolish any caching
         else:
-            assert overridecell not in self.cellvalueoverride, "cell already added into override, is this a mistake?"
+            if overridecell in self.cellvalueoverride:
+                if self.cellvalueoverride[overridecell] != overridevalue:
+                    warnings.warn("Cell %s was already overridden by value %s; is this a mistake?" % (overridecell, self.cellvalueoverride[overridecell]))
             
         assert overridevalue is None or isinstance(overridevalue, (str, float, int)), "Override from value should only be str,float,int,None (%s)" % type(overridevalue)
         self.cellvalueoverride[overridecell] = overridevalue
@@ -252,7 +260,7 @@ def HLDUPgenerate_header_row(numheaderadditionals):
 
 class ConversionSegment:
     "Single output table object generated from a bag of observations that look up to a list of dimensions"
-    def __init__(self, observations, dimensions, segment=None):
+    def __init__(self, observations, dimensions, segment=None, processtimeunit=True, includecellxy=False):
         if segment is None:   # new format that drops the unnecessary table element
             tab = observations.table
             segment = observations
@@ -262,6 +270,8 @@ class ConversionSegment:
         self.tab = tab
         self.dimensions = dimensions
         self.segment = segment   # obs list
+        self.processtimeunit = processtimeunit
+        self.includecellxy = includecellxy
 
         for dimension in self.dimensions:
             assert isinstance(dimension, HDim), ("Dimensions must have type HDim()")
@@ -346,9 +356,10 @@ class ConversionSegment:
             hcell, val = hdim.cellvalobs(ob)
             dval[hdim.label] = val
             
-        dval["__x"] = ob.x
-        dval["__y"] = ob.y
-        dval["__tablename"] = self.tab.name
+        if self.includecellxy:
+            dval["__x"] = ob.x
+            dval["__y"] = ob.y
+            dval["__tablename"] = self.tab.name
         return dval
 
     def guesstimeunit(self):
@@ -369,11 +380,12 @@ class ConversionSegment:
         
         kdim = dict((dimension.label, dimension)  for dimension in self.dimensions)
         timeunitmessage = ""
-        if template.SH_Create_ONS_time and ((template.TIMEUNIT not in kdim) and (template.TIME in kdim)):
-            timeunitmessage = self.guesstimeunit()
-            self.fixtimefromtimeunit()
-        elif template.TIME in kdim and template.TIMEUNIT not in kdim:
-            self.fixtimefromtimeunit()
+        if self.processtimeunit:
+            if template.SH_Create_ONS_time and ((template.TIMEUNIT not in kdim) and (template.TIME in kdim)):
+                timeunitmessage = self.guesstimeunit()
+                self.fixtimefromtimeunit()
+            elif template.TIME in kdim and template.TIMEUNIT not in kdim:
+                self.fixtimefromtimeunit()
         return timeunitmessage
         
         
@@ -400,7 +412,8 @@ class ConversionSegment:
                 
         for excol in ["__x", "__y", "__tablename"]:
             if excol in dfcols:
-                newdfcols.append(excol)
+                if self.includecellxy:
+                    newdfcols.append(excol)
                 dfcols.remove(excol)
         assert not dfcols, ("unexplained extra columns", dfcols)
         
