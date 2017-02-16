@@ -4,7 +4,7 @@ import subprocess
 import sys
 
 
-def main(argv=None):
+def main(argv=sys.argv[1:]):
     if argv is None or len(argv) == 0 or len(argv) > 2:
         print("Usage: databaker_process.py <notebook_file> <input_file>")
         print()
@@ -29,4 +29,4 @@ def main(argv=None):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()
