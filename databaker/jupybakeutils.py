@@ -186,11 +186,16 @@ class HDim:
     def checkvalues(self, vlist):
         "Check that the header cell values match"
         scells = sorted(self.hbagset.unordered_cells, key=lambda cell: (cell.y, cell.x))
-        assert len(scells) == len(vlist), "checkvalues list length doesn't match"
+        if len(scells) != len(vlist):
+            warnings.warn("checkvalues list length doesn't match")
+            return False
+            
         for cell, v in zip(scells, vlist):
             nv = self.headcellval(cell)
-            assert nv == v, ("checkvalues mismatch in cell", (cell.x, cell.y), "cell value", nv, "doesn't match", v)
-
+            if nv != v:
+                warnings.warn("checkvalues mismatch in cell (%d,%d) cell value '%s' doesn't match '%s'" % (cell.x, cell.y, nv, v))
+                return False
+        return True
         
 
 def HDimConst(name, val):
