@@ -4,8 +4,8 @@ import subprocess
 import sys
 
 
-def main(argv):
-    if len(argv) == 0 or len(argv) > 2:
+def main(argv=None):
+    if argv is None or len(argv) == 0 or len(argv) > 2:
         print("Usage: databaker_process.py <notebook_file> <input_file>")
         print()
         print("<input_file> is optional; it replaces DATABAKER_INPUT_FILE")
