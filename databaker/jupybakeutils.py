@@ -204,15 +204,15 @@ def Ldatetimeunitloose(date):
             return "Year"
         return ''
     d = date.strip()
-    if re.match('\s*\d{4}(?:\.0)?\s*$', d):
+    if re.match('\d{4}(?:\.0)?$', d):
         return 'Year'
-    if re.match('\s*\d{4}\s*[Qq]\d\s*$', d):
+    if re.match('\d{4}(?:\.0)?\s*[Qq]\d$', d):
         return 'Quarter'
-    if re.match('\s*[Qq]\d\s*\d{4}\s*$', d):
+    if re.match('[Qq]\d\s*\d{4}(?:\.0)?$', d):
         return 'Quarter'
-    if re.match('\s*[A-Za-z]{3}-[A-Za-z]{3}\s*\d{4}\s*$', d):
+    if re.match('[A-Za-z]{3}-[A-Za-z]{3}\s*\d{4}(?:\.0)?$', d):
         return 'Quarter'
-    if re.match('\s*[A-Za-z]{3}\s*\d{4}\s*$', d):
+    if re.match('[A-Za-z]{3}\s*\d{4}(?:\.0)?$', d):
         return 'Month'
     return ''
 
@@ -224,9 +224,9 @@ def Ldatetimeunitforce(st, timeunit):
             return mst.group(1)
             
     elif timeunit == "Quarter":
-        mq1 = re.match('(\d{4})\s*[Qq](\d)$', st)
-        mq2 = re.match('([A-Za-z]{3}-[A-Za-z]{3}) (\d{4})$', st)
-        mq3 = re.match('[Qq](\d)\s*(\d{4})$', st)
+        mq1 = re.match('(\d{4})(?:\.0)?\s*[Qq](\d)', st)
+        mq2 = re.match('([A-Za-z]{3}-[A-Za-z]{3})\s*(\d{4})', st)
+        mq3 = re.match('[Qq](\d)\s*(\d{4})', st)
         if mq1:
             return "%s Q%s" % (mq1.group(1), mq1.group(2))
         if mq2:
@@ -235,7 +235,7 @@ def Ldatetimeunitforce(st, timeunit):
             return "%s Q%s" % (mq3.group(2), mq3.group(1))
             
     elif timeunit == "Month":
-        mm1 = re.match('\s*([A-Za-z]{3})\s*(\d{4})$', st)
+        mm1 = re.match('\s*([A-Za-z]{3})\s*(\d{4})', st)
         if mm1:
             return "%s %s" % (mm1.group(1), mm1.group(2))
     elif timeunit == "":
@@ -260,17 +260,18 @@ def HLDUPgenerate_header_row(numheaderadditionals):
 
 class ConversionSegment:
     "Single output table object generated from a bag of observations that look up to a list of dimensions"
-    def __init__(self, observations, dimensions, segment=None, processtimeunit=True, includecellxy=False):
-        if segment is None:   # new format that drops the unnecessary table element
+    def __init__(self, observations, dimensions, Lobservations=None, processTIMEUNIT=True, includecellxy=False):
+        if Lobservations is None:   # new format that drops the unnecessary table element
             tab = observations.table
-            segment = observations
+            Lobservations = observations
         else:
-            tab = observations
+            tab = observations  # old function format
             
         self.tab = tab
         self.dimensions = dimensions
-        self.segment = segment   # obs list
-        self.processtimeunit = processtimeunit
+        self.segment = Lobservations   # original name for observations list
+        
+        self.processtimeunit = processTIMEUNIT
         self.includecellxy = includecellxy
 
         for dimension in self.dimensions:
