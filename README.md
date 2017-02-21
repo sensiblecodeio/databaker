@@ -6,6 +6,8 @@ spreadsheet into a normalized form for use by databases.
 It depends on [okfn/messytables](https://github.com/okfn/messytables) and 
 [sensiblecodeio/xypath](https://github.com/sensiblecodeio/xypath)
 
+Python 3.4+ supported.
+
 ## Starting up
 
 ### For development
