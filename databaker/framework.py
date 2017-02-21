@@ -34,3 +34,27 @@ def loadxlstabs(inputfile, sheetids="*", verbose=True):
         warnings.warn("Duplicates found in table names list")
     return tabs
 
+DATABAKER_INPUT_FILE = None
+
+
+def getinputfilename():
+    """ Return DATABAKER_INPUT_FILE from os.environ or this module.
+
+    This is so that DATABAKER_INPUT_FILE could be specified in a notebook and
+    then overridden by an environment variable if not.
+
+    Use of environment variables is because nbconvert doesn't allow you to
+    easily pass arguments to the notebook.
+
+    Use in notebook is along the lines of:
+
+    DATABAKER_INPUT_FILE = 'myfile.xls'
+    f = getinputfilename()
+
+    This way, we can set the filename in the notebook, or at the commmand line
+    with environment variables.
+    """
+    try:
+        return os.environ['DATABAKER_INPUT_FILE']
+    except KeyError as e:
+        return DATABAKER_INPUT_FILE

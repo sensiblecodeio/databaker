@@ -30,7 +30,11 @@ conf = dict(
     zip_safe=False,
     install_requires=['docopt', 'xypath>=1.1.0', 'xlutils', 'pyhamcrest'],
     tests_require=[],
-    entry_points={},
+    entry_points={
+        'console_scripts': [
+            'databaker_nbconvert = databaker.databaker_nbconvert:main',
+            ]
+        },
     )
 
 if __name__ == '__main__':
