@@ -5,7 +5,9 @@ import io, os, collections, re, warnings, csv, datetime
 import databaker.constants
 from databaker.jupybakeutils import ConversionSegment
 template = databaker.constants.template
-import pandas
+
+try:   import pandas
+except ImportError:  pandas = None  # no pandas in pypy
 
 def HLDUPgenerate_header_row(numheaderadditionals):
     res = [ (k[0] if isinstance(k, tuple) else k)  for k in template.headermeasurements ]
@@ -59,7 +61,7 @@ def writetechnicalCSV(outputfile, conversionsegments):
             if isinstance(conversionsegment, ConversionSegment):
                 Cheaderadditionals = [ dimension.label  for dimension in conversionsegment.dimensions  if dimension.label not in template.headermeasurementnamesSet ]
                 assert len(Cheaderadditionals) == conversionsegment.numheaderadditionals
-            else:
+            elif pandas is not None:
                 assert isinstance(conversionsegment, pandas.DataFrame), "function takes only ConversionSegments of pandas.DataFrames"
                 if not isinstance(conversionsegment.index, pandas.RangeIndex):
                     conversionsegment = conversionsegment.reset_index()  # in case of playing around with indexes
@@ -78,6 +80,7 @@ def writetechnicalCSV(outputfile, conversionsegments):
                 row_count += 1
 
         else:  # pandas.Dataframe case
+            assert pandas is not None
             if outputfile is not None:
                 print("pdconversionwrite segment size %d" % (len(conversionsegment)))
             for i in range(len(conversionsegment)):  # quick and dirty to use same dict-based function
@@ -93,6 +96,9 @@ def writetechnicalCSV(outputfile, conversionsegments):
 
 
 def readtechnicalCSV(wdafile, bverbose=False, baspandas=True):
+    if baspandas and pandas is None:
+        baspandas = False
+        
     "Read a WDA CSV back from its file into an lookup table from segment number to (each a list of dicts)"
     if isinstance(wdafile, str):
         if len(wdafile) > 200 and '\n' in wdafile:

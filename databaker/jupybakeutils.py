@@ -5,9 +5,10 @@ import io, os, collections, re, warnings, csv, datetime
 import databaker.constants
 import xypath
 from databaker import richxlrd
-import pandas
 template = databaker.constants.template
 
+try:   import pandas
+except ImportError:  pandas = None  # no pandas in pypy
 
 def svalue(cell):
     if not isinstance(cell.value, datetime.datetime):
@@ -396,6 +397,10 @@ class ConversionSegment:
         
         
     def topandas(self):
+        if pandas is None:
+            warnings.warn("Sorry, you do not have pandas installed in this environment")
+            return None
+            
         timeunitmessage = ""
         if self.processedrows is None: 
             timeunitmessage = self.process()  
