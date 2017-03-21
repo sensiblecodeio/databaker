@@ -50,7 +50,10 @@ def writetechnicalCSV(outputfile, conversionsegments):
         
     if outputfile is not None:
         print("writing %d conversion segments into %s" % (len(conversionsegments), os.path.abspath(outputfile)))
-        filehandle = open(outputfile, "w", newline='\n', encoding='utf-8')
+        try:
+            filehandle = open(outputfile, "w", newline='\n', encoding='utf-8')
+        except TypeError:  # this happens if you run in pypy2 because the newline parameter is not recognized
+            filehandle = open(outputfile, "w")
     else:
         filehandle = io.StringIO()  # to return as string for print preview perhaps
     csv_writer = csv.writer(filehandle)
