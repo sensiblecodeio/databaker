@@ -16,8 +16,8 @@ headermeasurements = [
     ('time_dim_item_label_eng',"TIME"),          'time_dim_item_label_cym', 
     ('time_type',              "TIMEUNIT"),      'empty4', 
     ('statistical_population_id',       "STATPOP"),
-    ('statistical_population_label_eng',"STATPOP"),
-            'statistical_population_label_cym', 'cdid', 'cdiddescrip', 'empty5', 'empty6', 'empty7', 'empty8', 'empty9', 'empty10', 'empty11', 'empty12'
+    ('statistical_population_label_eng',"STATPOP"), 'statistical_population_label_cym', 
+    ('cdid', "CDID"), 'cdiddescrip', 'empty5', 'empty6', 'empty7', 'empty8', 'empty9', 'empty10', 'empty11', 'empty12'
 ]
 
 headeradditionals = [ 
