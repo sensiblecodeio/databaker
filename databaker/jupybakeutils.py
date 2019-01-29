@@ -82,7 +82,6 @@ class HDim:
             hcells = self.samerowlookup.get(scell.y if self.bxtype else scell.x, [])
         else:
             hcells = self.hbagset.unordered_cells
-        hcells = self.hbagset.unordered_cells
         
         best_cell = None
         second_best_cell = None
