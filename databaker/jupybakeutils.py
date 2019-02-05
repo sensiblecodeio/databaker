@@ -80,6 +80,8 @@ class HDim:
     
         if self.strict:
             hcells = self.samerowlookup.get(scell.y if self.bxtype else scell.x, [])
+            if len(hcells) == 0:
+                raise xypath.NoLookupError("No header found for {!r}".format(scell))
         else:
             hcells = self.hbagset.unordered_cells
         
