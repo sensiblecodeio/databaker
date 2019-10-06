@@ -7,6 +7,9 @@ import xypath
 from databaker import richxlrd
 template = databaker.constants.template
 
+from .lookupengines.closestabove import ClosestAboveEngine
+from .lookupengines.directlyleft import DirectlyLeftEngine
+
 try:   import pandas
 except ImportError:  pandas = None  # no pandas in pypy
 
@@ -30,6 +33,21 @@ class HDim:
     def __init__(self, hbagset, label, strict=None, direction=None, cellvalueoverride=None):
         self.label = label
         self.name = label
+
+        # For every dimension, create an appropriate lookup engine
+        # ---------------------------
+        # strict == False, is CLOSEST
+        # strict == True, is DIRECTLY
+        # (0, -1) is ABOVE
+        # (1, 0) is RIGHT
+        # (0, 1) = BELOW
+        # (-1, 0) = LEFT
+        if strict == False and direction == (0, -1):
+            self.engine = ClosestAboveEngine(hbagset)
+        elif strict == True and direction == (-1, 0):
+            self.engine = DirectlyLeftEngine(hbagset)
+        else:
+            raise ValueError("Aborting. Unable to find appropriate lookup engine.")
             
         self.cellvalueoverride = cellvalueoverride or {} # do not put {} into default value otherwise there is only one static one for everything
         assert not isinstance(hbagset, str), "Use empty set and default value for single value dimension"
@@ -52,78 +70,7 @@ class HDim:
             
     def celllookup(self, scell):
         "Lookup function from a given cell to the matching header cell"
-        
-        # caching that can be removed in AddCellValueOverride
-        if self.strict and self.samerowlookup is None:
-            self.samerowlookup = {}
-            for hcell in self.hbagset.unordered_cells:
-                k = hcell.y if self.bxtype else hcell.x
-                if k not in self.samerowlookup:
-                    self.samerowlookup[k] = []
-                self.samerowlookup[k].append(hcell)
-        
-        def mult(cell):
-            return cell.x * self.direction[0] + cell.y * self.direction[1]
-        def dgap(cell, target_cell):
-            if direction[1] == 0:
-                return abs(cell.x - target_cell.x)
-            return abs(cell.y - target_cell.y)
-        
-        def betweencells(scell, target_cell, best_cell):
-            if mult(scell) <= mult(target_cell):
-                if not best_cell or mult(target_cell) <= mult(best_cell):
-                    return True
-            return False
-        
-        def same_row_col(a, b):
-            return  (a.x - b.x  == 0 and self.direction[0] == 0) or (a.y - b.y  == 0 and self.direction[1] == 0)
-    
-        if self.strict:
-            hcells = self.samerowlookup.get(scell.y if self.bxtype else scell.x, [])
-            if len(hcells) == 0:
-                raise xypath.NoLookupError("No header found for {!r}".format(scell))
-        else:
-            hcells = self.hbagset.unordered_cells
-        
-        best_cell = None
-        second_best_cell = None
-
-        #if strict:  print(len(list(hcells)), len(list(hbagset.unordered_cells)))
-        for target_cell in hcells:
-            if betweencells(scell, target_cell, best_cell):
-                if not self.strict or same_row_col(scell, target_cell):
-                    second_best_cell = best_cell
-                    best_cell = target_cell
-        if second_best_cell and mult(best_cell) == mult(second_best_cell):
-            raise xypath.LookupConfusionError("{!r} is as good as {!r} for {!r}".format(best_cell, second_best_cell, scell))
-        if best_cell is None:
-            return None
-        return best_cell
-
-    def headcellval(self, hcell):
-        "Extract the string value of a member header cell (including any value overrides)"
-        if hcell is not None:
-            assert isinstance(hcell, xypath.xypath._XYCell), "celllookups should only go to an _XYCell"
-            if hcell in self.cellvalueoverride:
-                val = self.cellvalueoverride[hcell]
-                assert isinstance(val, (str, float, int)), "Override from hcell value should go directly to a str,float,int,None-value (%s)" % type(val)
-                return val
-            val = svalue(hcell)
-            #assert val is None or isinstance(val, (str, float, int)), "cell value should only be str,float,int,None (%s)" % type(val)
-        else:
-            val = None
-         
-        # It's allowed to have {None:defaultvalue} to set the NoLookupValue
-        if val in self.cellvalueoverride:
-            val = self.cellvalueoverride[val]
-            assert val is None or isinstance(val, (str, float, int)), "Override from value should only be str,float,int,None (%s)" % type(val)
-
-        # type call if no other things match
-        elif type(val) in self.cellvalueoverride:
-             val = self.cellvalueoverride[type(val)](val)
-            
-        return val
-
+        return self.engine.lookup(scell)
 
     def cellvalobs(self, ob):
         "Full lookup from a observation cell to its dimensional value (which can apply before lookup)"
@@ -144,7 +91,7 @@ class HDim:
         else:
             hcell = None
             
-        return hcell, self.headcellval(hcell)
+        return hcell, hcell.value
         
     def AddCellValueOverride(self, overridecell, overridevalue):
         "Override the value of a header cell (and insert it if not present in the bag)" 
@@ -338,28 +285,10 @@ class ConversionSegment:
             assert len(ob) == 1, "Can only lookupobs on a single cell"
             ob = ob._cell
 
+        # TODO - this but nicer
         # force it to be float and split off anything not float into the datamarker
-        if not isinstance(ob.value, float):
-            if ob.properties['richtext']:  # should this case be implemented into the svalue() function?
-                sval = richxlrd.RichCell(ob.properties.cell.sheet, ob.y, ob.x).fragments.not_script.value
-            else:
-                sval = svalue(ob)
-                
-            if template.SH_Split_OBS:
-                assert template.SH_Split_OBS == databaker.constants.DATAMARKER, (template.SH_Split_OBS, databaker.constants.DATAMARKER)
-                ob_value, dm_value = re.match(r"([-+]?[0-9]+\.?[0-9]*)?(.*)", sval).groups()
-                dval = { }
-                if dm_value:
-                    dval[template.SH_Split_OBS] = dm_value
-                if ob_value:
-                    dval[databaker.constants.OBS] = float(ob_value)
-                else:
-                    dval[databaker.constants.OBS] = ""
-            else:
-                dval = { databaker.constants.OBS:sval }
-        else:
-            dval = { databaker.constants.OBS:ob.value }
-        
+        dval = {databaker.constants.OBS: ob.value}
+
         for hdim in self.dimensions:
             hcell, val = hdim.cellvalobs(ob)
             dval[hdim.label] = val
@@ -385,27 +314,15 @@ class ConversionSegment:
     def process(self):
         assert self.processedrows is None, "Conversion segment already processed"
         self.processedrows = [ self.lookupobs(ob)  for ob in self.obslist ]
-        
-        kdim = dict((dimension.label, dimension)  for dimension in self.dimensions)
-        timeunitmessage = ""
-        if self.processtimeunit:
-            if template.SH_Create_ONS_time and ((template.TIMEUNIT not in kdim) and (template.TIME in kdim)):
-                timeunitmessage = self.guesstimeunit()
-                self.fixtimefromtimeunit()
-            elif template.TIME in kdim and template.TIMEUNIT not in kdim:
-                self.fixtimefromtimeunit()
-        return timeunitmessage
-        
+        return None
         
     def topandas(self):
         if pandas is None:
             warnings.warn("Sorry, you do not have pandas installed in this environment")
             return None
-            
-        timeunitmessage = ""
-        if self.processedrows is None: 
-            timeunitmessage = self.process()  
-        print(timeunitmessage)
+
+        self.process()
+
         df = pandas.DataFrame.from_dict(self.processedrows)
         
         # sort the columns
