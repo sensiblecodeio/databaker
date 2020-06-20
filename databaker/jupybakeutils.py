@@ -7,8 +7,11 @@ import xypath
 from databaker import richxlrd
 template = databaker.constants.template
 
+from databaker.constants import ABOVE, BELOW, LEFT, RIGHT
+
 from .lookupengines.closestabove import ClosestAboveEngine
-from .lookupengines.directlyleft import DirectlyLeftEngine
+from .lookupengines.directly import DirectlyEngine
+
 
 try:   import pandas
 except ImportError:  pandas = None  # no pandas in pypy
@@ -35,17 +38,10 @@ class HDim:
         self.name = label
 
         # For every dimension, create an appropriate lookup engine
-        # ---------------------------
-        # strict == False, is CLOSEST
-        # strict == True, is DIRECTLY
-        # (0, -1) is ABOVE
-        # (1, 0) is RIGHT
-        # (0, 1) = BELOW
-        # (-1, 0) = LEFT
-        if strict == False and direction == (0, -1):
+        if strict: 
+            self.engine = DirectlyEngine(hbagset, direction)
+        elif not strict and direction == ABOVE:
             self.engine = ClosestAboveEngine(hbagset)
-        elif strict == True and direction == (-1, 0):
-            self.engine = DirectlyLeftEngine(hbagset)
         else:
             raise ValueError("Aborting. Unable to find appropriate lookup engine.")
             
@@ -317,6 +313,9 @@ class ConversionSegment:
         return None
         
     def topandas(self):
+
+        print("We've called topandas")
+
         if pandas is None:
             warnings.warn("Sorry, you do not have pandas installed in this environment")
             return None
@@ -326,7 +325,9 @@ class ConversionSegment:
         df = pandas.DataFrame.from_dict(self.processedrows)
         
         # sort the columns
-        dfcols = list(df.columns)
+        dfcols = list(df.columns.values)
+        assert len(dfcols) != 0, "Constructed dataframe has no columns"
+
         newdfcols = [ ]
         for k in template.headermeasurements:
             if isinstance(k, tuple):
@@ -335,7 +336,9 @@ class ConversionSegment:
                     dfcols.remove(k[1])
         for dimension in self.dimensions:
             if dimension.label not in template.headermeasurementnamesSet:
-                assert dimension.label in dfcols
+                assert dimension.label in dfcols, \
+                    "could not find the label {} in dataframe columns {}." \
+                    .format(dimension.label, ",".join(dfcols))
                 newdfcols.append(dimension.label)
                 dfcols.remove(dimension.label)
                 
