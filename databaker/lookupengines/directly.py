@@ -1,7 +1,7 @@
 import json
 import pprint as pp
 
-from databaker.constants import ABOVE, BELOW, LEFT, RIGHT
+from databaker.constants import ABOVE, BELOW, LEFT, RIGHT, DIRECTION_DICT
 
 class DirectlyEngine(object):
 
@@ -129,16 +129,8 @@ class DirectlyEngine(object):
                     if self.last_cell_found is not None:
                         return self.last_cell_found
 
-        # If we fall through to here the lookup failed
-        labelise = {
-            (0, -1): "ABOVE",
-            (1, 0): "RIGHT",
-            (0, 1): "BELOW",
-            (-1, 0): "LEFT"
-        }
-
         # It's not neat but output the engine contents before the message (in case there's thousands
         # of entries which buries the message)
         raise ValueError("\n{}\nLookup Engine Failure for direction: {} and cell {} with xy {}.\n" 
-                        .format(pp.pformat(self.tiered_dict), labelise[self.direction], 
+                        .format(pp.pformat(self.tiered_dict), DIRECTION_DICT[self.direction], 
                         cell, {cell.x, cell.y}))

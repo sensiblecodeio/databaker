@@ -1,6 +1,6 @@
 import pprint as pp
 
-from databaker.constants import ABOVE, BELOW, LEFT, RIGHT
+from databaker.constants import ABOVE, BELOW, LEFT, RIGHT, DIRECTION_DICT
 
 
 class BoundaryError(Exception):
@@ -41,13 +41,6 @@ class ClosestEngine(object):
         item) based on the .y (substitute .x for horizontal relationships) value of a given 
         observation cell.
         """
-
-        self.labelise = {
-                (0, -1): "ABOVE",
-                (1, 0): "RIGHT",
-                (0, 1): "BELOW",
-                (-1, 0): "LEFT"
-             }
 
         self.direction = direction
 
@@ -141,7 +134,7 @@ class ClosestEngine(object):
         # Blowup early if the cell is out of bounds 
         # (eg to the left of the leftmost left lookup - no viable lookup)
         msg = "Lookup for cell '{}' is impossible. No selected values exist within " \
-                "the '{}' direction from this cell".format(cell, self.labelise[self.direction]) 
+                "the '{}' direction from this cell".format(cell, DIRECTION_DICT[self.direction]) 
         switch = [
             self.direction == ABOVE and cell.y < self.out_of_bounds,
             self.direction == LEFT and cell.x < self.out_of_bounds,
