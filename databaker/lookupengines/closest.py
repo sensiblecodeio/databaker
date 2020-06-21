@@ -157,52 +157,35 @@ class ClosestEngine(object):
                 self._bump_as_too_low(index, cell)
             elif cell.y > r["highest_offset"]:
                 self._bump_as_too_high(index, cell)
-            else:
-                found_it = True
 
         if self.direction == BELOW:
             if cell.y > r["highest_offset"]:
                 self._bump_as_too_high(index, cell)
             elif cell.y < r["lowest_offset"]:
                 self._bump_as_too_low(index, cell)
-            else:
-                found_it = True
 
         if self.direction == LEFT:
             if cell.x < r["lowest_offset"]:
                 self._bump_as_too_low(index, cell)
             elif cell.x > r["highest_offset"]:
                 self._bump_as_too_high(index, cell)
-            else:
-                found_it = True
 
         if self.direction == RIGHT:
             if cell.x > r["highest_offset"]:
                 self._bump_as_too_high(index, cell)
             elif cell.x < r["lowest_offset"]:
                 self._bump_as_too_low(index, cell)
-            else:
-                found_it = True
 
-        if found_it:
-            # Found it !!
+        # Found it !!
+        # cells are implicitly selected right->down-a-row->right as you look at a spreadsheet
+        # so we'll cache this index as there's a decent chance the next obs lookup is in the same range
+        self.start_index = index
 
-            # cells are implicitly selected right->down-a-row->right as you look at a spreadsheet
-            # so we'll cache this index as there's a decent chance the next obs lookup is in the same range
-            self.start_index = index
-
-            # this right-then-down-then-right pattern also means that (often, not guaranteed),
-            # if the next obs isn't in the last range checked, there's a decent chance it's in a
-            # neighbouring range, so we'll "bump" the index once in the relevant direction on a
-            # first miss.
-            self.bumped = False
-
-            self.found_cell = r["dimension_cell"]
-
-        if self.found_cell is None:
-            # If we fall through to here the lookup failed
-            raise Exception("'CLOSEST' engine failed. Cannot find '{}' lookup for cell {}."
-                            .format(self.labelise[self.direction], cell))
+        # this right-then-down-then-right pattern also means that (often, not guaranteed),
+        # if the next obs isn't in the last range checked, there's a decent chance it's in a
+        # neighbouring range, so we'll "bump" the index once in the relevant direction on a
+        # first miss.
+        self.bumped = False
 
         self.index = None
-        return self.found_cell
+        return r["dimension_cell"]
