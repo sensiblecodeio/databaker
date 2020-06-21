@@ -1,17 +1,24 @@
+import pprint as pp
+
 from databaker.constants import ABOVE, BELOW, LEFT, RIGHT
+
+
+class BoundaryError(Exception):
+    """ Raised when attempting to lookup outside the bounds of where a lookup can exist"""
+    def __init__(self, message):
+        self.message = message
 
 class ClosestEngine(object):
 
     def __init__(self, cell_bag, direction):
         """
-        Creates a lookup engine for dimensions defined with the
-        CLOSEST, ABOVE relationship.
+        Creates a lookup engine for dimensions defined with the CLOSEST relationship.
 
         Creates a dictionary of ranges, where the key i is an incrementing counter serving
         as the index. The ranges defined against each index are ordered by their low/high
         offsets.
 
-        So min(i)["lowest_offset"] will be the absolute lowest y offset being considered.
+        So for example, min(i)["lowest_offset"] will be the absolute lowest y offset being considered.
         And max(i)["highest_offset"] will be the absolute highest y offset being considered.
         The others will run the gamut between (in order).
 
@@ -31,7 +38,8 @@ class ClosestEngine(object):
 
         The lookup itself will search the range_dicts to find the
         appropriate range_dict (and the _XYCell representing a dimension
-        item) based on the .y value of a given observation cell.
+        item) based on the .y (substitute .x for horizontal relationships) value of a given 
+        observation cell.
         """
 
         self.labelise = {
@@ -46,9 +54,9 @@ class ClosestEngine(object):
         break_points = {}
         for cell in cell_bag:
 
-            # TODO - we should utilise the existing databaker error for this
             if cell.value in break_points.keys():
-                raise Exception("Aborting. You have defined two or more equally valid CLOSESTrelationships")
+                raise Exception("Aborting. You have defined two or more equally valid "
+                                "CLOSEST relationships")
 
             if direction in [ABOVE, BELOW]:
                 break_points.update({cell.y: cell})
@@ -57,8 +65,6 @@ class ClosestEngine(object):
 
         ordered_break_point_list = [int(k) for k in break_points.keys()]
         ordered_break_point_list.sort()
-
-        max_offset = max(ordered_break_point_list)
 
         ranges = {}
 
@@ -76,6 +82,7 @@ class ClosestEngine(object):
                                 "highest_offset": 99999999999,
                                 "dimension_cell": break_points[ordered_break_point_list.copy()[-1]]}
                             })
+            self.out_of_bounds = min([x["lowest_offset"] for x in ranges.values()])
         else:
             x = 0
             ranges.update({0:
@@ -85,16 +92,13 @@ class ClosestEngine(object):
                         })
             x = 1
             for i in range(1, len(ordered_break_point_list)):
-                h = ordered_break_point_list.copy()[i]
                 ranges.update({x:
                     {"lowest_offset": ordered_break_point_list.copy()[i-1]+1,
-                    "highest_offset": h if h != max_offset else 99999999999,
+                    "highest_offset": ordered_break_point_list.copy()[i],
                     "dimension_cell": break_points[ordered_break_point_list.copy()[i]]}
                     })
-                x+=1           
-
-        import pprint
-        print(self.labelise[direction], pprint.pformat(ranges))
+                x+=1 
+            self.out_of_bounds = max([x["highest_offset"] for x in ranges.values()])          
 
         self.ranges = ranges
         self.range_count = len(ranges)   # do this here, so we only do it once
@@ -106,6 +110,10 @@ class ClosestEngine(object):
         # track the correct one
         self.found_cell = None
 
+    def _bump_as_too_high(self, index):
+        "move the index up as we're looking too low"
+        pass
+
     # recursive bi-section search of ranges
     def lookup(self, cell, index=None):
 
@@ -114,7 +122,17 @@ class ClosestEngine(object):
         if index == None:
             index = self.start_index
 
-        #print("index", index, "cell", cell)
+        # Blowup early if the cell is out of bounds 
+        # (eg to the left of the leftmost left lookup - no viable lookup)
+        msg = "Lookup for cell '{}' is impossible. No selected values exist within " \
+                "the '{}' direction from this cell".format(cell, self.labelise[self.direction]) 
+        switch = [
+            self.direction == ABOVE and cell.y < self.out_of_bounds,
+            self.direction == LEFT and cell.x < self.out_of_bounds,
+            self.direction == BELOW and cell.y > self.out_of_bounds,
+            self.direction == RIGHT and cell.x > self.out_of_bounds
+        ]
+        if True in switch: raise BoundaryError(msg)
 
         r = self.ranges[index]
 
@@ -185,7 +203,7 @@ class ClosestEngine(object):
                         self.bumped = True
                 else:
                     index = int(index*2)
-                    if index > self.range_count: index = self.range_count
+                if index > self.range_count: index = self.range_count
                 self.found_cell = self.lookup(cell, index=index)
             elif cell.x < r["lowest_offset"]:
                 if self.bumped == False and index != 0:
@@ -193,7 +211,7 @@ class ClosestEngine(object):
                         self.bumped = True
                 else:
                     index = int(index /2)
-                    if index < 0 : index = 0
+                if index < 0 : index = 0
                 self.found_cell = self.lookup(cell, index=index)
             else:
                 found_it = True
@@ -218,4 +236,5 @@ class ClosestEngine(object):
             raise Exception("'CLOSEST' engine failed. Cannot find '{}' lookup for cell {}."
                             .format(self.labelise[self.direction], cell))
 
+        self.index = None
         return self.found_cell
