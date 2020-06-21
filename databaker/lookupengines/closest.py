@@ -110,9 +110,25 @@ class ClosestEngine(object):
         # track the correct one
         self.found_cell = None
 
-    def _bump_as_too_high(self, index):
+    def _bump_as_too_low(self, index, cell):
         "move the index up as we're looking too low"
-        pass
+        if self.bumped == False and index != 0:
+            index = index-1
+            self.bumped = True
+        else:
+            index = int(index /2)
+            if index < 0 : index = 0
+        self.found_cell = self.lookup(cell, index=index)
+
+    def _bump_as_too_high(self, index, cell):
+        "move the index down as we're looking too high"
+        if self.bumped == False and index != self.range_count:
+            index = index+1
+            self.bumped = True
+        else:
+            index = int(index*2)
+            if index > self.range_count: index = self.range_count
+        self.found_cell = self.lookup(cell, index=index)
 
     # recursive bi-section search of ranges
     def lookup(self, cell, index=None):
@@ -138,81 +154,33 @@ class ClosestEngine(object):
 
         if self.direction == ABOVE:
             if cell.y < r["lowest_offset"]:
-                if self.bumped == False and index != 0:
-                        index = index-1
-                        self.bumped = True
-                else:
-                    index = int(index /2)
-                    if index < 0 : index = 0
-                self.found_cell = self.lookup(cell, index=index)
+                self._bump_as_too_low(index, cell)
             elif cell.y > r["highest_offset"]:
-                if self.bumped == False and index != self.range_count:
-                        index = index+1
-                        self.bumped = True
-                else:
-                    index = int(index*2)
-                    if index > self.range_count: index = self.range_count
-                self.found_cell = self.lookup(cell, index=index)
+                self._bump_as_too_high(index, cell)
             else:
                 found_it = True
 
         if self.direction == BELOW:
             if cell.y > r["highest_offset"]:
-                if self.bumped == False and index != self.range_count:
-                        index = index+1
-                        self.bumped = True
-                else:
-                    index = int(index*2)
-                    if index > self.range_count: index = self.range_count
-                self.found_cell = self.lookup(cell, index=index)
+                self._bump_as_too_high(index, cell)
             elif cell.y < r["lowest_offset"]:
-                if self.bumped == False and index != 0:
-                        index = index-1
-                        self.bumped = True
-                else:
-                    index = int(index /2)
-                    if index < 0 : index = 0
-                self.found_cell = self.lookup(cell, index=index)
+                self._bump_as_too_low(index, cell)
             else:
                 found_it = True
 
         if self.direction == LEFT:
             if cell.x < r["lowest_offset"]:
-                if self.bumped == False and index != 0:
-                        index = index-1
-                        self.bumped = True
-                else:
-                    index = int(index /2)
-                    if index < 0 : index = 0
-                self.found_cell = self.lookup(cell, index=index)
+                self._bump_as_too_low(index, cell)
             elif cell.x > r["highest_offset"]:
-                if self.bumped == False and index != self.range_count:
-                        index = index+1
-                        self.bumped = True
-                else:
-                    index = int(index*2)
-                    if index > self.range_count: index = self.range_count
-                self.found_cell = self.lookup(cell, index=index)
+                self._bump_as_too_high(index, cell)
             else:
                 found_it = True
 
         if self.direction == RIGHT:
             if cell.x > r["highest_offset"]:
-                if self.bumped == False and index != self.range_count:
-                        index = index+1
-                        self.bumped = True
-                else:
-                    index = int(index*2)
-                if index > self.range_count: index = self.range_count
-                self.found_cell = self.lookup(cell, index=index)
+                self._bump_as_too_high(index, cell)
             elif cell.x < r["lowest_offset"]:
-                if self.bumped == False and index != 0:
-                        index = index-1
-                        self.bumped = True
-                else:
-                    index = int(index /2)
-                if index < 0 : index = 0
-                self.found_cell = self.lookup(cell, index=index)
+                self._bump_as_too_low(index, cell)
             else:
                 found_it = True
 
