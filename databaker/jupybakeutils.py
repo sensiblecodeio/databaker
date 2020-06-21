@@ -9,7 +9,7 @@ template = databaker.constants.template
 
 from databaker.constants import ABOVE, BELOW, LEFT, RIGHT
 
-from .lookupengines.closestabove import ClosestAboveEngine
+from .lookupengines.closest import ClosestEngine
 from .lookupengines.directly import DirectlyEngine
 
 
@@ -40,8 +40,8 @@ class HDim:
         # For every dimension, create an appropriate lookup engine
         if strict: 
             self.engine = DirectlyEngine(hbagset, direction)
-        elif not strict and direction == ABOVE:
-            self.engine = ClosestAboveEngine(hbagset)
+        elif not strict:
+            self.engine = ClosestEngine(hbagset, direction)
         else:
             raise ValueError("Aborting. Unable to find appropriate lookup engine.")
             
