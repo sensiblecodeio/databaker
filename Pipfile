@@ -1,0 +1,16 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+nose = "==1.3.7"
+docopt = "==0.6.2"
+xypath = "==1.1.0"
+xlutils = "==2.0.0"
+PyHamcrest = "==1.9.0"
+
+[requires]
+python_version = "3.7"
