@@ -11,6 +11,7 @@ docopt = "==0.6.2"
 xypath = "==1.1.0"
 xlutils = "==2.0.0"
 PyHamcrest = "==1.9.0"
+behave = "*"
 
 [requires]
 python_version = "3.7"
