@@ -1,6 +1,6 @@
 from databaker.framework import *
 
-def transform():
-    tabs = loadxlstabs("/home/mike/GSS-Cogs/databaker/features/fixtures/bulletindataset2v2.xlsx")
-    tabs = [x for x in tabs if x.name == "Table 1"]
-    return tabs[0].name
+def transform_xlsx():
+    tabs = loadxlstabs("/Users/charlesrendle/databaker-docker/db-test-suite-methods/databaker/features/fixtures/balanceofpayments2020q1.xls")
+    tabs = [x for x in tabs if x.name.strip() == "Table A"]
+    return tabs

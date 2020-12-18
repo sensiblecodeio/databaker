@@ -35,14 +35,15 @@ def step_impl(context, thing_wanted):
         for line in transform_lines[1:]:
             f.write(line+"\n")
 
-    from temp_transform import transform
-    returned_from_transform = transform()
+    from temp_transform import transform_xlsx
+    returned_from_transform = transform_xlsx()
     context.databaker_outputs = {thing_wanted: returned_from_transform}
 
 @then(u'the output "{thing_wanted}" should be equal to')
 def step_impl(context, thing_wanted):
+    print(context.databaker_outputs[thing_wanted][0].name)
     expected_output = context.text
-    actual_output = context.databaker_outputs[thing_wanted]
+    actual_output = context.databaker_outputs[thing_wanted][0].name
     assert expected_output == actual_output, "{} \n\ndoes not match the expected output \n\n {}\n".format(str(actual_output), str(expected_output))
 
 @then(u'we confirm the names of the loaded tabs are equal to')
