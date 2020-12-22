@@ -19,7 +19,7 @@ Scenario: Define year as correct cells.
     Given we load an xls file named "bulletindataset2v2.xlsx"
     And get "some_name" from the transform:
     """
-    def transform_xlsx():
+    def transform_xlsx()):
         tabs = [x for x in tabs if x.name.strip() == "Table 2a"]
         return tabs
     """
