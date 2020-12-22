@@ -13,12 +13,15 @@ def get_fixture(file_name):
     fixture_file_path = Path(feature_path, "fixtures", file_name)
     return fixture_file_path
 
+#From the tab we capture the bag of cells containing the year values described by a range of cells in one column.
 @given(u'we define year as the values in cells "{cell_range}"')
 def step_impl(context, cell_range):
     #raise NotImplementedError(u'STEP: Given we define year as the values in cells "A11:A250"')
     context.tab = context.tabs[4]
     context.year = context.tab.excel_ref(cell_range)
 
+
+#Check if the captured cells are the expected 'bag' type.
 @then(u'we confirm year is defined as type cell, equal to')
 def step_impl(context):
     #raise NotImplementedError(u'STEP: Then we confirm year is defined as type cell, equal to')
@@ -83,6 +86,7 @@ def step_impl(context):
 #        print("ERROR 2")
 #        raise NotImplementedError(u'STEP: Then we confirm that year is equal to')
 
+#Check if the captured cells contain the correct year values.
 @then(u'we confirm that year is equal to')
 def step_impl(context):
     expected = set()

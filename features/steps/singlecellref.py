@@ -13,6 +13,8 @@ def get_fixture(file_name):
     fixture_file_path = Path(feature_path, "fixtures", file_name)
     return fixture_file_path
 
+
+#From the tab we capture the unit dimension with reference to a single cell.
 @given(u'we define unit as the value in cell "{cell_ref}"')
 def step_impl(context, cell_ref):
     #raise NotImplementedError(u'STEP: Given we define unit as the value in a cell')
@@ -20,6 +22,7 @@ def step_impl(context, cell_ref):
     context.unit = context.tab.excel_ref(cell_ref)
 
 
+#Check if the captured cell is the expected 'bag' type.
 @then(u'we confirm unit is defined as type cell, equal to')
 def step_impl(context):
     #raise NotImplementedError(u'STEP: Then we confirm unit is defined as type cell, equal to')
@@ -30,6 +33,8 @@ def step_impl(context):
     else:
         raise NotImplementedError(u'STEP: Then we confirm unit is defined as type cell, equal to')
 
+
+#Check if the captured cell is equal to the expected value of unit.
 @then(u'we confirm that unit is equal to')
 def step_impl(context):
     #raise NotImplementedError(u'STEP: Then we confirm unit is defined as type cell, equal to')
