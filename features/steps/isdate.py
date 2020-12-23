@@ -23,10 +23,12 @@ def step_impl(context, date_start, date_end):
 @then(u'we confirm the year values contains the correct number of values: "{dates_len}"')
 def step_impl(context, dates_len):
     #raise NotImplementedError(u'STEP: Then we confirm the year values contains the correct number of values: "58"')
-    if len(context.date_years) == int(dates_len):
-        step = "Success"
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.')
+    assert len(context.date_years) == int(dates_len), "{} \n\nbag contains unexpected number of cells \n\n {}\n".format(str(len(context.date_years)), str(dates_len))
+
+    #if len(context.date_years) == int(dates_len):
+    #    step = "Success"
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.')
 
 
 @then(u'we confirm that the year values are equal to')
@@ -62,8 +64,10 @@ def step_impl(context):
         actual.add(new_cell)
 
     #If set difference produces an empty set, then both sets contain the same items regardless of order.
-    if len(expected.difference(actual)) == 0:
-        step = "Success"
+    assert len(expected.difference(actual)) == 0, "{} \n\ndoes not match the expected output \n\n {}\n".format(str(actual), str(expected))
+
+    #if len(expected.difference(actual)) == 0:
+    #    step = "Success"
     
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm that year is equal to')
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm that year is equal to')

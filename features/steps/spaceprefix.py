@@ -28,10 +28,13 @@ def step_impl(context, ws_chars):
 @then(u'we confirm income type contains the correct number of values: "{inc_typ_len}"')
 def step_impl(context, inc_typ_len):
     #raise NotImplementedError(u'STEP: Then we confirm income type contains the correct number of values: "20"')
-    if len(context.income_type) == int(inc_typ_len):
-        step = "Success"
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.')    
+    assert len(context.income_type) == int(inc_typ_len), "{} \n\nbag contains unexpected number of cells \n\n {}\n".format(str(actual), str(expected))
+
+    #if len(context.income_type) == int(inc_typ_len):
+    #    step = "Success"
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.')    
+
 
 @then(u'we confirm that income type is equal to')
 def step_impl(context):
@@ -66,8 +69,10 @@ def step_impl(context):
         actual.add(new_cell)
 
     #If set difference produces an empty set, then both sets contain the same items regardless of order.
-    if len(expected.difference(actual)) == 0:
-        step = "Success"
+    assert len(expected.difference(actual)) == 0, "{} \n\ndoes not match the expected output \n\n {}\n".format(str(actual), str(expected))
+
+    #if len(expected.difference(actual)) == 0:
+    #    step = "Success"
     
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm that year is equal to')
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm that year is equal to')

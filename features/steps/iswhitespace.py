@@ -23,19 +23,23 @@ def step_impl(context, empty_range):
 @then(u'we confirm whitespace year contains no value-containing cells.')
 def step_impl(context):
     #raise NotImplementedError(u'STEP: Then we confirm whitespace year contains no value-containing cells.')
-    if "." not in str(context.whitespace_year):
-        step = "Success"
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.')
+    assert "." not in str(context.whitespace_year), "{} \n\ncontains value storing cells \n\n".format(str(context.whitespace_year))
+
+    #if "." not in str(context.whitespace_year):
+    #    step = "Success"
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.')
 
 
 @then(u'we confirm whitespace year has contains "{ws_len}" cells.')
 def step_impl(context, ws_len):
     #raise NotImplementedError(u'STEP: Then we confirm whitespace year has contains 192 cells.')
-    if len(context.whitespace_year) == int(ws_len):
-        step = "Success"
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.')
+    assert len(context.whitespace_year) == int(ws_len), "{} \n\nbag contains unexpected number of cells \n\n {}\n".format(str(context.whitespace_year), str(ws_len))
+
+    #if len(context.whitespace_year) == int(ws_len):
+    #    step = "Success"
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.')
 
 
 @then(u'we confirm that whitespace year without value-containing cells is equal to')
@@ -71,9 +75,11 @@ def step_impl(context):
         actual.add(new_cell)
 
     #If set difference produces an empty set, then both sets contain the same items regardless of order.
-    if len(expected.difference(actual)) == 0:
-        step = "Success"
+    assert len(expected.difference(actual)) == 0, "{} \n\ndoes not match the expected output \n\n {}\n".format(str(actual), str(expected))
+
+    #if len(expected.difference(actual)) == 0:
+    #    step = "Success"
     
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm that year is equal to')
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm that year is equal to')
         

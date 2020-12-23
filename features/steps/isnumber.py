@@ -23,10 +23,13 @@ def step_impl(context, obs_start, obs_end):
 @then(u'we confirm the observations contains the correct number of values: "{no_percent_len}"')
 def step_impl(context, no_percent_len):
     #raise NotImplementedError(u'STEP: Then we confirm the observations contains the correct number of values: "112"')
-    if len(context.no_percent_obs) == int(no_percent_len):
-        step = "Success"
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.')
+    assert len(context.no_percent_obs) == int(no_percent_len), "{} \n\nbag contains unexpected number of cells \n\n {}\n".format(str(len(context.no_percent_obs)), str(no_percent_len))
+
+    #if len(context.no_percent_obs) == int(no_percent_len):
+    #    step = "Success"
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.')
+
 
 @then(u'we confirm that the observations are equal to')
 def step_impl(context):
@@ -61,8 +64,10 @@ def step_impl(context):
         actual.add(new_cell)
 
     #If set difference produces an empty set, then both sets contain the same items regardless of order.
-    if len(expected.difference(actual)) == 0:
-        step = "Success"
+    assert len(expected.difference(actual)) == 0, "{} \n\ndoes not match the expected output \n\n {}\n".format(str(actual), str(expected))
+
+    #if len(expected.difference(actual)) == 0:
+    #    step = "Success"
     
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm that year is equal to')
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm that year is equal to')

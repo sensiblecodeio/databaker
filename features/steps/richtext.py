@@ -23,21 +23,21 @@ def step_impl(context):
 @then(u'we confirm construction type contains the correct number of values: "{cons_typ_len}"')
 def step_impl(context, cons_typ_len):
     #raise NotImplementedError(u'STEP: Then we confirm construction type contains the correct number of values: "7"')
-    if len(context.construction_type) == int(cons_typ_len):
-        step = "Success"
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.')
+    assert len(context.construction_type) == int(cons_typ_len), "{} \n\nbag contains unexpected number of cells \n\n {}\n".format(str(len(context.construction_type)), str(cons_typ_len))
+
+    #if len(context.construction_type) == int(cons_typ_len):
+    #    step = "Success"
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.')
 
 @then(u'we confirm that construction type is equal to')
 def step_impl(context):
-    #raise NotImplementedError(u'STEP: Then we confirm that construction type is equal to')
-    #raise NotImplementedError(u'STEP: Then we confirm that whitespace year without value-containing cels is equal to')
-    #raise NotImplementedError(u'STEP: Then we confirm that year without blanks is equal to')
-    expected = []
+
+    expected = set()
     temp_actual = []
-    actual = []
-   
-    #Build a list of cell from the expected output.
+    actual = set()
+
+    #Build a set of cells from the expected output.
     #Where each cell is the string between the two "<, >"
     for char in range(0, len(str(context.text))):
         cell = ""
@@ -48,35 +48,29 @@ def step_impl(context):
             while next_char != ">":
                 cell = cell + next_char
                 current += 1
-                next_char = str(context.text)[current]
+                next_char = str(context.text)[current + 1]
             cell = cell + ">"
-            expected.append(cell)
+            expected.add(cell)
 
     #Build a list of actual values found via databaker.
     for cell in context.construction_type:
         temp_actual.append(str(cell))
 
-    #Use that list to make a new list in the same string format as the output expects.
+    #Use that list to make a new set in the same string format as the output expects.
     #No "{, }"
-    for cell in actual:
+    for cell in temp_actual:
         new_cell = cell.replace("{", "")
         new_cell = new_cell.replace("}", "")
-        actual.append(new_cell)
+        actual.add(new_cell)
 
-    #Output == expected if all values are removed from actual list as there is a
-    #directly corresponding value in the expected list.
-    for cell in actual:
-        if cell in expected:
-            actual.remove(cell)
-        
-        else:
-            raise NotImplementedError(u'STEP: Then we confirm that year is equal to')
+    #If set difference produces an empty set, then both sets contain the same items regardless of order.
+    assert len(expected.difference(actual)) == 0, "{} \n\ndoes not match the expected output \n\n {}\n".format(str(actual), str(expected))
 
-    if len(actual) == 0:
-        step = "Success"
-
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm that year is equal to')
+    #if len(expected.difference(actual)) == 0:
+    #    step = "Success"
+    
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm that year is equal to')
 
 
 @given(u'we define construction type as each richtext and non-blank cell.')
@@ -118,8 +112,10 @@ def step_impl(context):
         actual.add(new_cell)
 
     #If set difference produces an empty set, then both sets contain the same items regardless of order.
-    if len(expected.difference(actual)) == 0:
-        step = "Success"
+    assert len(expected.difference(actual)) == 0, "{} \n\ndoes not match the expected output \n\n {}\n".format(str(actual), str(expected))
+
+    #if len(expected.difference(actual)) == 0:
+    #    step = "Success"
     
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm that year is equal to')
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm that year is equal to')

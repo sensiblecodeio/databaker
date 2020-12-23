@@ -24,10 +24,12 @@ def step_impl(context, period_range):
 @then(u'we confirm non-whitespace year contains no whitespace cells.')
 def step_impl(context):
     #raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.')
-    if "'" not in str(context.non_whitespace_year):
-        step = "Success"
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.') 
+    assert "'" not in str(context.non_whitespace_year), "{} \n\ncontains whitespace cells \n\n".format(str(context.non_whitespace_year))
+
+    #if "'" not in str(context.non_whitespace_year):
+    #    step = "Success"
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.') 
 
 #@then(u'we confirm non-whitespace year contains 58 cells.')
 #def step_impl(context):
@@ -36,10 +38,12 @@ def step_impl(context):
 @then(u'we confirm non-whitespace year contains "{non_ws_len}" cells.')
 def step_impl(context, non_ws_len):
     #raise NotImplementedError(u'STEP: Then we confirm non-whitespace year contains 58 cells.')
-    if len(context.non_whitespace_year) == int(non_ws_len):
-        step = "Success"
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.') 
+    assert len(context.non_whitespace_year) == int(non_ws_len), "{} \n\nbag contains unexpected number of cells \n\n {}\n".format(str(context.non_whitespace_year), str(non_ws_len))
+
+    #if len(context.non_whitespace_year) == int(non_ws_len):
+    #    step = "Success"
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.') 
 
 @then(u'we confirm that non-whitespace year without whitespace is equal to')
 def step_impl(context):
@@ -74,10 +78,12 @@ def step_impl(context):
         actual.add(new_cell)
 
     #If set difference produces an empty set, then both sets contain the same items regardless of order.
-    if len(expected.difference(actual)) == 0:
-        step = "Success"
+    assert len(expected.difference(actual)) == 0, "{} \n\ndoes not match the expected output \n\n {}\n".format(str(actual), str(expected))
+
+    #if len(expected.difference(actual)) == 0:
+    #    step = "Success"
     
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm that year is equal to')
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm that year is equal to')
     
     

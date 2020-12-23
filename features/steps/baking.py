@@ -87,9 +87,10 @@ def step_impl(context, expected_csv):
 #Use the x.equals(y) function to test both dataframes are identical.
 @then(u'the two dataframes should be identical.')
 def step_impl(context):
+    assert context.df.equals(context.expected_df), "{} \n\ntransform dataframe is not identcial to expected CSV dataframe \n\n {}\n".format((context.df), (context.expected_df))
 
-    if context.df.equals(context.expected_df):
-        step = "Success"
+    #if context.df.equals(context.expected_df):
+    #    step = "Success"
 
-    else:
-        raise NotImplementedError(u'STEP: Then the two dataframes should be identical.')
+    #else:
+    #    raise NotImplementedError(u'STEP: Then the two dataframes should be identical.')

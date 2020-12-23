@@ -27,4 +27,4 @@ Scenario: Define unit as correct cell.
     Then we confirm that unit is equal to:
     """
     {<P5 '(£Million)'>}
-    """    
+    """

@@ -28,10 +28,12 @@ def step_impl(context):
     expected = context.text
     actual = str(type(context.year))
 
-    if expected == actual:
-        step = "Sucess"
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm year is defined as type cell, equal to')
+    assert expected == actual, "{} \n\ndoes not match the expected type \n\n {}\n".format(str(actual), str(expected))
+
+    #if expected == actual:
+    #    step = "Sucess"
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm year is defined as type cell, equal to')
 
 #@then(u'we confirm that year is equal to')
 #def step_impl(context):
@@ -120,8 +122,10 @@ def step_impl(context):
         actual.add(new_cell)
 
     #If set difference produces an empty set, then both sets contain the same items regardless of order.
-    if len(expected.difference(actual)) == 0:
-        step = "Success"
+    assert len(expected.difference(actual)) == 0, "{} \n\ndoes not match the expected output \n\n {}\n".format(str(actual), str(expected))
+
+    #if len(expected.difference(actual)) == 0:
+    #    step = "Success"
     
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm that year is equal to')
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm that year is equal to')

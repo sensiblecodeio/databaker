@@ -31,10 +31,12 @@ def step_impl(context, last_5_list):
 @then(u'we confirm last 5 years contains the correct number of values: "{last_5_len}"')
 def step_impl(context, last_5_len):
     #raise NotImplementedError(u'STEP: Then we confirm last 5 years contains the correct number of values: "15"')
-    if len(context.last_5_years) == int(last_5_len):
-        step = "Success"
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.')
+    assert len(context.last_5_years) == int(last_5_len), "{} \n\nbag contains unexpected number of cells \n\n {}\n".format(str(len(context.last_5_years)), str(last_5_len))
+
+    #if len(context.last_5_years) == int(last_5_len):
+    #    step = "Success"
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.')
 
 @then(u'we confirm that the last 5 years is equal to')
 def step_impl(context):
@@ -69,8 +71,10 @@ def step_impl(context):
         actual.add(new_cell)
 
     #If set difference produces an empty set, then both sets contain the same items regardless of order.
-    if len(expected.difference(actual)) == 0:
-        step = "Success"
+    assert len(expected.difference(actual)) == 0, "{} \n\ndoes not match the expected output \n\n {}\n".format(str(actual), str(expected))
+
+    #if len(expected.difference(actual)) == 0:
+    #    step = "Success"
     
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm that year is equal to')
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm that year is equal to')

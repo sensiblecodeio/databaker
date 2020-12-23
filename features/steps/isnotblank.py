@@ -22,10 +22,12 @@ def step_impl(context, cell_range):
 @then(u'we confirm year contains no blank cells.')
 def step_impl(context):
     #raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.')
-    if "'" not in str(context.non_blank_year):
-        step = "Success"
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.')    
+    assert "'" not in str(context.non_blank_year), "{} \n\ncontains blank cells \n\n".format(str(context.non_blank_year))
+
+    #if "'" not in str(context.non_blank_year):
+    #    step = "Success"
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm year contains no blank cells.')    
 
 
 @then(u'we confirm that year without blanks is equal to')
@@ -61,10 +63,12 @@ def step_impl(context):
         actual.add(new_cell)
 
     #If set difference produces an empty set, then both sets contain the same items regardless of order.
-    if len(expected.difference(actual)) == 0:
-        step = "Success"
+    assert len(expected.difference(actual)) == 0, "{} \n\ndoes not match the expected output \n\n {}\n".format(str(actual), str(expected))
+
+    #if len(expected.difference(actual)) == 0:
+    #    step = "Success"
     
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm that year is equal to')
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm that year is equal to')
     
     

@@ -30,10 +30,13 @@ def step_impl(context):
     #raise NotImplementedError(u'STEP: Then we confirm by index unit is defined as type cell, equal to')
     expected = context.text
     actual = str(type(context.index_unit))
-    if expected == actual:
-        step = "Success"
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm unit is defined as type cell, equal to')
+
+    assert expected == actual, "{} \n\ndoes not match the expected type \n\n {}\n".format(str(actual), str(expected))
+
+    #if expected == actual:
+    #    step = "Success"
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm unit is defined as type cell, equal to')
 
 
 @then(u'we confirm that by index unit is equal to')
@@ -42,7 +45,9 @@ def step_impl(context):
     expected = str(context.text).strip()
     actual = str(context.index_unit).strip()
 
-    if expected == actual:
-        step = "Success"
-    else:
-        raise NotImplementedError(u'STEP: Then we confirm unit is defined as type cell, equal to')
+    assert expected == actual, "{} \n\ndoes not match the expected output \n\n {}\n".format(str(actual), str(expected))
+
+    #if expected == actual:
+    #    step = "Success"
+    #else:
+    #    raise NotImplementedError(u'STEP: Then we confirm unit is defined as type cell, equal to')
