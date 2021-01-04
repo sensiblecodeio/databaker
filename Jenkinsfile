@@ -1,12 +1,11 @@
 pipeline {
-    agent {
-        label 'master'
-    }
+    agent any
     stages {
         stage('Test') {
             agent {
                 dockerfile {
                     args '-u root:root'
+                    reuseNode true
                 }
             }
             steps {

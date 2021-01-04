@@ -13,6 +13,7 @@ xlutils = "==2.0.0"
 PyHamcrest = "==1.9.0"
 behave = "*"
 databaker = {editable = true, path = "."}
+pandas = "*"
 
 [requires]
 python_version = "3.7"
