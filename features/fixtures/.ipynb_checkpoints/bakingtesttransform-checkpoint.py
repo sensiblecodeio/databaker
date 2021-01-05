@@ -19,31 +19,31 @@ tabs = loadxlstabs("/Users/charlesrendle/databaker-docker/db-test-suite-methods/
 tab = tabs[0]
 
 
-year = tab.excel_ref("A4")
+year = tab.excel_ref("A13")
 
-month = tab.excel_ref("A6:A25").is_not_blank()
+month = tab.excel_ref("B6:B25").is_not_blank()
 
-day = tab.excel_ref("B6:B25")
+day = tab.excel_ref("C6:C25")
 
-top_dims = tab.excel_ref("C5:H5")
+top_dims = tab.excel_ref("D5:I5")
 
-under_dim = tab.excel_ref("C4")
+over_dim = tab.excel_ref("D4")
 
-bottom_dims = tab.excel_ref("C26:H26")
+bottom_dims = tab.excel_ref("D26:I26")
 
-under_dim = tab.excel_ref("C27")
+under_dim = tab.excel_ref("D27")
 
-county = tab.excel_ref("I6:I25")
+county = tab.excel_ref("J6:J25")
 
-country = tab.excel_ref("J6:J25").is_not_blank()
+country = tab.excel_ref("K6:K25").is_not_blank()
 
-unit = tab.excel_ref("J4")
+unit = tab.excel_ref("M13")
 
-observations = tab.excel_ref("C6:H25")
+observations = tab.excel_ref("D6:I25")
 
 
 dimensions = [
-    HDim(year, "Year", CLOSEST, ABOVE),
+    HDim(year, "Year", CLOSEST, LEFT),
     HDim(month, "Month", CLOSEST, ABOVE),
     HDim(day, "Day", DIRECTLY, LEFT),
     HDim(top_dims, "Top Dims", DIRECTLY, ABOVE),
@@ -52,11 +52,19 @@ dimensions = [
     HDim(under_dim, "Under Dim", CLOSEST, BELOW),
     HDim(county, "County", DIRECTLY, RIGHT),
     HDim(country, "Country", CLOSEST, ABOVE),
-    HDim(unit, "Unit", CLOSEST, BELOW)
+    HDim(unit, "Unit", CLOSEST, RIGHT)
 ]
 
 tidy_sheet = ConversionSegment(tab, dimensions, observations)
-savepreviewhtml(tidy_sheet)
+#savepreviewhtml(tidy_sheet)
+
+df = tidy_sheet.topandas()
+
+df.to_csv("baking_test.csv", index = False)
+
+
 # -
+
+
 
 

@@ -35,13 +35,13 @@ def step_impl(context, thing_wanted):
         for line in transform_lines[1:]:
             f.write(line+"\n")
 
-    from temp_transform import transform_xlsx
-    returned_from_transform = transform_xlsx()
+    from temp_transform import transform_xls
+    returned_from_transform = transform_xls()
     context.databaker_outputs = {thing_wanted: returned_from_transform}
 
 @then(u'the output "{thing_wanted}" should be equal to')
 def step_impl(context, thing_wanted):
-    
+
     expected_output = context.text
     #actual_output = context.databaker_outputs[thing_wanted][0].name
     actual_output = context.tabs[2].name

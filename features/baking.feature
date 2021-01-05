@@ -9,7 +9,7 @@ single observation per row.
 
     And get "some_name" from the transform:
     """
-    def transform_xlsx():
+    def transform_xls():
         tabs = [x for x in tabs if x.name.strip() == "Sheet1"]
         return tabs
     """
