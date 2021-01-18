@@ -5,11 +5,11 @@ single observation per row.
     per row with the correct dimension values.
 
     Scenario: Complete the databaking process - produce a correct dataframe.
-    Given we load an xls file named "bakingtestdataset.xlsx"
+    Given we load an xls file named "bakingtestdataset.xls"
 
     And get "some_name" from the transform:
     """
-    def transform_xls():
+    def transform_xlsx():
         tabs = [x for x in tabs if x.name.strip() == "Sheet1"]
         return tabs
     """

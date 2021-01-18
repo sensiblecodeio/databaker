@@ -3,7 +3,7 @@ Feature: Define dimension using bag.is/is_not_richtext()
     non-richtext values from a bag of cells.
 
     Scenario: Define construction type by non-richtext values in row "6"
-    Given we load an xls file named "bulletindataset2v2.xlsx"
+    Given we load an xls file named "bulletindataset2v2.xls"
     And get "some_name" from the transform:
     """
     def transform_xlsx():
@@ -15,7 +15,7 @@ Feature: Define dimension using bag.is/is_not_richtext()
     Then we confirm construction type contains the correct number of values: "7"
 
 Scenario: Define construction type as the correct cells.
-    Given we load an xls file named "bulletindataset2v2.xlsx"
+    Given we load an xls file named "bulletindataset2v2.xls"
     And get "some_name" from the transform:
     """
     def transform_xlsx():
@@ -30,7 +30,7 @@ Scenario: Define construction type as the correct cells.
     """
 
 Scenario: Define construction type by richtext values in row "6"
-    Given we load an xls file named "bulletindataset2v2.xlsx"
+    Given we load an xls file named "bulletindataset2v2.xls"
     And get "some_name" from the transform:
     """
     def transform_xlsx():

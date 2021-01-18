@@ -3,7 +3,7 @@ Feature: Define dimension using bag.one_of()
     which match specific set values.
 
     Scenario: Define last 5 years by whether the value in the year column matches a value in a list containing strings of the last 5 years.
-    Given we load an xls file named "bulletindataset2v2.xlsx"
+    Given we load an xls file named "bulletindataset2v2.xls"
     And get "some_name" from the transform:
     """
     def transform_xlsx():
@@ -15,7 +15,7 @@ Feature: Define dimension using bag.one_of()
     Then we confirm last 5 years contains the correct number of values: "15"
 
 Scenario: Define the last 5 years as correct the cells.
-    Given we load an xls file named "bulletindataset2v2.xlsx"
+    Given we load an xls file named "bulletindataset2v2.xls"
     And get "some_name" from the transform:
     """
     def transform_xlsx():

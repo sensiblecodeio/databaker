@@ -2,7 +2,7 @@ Feature: Define a dimension as a value from a single cell reference.
   I want to be able to define a dimension as a value from a single cell reference which stays constant for all observations.
 
   Scenario: Define unit from single cell reference.
-    Given we load an xls file named "bulletindataset2v2.xlsx"
+    Given we load an xls file named "bulletindataset2v2.xls"
     And get "some_name" from the transform:
     """
     def transform_xlsx():
@@ -16,7 +16,7 @@ Feature: Define a dimension as a value from a single cell reference.
     """
 
 Scenario: Define unit as correct cell.
-    Given we load an xls file named "bulletindataset2v2.xlsx"
+    Given we load an xls file named "bulletindataset2v2.xls"
     And get "some_name" from the transform:
     """
     def transform_xlsx():

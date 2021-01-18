@@ -3,7 +3,7 @@ Feature: Define a dimension as a range of values from a cell reference but not i
   ignore any whitespace cells that lie within that range.
 
   Scenario: Define non-whitespace year from a range of cell references ignoring any whitespace cells.
-    Given we load an xls file named "bulletindataset2v2.xlsx"
+    Given we load an xls file named "bulletindataset2v2.xls"
     And get "some_name" from the transform:
     """
     def transform_xlsx():
@@ -15,7 +15,7 @@ Feature: Define a dimension as a range of values from a cell reference but not i
     And we confirm non-whitespace year contains "58" cells.
 
 Scenario: Define non-whitespace year as correct cells.
-    Given we load an xls file named "bulletindataset2v2.xlsx"
+    Given we load an xls file named "bulletindataset2v2.xls"
     And get "some_name" from the transform:
     """
     def transform_xlsx():

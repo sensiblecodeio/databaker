@@ -3,7 +3,7 @@ Feature: Define a dimension by accessing the element at index n in a bag of cell
     within the bag, I want to be able to access that value by its index in the bag.
 
     Scenario: Define by index unit from its index in the row 5 bag.
-    Given we load an xls file named "bulletindataset2v2.xlsx"
+    Given we load an xls file named "bulletindataset2v2.xls"
     And get "some_name" from the transform:
     """
     def transform_xlsx():
@@ -18,7 +18,7 @@ Feature: Define a dimension by accessing the element at index n in a bag of cell
     """
 
 Scenario: Define by index unit as correct cell.
-    Given we load an xls file named "bulletindataset2v2.xlsx"
+    Given we load an xls file named "bulletindataset2v2.xls"
     And get "some_name" from the transform:
     """
     def transform_xlsx():

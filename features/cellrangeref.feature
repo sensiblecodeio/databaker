@@ -2,7 +2,7 @@ Feature: Define a dimension as a range of values from a cell reference.
   I want to be able to define a dimension as a range of values from a cell reference.
 
   Scenario: Define year from a range of cell references.
-    Given we load an xls file named "bulletindataset2v2.xlsx"
+    Given we load an xls file named "bulletindataset2v2.xls"
     And get "some_name" from the transform:
     """
     def transform_xlsx():
@@ -16,7 +16,7 @@ Feature: Define a dimension as a range of values from a cell reference.
     """
 
 Scenario: Define year as correct cells.
-    Given we load an xls file named "bulletindataset2v2.xlsx"
+    Given we load an xls file named "bulletindataset2v2.xls"
     And get "some_name" from the transform:
     """
     def transform_xlsx()):

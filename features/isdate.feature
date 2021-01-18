@@ -3,7 +3,7 @@ Feature: Define dimension using bag.is_date()
     in a bag.
 
     Scenario: Define the year values by identifying them as dates.
-    Given we load an xls file named "bulletindataset2v2.xlsx"
+    Given we load an xls file named "bulletindataset2v2.xls"
     And get "some_name" from the transform:
     """
     def transform_xlsx():
@@ -14,7 +14,7 @@ Feature: Define dimension using bag.is_date()
     Then we confirm the year values contains the correct number of values: "58"
 
 Scenario: Define the date years as the correct the cells.
-    Given we load an xls file named "bulletindataset2v2.xlsx"
+    Given we load an xls file named "bulletindataset2v2.xls"
     And get "some_name" from the transform:
     """
     def transform_xlsx():

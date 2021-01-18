@@ -3,7 +3,7 @@ Feature: Define a dimension as a range of values from a cell reference but not i
   ignore any blank cells that lie within that range.
 
   Scenario: Define year from a range of cell references ignoring any blank cells.
-    Given we load an xls file named "bulletindataset2v2.xlsx"
+    Given we load an xls file named "bulletindataset2v2.xls"
     And get "some_name" from the transform:
     """
     def transform_xlsx():
@@ -14,7 +14,7 @@ Feature: Define a dimension as a range of values from a cell reference but not i
     Then we confirm year contains no blank cells.
 
 Scenario: Define year as correct cells.
-    Given we load an xls file named "bulletindataset2v2.xlsx"
+    Given we load an xls file named "bulletindataset2v2.xls"
     And get "some_name" from the transform:
     """
     def transform_xlsx():
