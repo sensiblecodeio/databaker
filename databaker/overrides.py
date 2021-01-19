@@ -3,6 +3,7 @@ Patches xypath and messytables.
 """
 
 import re
+re._pattern_type = re.Pattern
 import datetime
 import warnings
 
