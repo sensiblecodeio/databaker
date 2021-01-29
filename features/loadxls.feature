@@ -1,7 +1,7 @@
 Feature: Load xls files
   I want to load xls files into databaker
 
-  Scenario: Load xlsx file 1
+  Scenario: Load xls file 1
     Given we load an xls file named "2018internationaltradeinservicesdatatables.xls"
     Then we confirm the names of the loaded tabs are equal to:
     """
@@ -12,17 +12,10 @@ Feature: Load xls files
 
   Scenario: Select a tab just by tab name
     Given we load an xls file named "2018internationaltradeinservicesdatatables.xls"
-    And get "some_name" from the transform:
-    """
-    def transform_xls():
-        tabs = [x for x in tabs if x.name.strip() == "1. NUTS1, industry"]
-        #return tabs[0].name
-        return tabs
-    """
+
+    And select the sheet "1. NUTS1, industry"
+
     Then the output "some_name" should be equal to:
     """
     1. NUTS1, industry
     """ 
-
-    # Repeat for evertyihg we can think of, cell selections, conversionSegments, dataframes etc
-    # the above pattern should work universally (with a bit of tweaking)

@@ -7,16 +7,35 @@ single observation per row.
     Scenario: Complete the databaking process - produce a correct dataframe.
     Given we load an xls file named "bakingtestdataset.xls"
 
-    And get "some_name" from the transform:
-    """
-    def transform_xlsx():
-        tabs = [x for x in tabs if x.name.strip() == "Sheet1"]
-        return tabs
-    """
+    And select the sheet "Sheet1"
 
-    And we define the dimensions and observations:
+    And we define cell selections as
+      | key             | value                                   |  
+      | year            | tab.excel_ref("A13")                    |
+      | month           | tab.excel_ref("B6:B25").is_not_blank()  |
+      | day             | tab.excel_ref("C6:C25")                 |
+      | top_dims        | tab.excel_ref("D5:I5")                  |
+      | over_dim        | tab.excel_ref("D4")                     |
+      | bottom_dims     | tab.excel_ref("D26:I26")                |
+      | under_dim       | tab.excel_ref("D27")                    |
+      | county          | tab.excel_ref("J6:J25")                 |
+      | country         | tab.excel_ref("K6:K25").is_not_blank()  |
+      | unit            | tab.excel_ref("M13")                    |
+      | observations    | tab.excel_ref("D6:I25")                 |
 
-    And we create a list of dimensions (HDim objects) with their relation to observations.
+    And we define the dimensions as
+    """
+    HDim(year, "Year", CLOSEST, LEFT)
+    HDim(month, "Month", CLOSEST, ABOVE)
+    HDim(day, "Day", DIRECTLY, LEFT)
+    HDim(top_dims, "Top Dims", DIRECTLY, ABOVE)
+    HDim(over_dim, "Over Dim", CLOSEST, ABOVE)
+    HDim(bottom_dims, "Bottom Dims", DIRECTLY, BELOW)
+    HDim(under_dim, "Under Dim", CLOSEST, BELOW)
+    HDim(county, "County", DIRECTLY, RIGHT)
+    HDim(country, "Country", CLOSEST, ABOVE)
+    HDim(unit, "Unit", CLOSEST, RIGHT)
+    """
 
     And we create a ConversionSegment object.
 
