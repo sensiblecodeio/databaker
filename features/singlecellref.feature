@@ -3,27 +3,14 @@ Feature: Define a dimension as a value from a single cell reference.
 
   Scenario: Define unit from single cell reference.
     Given we load an xls file named "bulletindataset2v2.xls"
-
     And select the sheet "Table 2a"
-
     And we define cell selections as
       | key             | value                                   |  
       | unit            | tab.excel_ref("P5")                     |
-
     Then we confirm the cell selection is the correct type.
     """
     <class 'xypath.xypath.Bag'>
     """
-
-Scenario: Define unit as correct cell.
-    Given we load an xls file named "bulletindataset2v2.xls"
-
-    And select the sheet "Table 2a"
-
-    And we define cell selections as
-      | key             | value                                   |  
-      | unit            | tab.excel_ref("P5")                     |
-      
     Then we confirm the cell selection is equal to:
     """
     {<P5 '(£Million)'>}
