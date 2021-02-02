@@ -18,8 +18,8 @@ Scenario: Define construction type by richtext values in row "6"
     Given we load an xls file named "bulletindataset2v2.xls"
     And select the sheet "Table 2a"
     And we define cell selections as
-      | key                     |value                                                         |  
-      | construction_type       | tab.excel_ref("A6"+":P6").is_richtext().is_not_blank()       |
+      | key                           |value                                                         |  
+      | blank_construction_type       | tab.excel_ref("A6"+":P6").is_richtext().is_not_blank()       |
     Then we confirm the cell selection contains "0" cells.
     And we confirm the cell selection is equal to:
     """

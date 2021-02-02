@@ -6,7 +6,7 @@ Feature: Define a dimension as a range of values from a cell reference.
     And select the sheet "Table 2a"
     And we define cell selections as
       | key             | value                                   |  
-      | unit            | tab.excel_ref("A11:A250")               |
+      | year            | tab.excel_ref("A11:A250")               |
     Then we confirm the cell selection is the correct type.
     """
     <class 'xypath.xypath.Bag'>

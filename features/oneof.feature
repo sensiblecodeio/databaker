@@ -7,7 +7,7 @@ Feature: Define dimension using bag.one_of()
         And select the sheet "Table 2a"
         And we define cell selections as
         | key                     |value                                                                                |  
-        | construction_type       | tab.excel_ref("A").one_of(["2015.0", "2016.0", "2017.0", "2018.0", "2019.0"])       |
+        | last_5_years            | tab.excel_ref("A").one_of(["2015.0", "2016.0", "2017.0", "2018.0", "2019.0"])       |
         Then we confirm the cell selection contains "15" cells.
         And we confirm the cell selection is equal to:
         """

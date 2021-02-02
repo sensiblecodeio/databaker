@@ -172,11 +172,11 @@ def step_impl(context, num_of_cells):
     assert len(cell_builder(str([str(v) for v in context.selections.values()][0]))) == int(num_of_cells), "{} \n\nbag contains unexpected number of cells \n\n {}\n".format(len(cell_builder(str([str(v) for v in context.selections.values()][0]))), str(num_of_cells))
 
 
-@then(u'we confirm year contains no blank cells.')
+@then(u'we confirm the cell selection contains no blank cells.')
 def step_impl(context):
     assert "''" not in str(cell_builder(str([str(v) for v in context.selections.values()][0]))), "{} \n\ncontains blank cells \n\n".format(str(cell_builder(str([str(v) for v in context.selections.values()][0]))))
 
 
-@then(u'we confirm year contains no value storing cells.')
+@then(u'we confirm the cell selection contains no value storing cells.')
 def step_impl(context):
     assert "." not in str(cell_builder(str([str(v) for v in context.selections.values()][0]))), "{} \n\ncontains blank cells \n\n".format(str(cell_builder(str([str(v) for v in context.selections.values()][0]))))

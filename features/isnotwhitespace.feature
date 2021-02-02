@@ -7,8 +7,8 @@ Feature: Define a dimension as a range of values from a cell reference but not i
     And select the sheet "Table 2a"
     And we define cell selections as
       | key             | value                                             |  
-      | unit            | tab.excel_ref("A11:A250").is_not_whitespace()     |
-    Then we confirm year contains no blank cells.
+      | year            | tab.excel_ref("A11:A250").is_not_whitespace()     |
+    Then we confirm the cell selection contains no blank cells.
     And we confirm the cell selection contains "58" cells.
     And we confirm the cell selection is equal to:
     """

@@ -6,9 +6,9 @@ Feature: Define a dimension as a range of values from a cell reference but only 
     Given we load an xls file named "bulletindataset2v2.xls"
     And select the sheet "Table 2a"
     And we define cell selections as
-      | key             | value                                         |  
-      | unit            | tab.excel_ref("A11:A250").is_whitespace()     |
-    Then we confirm year contains no value storing cells.
+      | key                        | value                                         |  
+      | whitespace_year            | tab.excel_ref("A11:A250").is_whitespace()     |
+    Then we confirm the cell selection contains no value storing cells.
     And we confirm the cell selection contains "182" cells.
     And we confirm the cell selection is equal to:
     """
