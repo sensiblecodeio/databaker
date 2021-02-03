@@ -39,9 +39,9 @@ class HDim:
 
         # For every dimension, create an appropriate lookup engine
         if strict: 
-            self.engine = DirectlyEngine(hbagset, direction)
+            self.engine = DirectlyEngine(hbagset, direction, label)
         elif not strict:
-            self.engine = ClosestEngine(hbagset, direction)
+            self.engine = ClosestEngine(hbagset, direction, label)
         else:
             raise ValueError("Aborting. Unable to find appropriate lookup engine.")
             

@@ -10,7 +10,7 @@ class BoundaryError(Exception):
 
 class ClosestEngine(object):
 
-    def __init__(self, cell_bag, direction):
+    def __init__(self, cell_bag, direction, label):
         """
         Creates a lookup engine for dimensions defined with the CLOSEST relationship.
 
@@ -43,6 +43,7 @@ class ClosestEngine(object):
         """
 
         self.direction = direction
+        self.label = label
 
         break_points = {}
         for cell in cell_bag:
@@ -61,37 +62,59 @@ class ClosestEngine(object):
 
         ranges = {}
 
-        if direction in [ABOVE, LEFT]:
-            x = 0
-            for i in range(0, len(ordered_break_point_list)-1):
-                ranges.update({x:
-                    {"lowest_offset": ordered_break_point_list.copy()[i],
-                    "highest_offset": ordered_break_point_list.copy()[i+1]-1,
-                    "dimension_cell": break_points[ordered_break_point_list.copy()[i]]}
-                    })
-                x+=1
-                ranges.update({x:
-                                {"lowest_offset": ordered_break_point_list.copy()[-1],
-                                "highest_offset": 99999999999,
-                                "dimension_cell": break_points[ordered_break_point_list.copy()[-1]]}
-                            })
-            self.out_of_bounds = min([x["lowest_offset"] for x in ranges.values()])
-        else:
-            x = 0
-            ranges.update({0:
-                            {"lowest_offset": 0,
-                            "highest_offset": ordered_break_point_list.copy()[0],
+        # TODO - singleton selections
+
+        try:
+            if direction in [ABOVE, LEFT]:
+                x = 0
+
+                # If it's a single cell selection, we only need a single range
+                if len(ordered_break_point_list) == 1:
+                    ranges.update({0:
+                            {"lowest_offset": ordered_break_point_list.copy()[0],
+                            "highest_offset": 99999999999,
                             "dimension_cell": break_points[ordered_break_point_list.copy()[0]]}
+                            })
+                else:
+                    # If there's many, iterate to create the ranged
+                    for i in range(0, len(ordered_break_point_list)-1):
+                        ranges.update({x:
+                            {"lowest_offset": ordered_break_point_list.copy()[i],
+                            "highest_offset": ordered_break_point_list.copy()[i+1]-1,
+                            "dimension_cell": break_points[ordered_break_point_list.copy()[i]]}
+                            })
+                        x+=1
+                        ranges.update({x:
+                                        {"lowest_offset": ordered_break_point_list.copy()[-1],
+                                        "highest_offset": 99999999999,
+                                        "dimension_cell": break_points[ordered_break_point_list.copy()[-1]]}
+                                    })
+                self.out_of_bounds = min([x["lowest_offset"] for x in ranges.values()])
+            else:
+                x = 0
+                ranges.update({0:
+                                {"lowest_offset": 0,
+                                "highest_offset": ordered_break_point_list.copy()[0],
+                                "dimension_cell": break_points[ordered_break_point_list.copy()[0]]}
+                            })
+                x = 1
+                for i in range(1, len(ordered_break_point_list)):
+                    ranges.update({x:
+                        {"lowest_offset": ordered_break_point_list.copy()[i-1]+1,
+                        "highest_offset": ordered_break_point_list.copy()[i],
+                        "dimension_cell": break_points[ordered_break_point_list.copy()[i]]}
                         })
-            x = 1
-            for i in range(1, len(ordered_break_point_list)):
-                ranges.update({x:
-                    {"lowest_offset": ordered_break_point_list.copy()[i-1]+1,
-                    "highest_offset": ordered_break_point_list.copy()[i],
-                    "dimension_cell": break_points[ordered_break_point_list.copy()[i]]}
-                    })
-                x+=1 
-            self.out_of_bounds = max([x["highest_offset"] for x in ranges.values()])          
+                    x+=1 
+                self.out_of_bounds = max([x["highest_offset"] for x in ranges.values()])
+        
+        except Exception as err:
+            report = f"""An issue was encountered while generating cell ranges for the CLOSEST {DIRECTION_DICT[self.direction]} looup engine for {self.label}.\n`
+
+Dimensions selection was: \n{cell_bag}\n
+Direction was: {DIRECTION_DICT[direction]}
+Break points": {ordered_break_point_list}
+            """
+            raise ValueError(report) from err        
 
         self.ranges = ranges
         self.range_count = len(ranges)   # do this here, so we only do it once
@@ -111,7 +134,7 @@ class ClosestEngine(object):
         else:
             index = int(index /2)
             if index < 0 : index = 0
-        self.found_cell = self.lookup(cell, index=index)
+        return self.lookup(cell, index=index)
 
     def _bump_as_too_high(self, index, cell):
         "move the index down as we're looking too high"
@@ -121,7 +144,7 @@ class ClosestEngine(object):
         else:
             index = int(index*2)
             if index > self.range_count: index = self.range_count
-        self.found_cell = self.lookup(cell, index=index)
+        return self.lookup(cell, index=index)
 
     # recursive bi-section search of ranges
     def lookup(self, cell, index=None):
@@ -147,38 +170,46 @@ class ClosestEngine(object):
 
         if self.direction == ABOVE:
             if cell.y < r["lowest_offset"]:
-                self._bump_as_too_low(index, cell)
+                return self._bump_as_too_low(index, cell)
             elif cell.y > r["highest_offset"]:
-                self._bump_as_too_high(index, cell)
+                return self._bump_as_too_high(index, cell)
+            else:
+                found_it = True
 
         if self.direction == BELOW:
             if cell.y > r["highest_offset"]:
-                self._bump_as_too_high(index, cell)
+                return self._bump_as_too_high(index, cell)
             elif cell.y < r["lowest_offset"]:
-                self._bump_as_too_low(index, cell)
+                return self._bump_as_too_low(index, cell)
+            else:
+                found_it = True
 
         if self.direction == LEFT:
             if cell.x < r["lowest_offset"]:
-                self._bump_as_too_low(index, cell)
+                return self._bump_as_too_low(index, cell)
             elif cell.x > r["highest_offset"]:
-                self._bump_as_too_high(index, cell)
+                return self._bump_as_too_high(index, cell)
+            else:
+                found_it = True
 
         if self.direction == RIGHT:
             if cell.x > r["highest_offset"]:
-                self._bump_as_too_high(index, cell)
+                return self._bump_as_too_high(index, cell)
             elif cell.x < r["lowest_offset"]:
-                self._bump_as_too_low(index, cell)
+                return self._bump_as_too_low(index, cell)
+            else:
+                found_it = True
 
-        # Found it !!
-        # cells are implicitly selected right->down-a-row->right as you look at a spreadsheet
-        # so we'll cache this index as there's a decent chance the next obs lookup is in the same range
-        self.start_index = index
+        if found_it:
+            # cells are implicitly selected right->down-a-row->right as you look at a spreadsheet
+            # so we'll cache this index as there's a decent chance the next obs lookup is in the same range
+            self.start_index = index
 
-        # this right-then-down-then-right pattern also means that (often, not guaranteed),
-        # if the next obs isn't in the last range checked, there's a decent chance it's in a
-        # neighbouring range, so we'll "bump" the index once in the relevant direction on a
-        # first miss.
-        self.bumped = False
+            # this right-then-down-then-right pattern also means that (often, not guaranteed),
+            # if the next obs isn't in the last range checked, there's a decent chance it's in a
+            # neighbouring range, so we'll "bump" the index once in the relevant direction on a
+            # first miss.
+            self.bumped = False
+            self.index = None
 
-        self.index = None
-        return r["dimension_cell"]
+            return r["dimension_cell"]

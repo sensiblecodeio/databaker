@@ -5,7 +5,7 @@ from databaker.constants import ABOVE, BELOW, LEFT, RIGHT, DIRECTION_DICT
 
 class DirectlyEngine(object):
 
-    def __init__(self, cell_bag, DIRECTION):
+    def __init__(self, cell_bag, DIRECTION, label):
         """
         We're going to write the cell_bag into a tiered dictionary (you
         could use a flat dictionary, but this'll be quicker).
@@ -28,6 +28,7 @@ class DirectlyEngine(object):
         cell for 100, 10000 and 100000.
         """
         self.direction = DIRECTION
+        self.label = label
 
         self.tiered_dict = {}
 
