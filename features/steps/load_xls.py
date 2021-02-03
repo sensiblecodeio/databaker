@@ -117,7 +117,10 @@ def step_impl(context, expected_csv):
 #Use the x.equals(y) function to test both dataframes are identical.
 @then(u'the two dataframes should be identical.')
 def step_impl(context):
-    assert context.df.equals(context.expected_df), "\n{} \n\ntransform dataframe is not identcial to expected CSV dataframe \n\n {}\n".format((context.df), (context.expected_df))
+    # Note - forcing to str as under the hood precision differences n float types make this unreliable otherwise
+    df1 = context.df.astype(str)
+    df2 = context.expected_df.astype(str)
+    assert df1.equals(df2), "\n{} \n\ntransform dataframe is not identcial to expected CSV dataframe \n\n {}\n".format((df1), (df2))
 
 
 @then(u'we confirm the cell selection is the correct type.')
@@ -126,8 +129,7 @@ def step_impl(context):
     types = [type(k) for k in context.selections.values()]
     actual = str(types[0])
 
-
-    assert expected.astype == actual, "{} \n\ndoes not match the expected type \n\n {}\n".format(str(actual), str(expected))
+    assert expected == actual, "{} \n\ndoes not match the expected type \n\n {}\n".format(str(actual), str(expected))
 
 
 @then(u'we confirm the cell selection is equal to')
