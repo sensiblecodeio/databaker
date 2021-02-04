@@ -36,13 +36,11 @@ class HDim:
     "Dimension object which defines the lookup between an observation cell and a bag of header cells"
     def __init__(self, hbagset, label, strict=None, direction=None, cellvalueoverride=None, constant=False):
         self.label = label
-        self.name = label
-        self.constant = constant
-        self.strict = strict
-        self.direction = direction
+        self.hbagset = hbagset
 
         # For every dimension, create an appropriate lookup engine
         if constant:
+            assert direction is None and strict is None
             self.engine = ConstantEngine(cellvalueoverride)
         elif strict:
             self.engine = DirectlyEngine(hbagset, direction, label, cellvalueoverride)
@@ -53,16 +51,10 @@ class HDim:
             
         self.cellvalueoverride = cellvalueoverride or {} # do not put {} into default value otherwise there is only one static one for everything
         assert not isinstance(hbagset, str), "Use HDimConst for a single value dimension"
-        self.hbagset = hbagset
         self.bhbagsetCopied = False
         
-        if self.hbagset is None:
-            # Sanity checks for HDimConst
-            assert direction is None and strict is None
-            assert len(cellvalueoverride) == 1 and None in cellvalueoverride, "single value type should have cellvalueoverride={None:defaultvalue}"
-            return
-        else:
-            # Sanity checks for HDim
+        # Sanity checks for HDim
+        if self.hbagset is not None:
             assert direction is not None and strict is not None
             assert isinstance(self.hbagset, xypath.xypath.Bag), "dimension should be made from xypath.Bag type, not %s" % type(self.hbagset)
 
