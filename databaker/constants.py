@@ -16,7 +16,7 @@ BELOW = DOWN
 DIRECTLY = True
 CLOSEST = False
 
-# convenienve function for logging out directions
+# convenience function for logging out directions
 DIRECTION_DICT = {
                 (0, -1): "ABOVE",
                 (1, 0): "RIGHT",

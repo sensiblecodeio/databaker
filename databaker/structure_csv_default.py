@@ -28,9 +28,6 @@ headeradditionals = [
 
 conversionsegmentnumbercolumn = "empty11"
 
-# Do we want to create a TIMEUNIT dimension using a TIME dimension - ONS specific
-SH_Create_ONS_time = True
-
 # Do you want to split the OBS, placing non float data into your next column.
 SH_Split_OBS = "DATAMARKER"  # see value set to int value below
 
