@@ -212,4 +212,4 @@ Break points": {ordered_break_point_list}
             self.bumped = False
             self.index = None
 
-            return r["dimension_cell"]
+            return r["dimension_cell"], r["dimension_cell"].value

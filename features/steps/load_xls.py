@@ -81,14 +81,15 @@ def step_impl(context):
     context.dimensions = []
     for ds in dimension_statments:
 
-        # Modify the statment to get the selection from context, so
-        # HDim(year, "Year", CLOSEST, LEFT)
-        # becomes
-        # HDim(context.selections["year"], "Year", CLOSEST, LEFT)
-        ds_tokens = ds.split(",")
-        ds0 = ds_tokens[0]
-        ds0 = ds0.split("(")[0]+f'(context.selections[\'{ds0.split("(")[1]}\'],'
-        ds = ds0 + ",".join(ds_tokens[1:])
+        if "HDimConst" not in ds:
+            # Modify the statment to get the selection from context, so
+            # HDim(year, "Year", CLOSEST, LEFT)
+            # becomes
+            # HDim(context.selections["year"], "Year", CLOSEST, LEFT)
+            ds_tokens = ds.split(",")
+            ds0 = ds_tokens[0]
+            ds0 = ds0.split("(")[0]+f'(context.selections[\'{ds0.split("(")[1]}\'],'
+            ds = ds0 + ",".join(ds_tokens[1:])
         context.dimensions.append(eval(ds))
 
 #We use the list to instanciate a conversion segment object.

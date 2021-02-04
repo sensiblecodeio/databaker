@@ -26,6 +26,10 @@ class DirectlyEngine(object):
         This makes lookups explicit where you want to (for example) get the
         dimension cell for .y position 10, when you also have a dimension
         cell for 100, 10000 and 100000.
+
+        EXAMPLE:
+        You want to know whats directly left from cell C167 ?
+        it'll be in tiered_dict[1][6][[7]["get"]
         """
         self.direction = DIRECTION
         self.label = label
@@ -128,10 +132,10 @@ class DirectlyEngine(object):
                                             " x:{}, y{}.".format(self.direction,cell.x, cell.y))
 
                     if self.last_cell_found is not None:
-                        return self.last_cell_found
+                        return self.last_cell_found, self.last_cell_found.value
 
-        # It's not neat but output the engine contents before the message (in case there's thousands
-        # of entries which buries the message)
+        # It's not neat but upon hitting an exception output the engine contents before the message (in case
+        # there's thousands of entries which'll bury the message)
         raise ValueError("\n{}\nLookup Engine Failure for direction: {} and cell {} with xy {}.\n" 
                         .format(pp.pformat(self.tiered_dict), DIRECTION_DICT[self.direction], 
                         cell, {cell.x, cell.y}))

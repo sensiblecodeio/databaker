@@ -23,7 +23,7 @@ single observation per row.
         And we define the dimensions as
         """
         HDim(year, "Year", CLOSEST, LEFT)
-        HDim(month, "Month", CLOSEST, ABOVE)
+        HDim(month, "Month", CLOSEST, ABOVE, cellvalueoverride={"July":"Cheese"})
         HDim(day, "Day", DIRECTLY, LEFT)
         HDim(top_dims, "Top Dims", DIRECTLY, ABOVE)
         HDim(over_dim, "Over Dim", CLOSEST, ABOVE)
@@ -32,6 +32,7 @@ single observation per row.
         HDim(county, "County", DIRECTLY, RIGHT)
         HDim(country, "Country", CLOSEST, ABOVE)
         HDim(unit, "Unit", CLOSEST, RIGHT)
+        HDimConst("Constant", "Thing")
         """
         And we create a ConversionSegment object.
         And we convert the ConversionSegment object into a pandas dataframe.

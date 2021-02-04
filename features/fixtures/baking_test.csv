@@ -1,121 +1,121 @@
-OBS,Year,Month,Day,Top Dims,Over Dim,Bottom Dims,Under Dim,County,Country,Unit
-1.0,Year,Jan,1.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Eng County 1,England,Unit
-2.0,Year,Jan,1.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Eng County 1,England,Unit
-3.0,Year,Jan,1.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Eng County 1,England,Unit
-4.0,Year,Jan,1.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Eng County 1,England,Unit
-5.0,Year,Jan,1.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Eng County 1,England,Unit
-6.0,Year,Jan,1.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Eng County 1,England,Unit
-7.0,Year,Jan,8.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Eng County 2,England,Unit
-8.0,Year,Jan,8.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Eng County 2,England,Unit
-9.0,Year,Jan,8.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Eng County 2,England,Unit
-10.0,Year,Jan,8.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Eng County 2,England,Unit
-11.0,Year,Jan,8.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Eng County 2,England,Unit
-12.0,Year,Jan,8.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Eng County 2,England,Unit
-13.0,Year,Jan,15.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Eng County 3,England,Unit
-14.0,Year,Jan,15.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Eng County 3,England,Unit
-15.0,Year,Jan,15.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Eng County 3,England,Unit
-16.0,Year,Jan,15.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Eng County 3,England,Unit
-17.0,Year,Jan,15.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Eng County 3,England,Unit
-18.0,Year,Jan,15.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Eng County 3,England,Unit
-19.0,Year,Jan,22.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Eng County 4,England,Unit
-20.0,Year,Jan,22.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Eng County 4,England,Unit
-21.0,Year,Jan,22.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Eng County 4,England,Unit
-22.0,Year,Jan,22.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Eng County 4,England,Unit
-23.0,Year,Jan,22.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Eng County 4,England,Unit
-24.0,Year,Jan,22.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Eng County 4,England,Unit
-25.0,Year,Jan,29.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Eng County 5,England,Unit
-26.0,Year,Jan,29.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Eng County 5,England,Unit
-27.0,Year,Jan,29.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Eng County 5,England,Unit
-28.0,Year,Jan,29.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Eng County 5,England,Unit
-29.0,Year,Jan,29.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Eng County 5,England,Unit
-30.0,Year,Jan,29.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Eng County 5,England,Unit
-31.0,Year,Apr,1.0,Dim 1,Another Dim,Dim 7,Another Dim 2,NI County 1,Northern Ireland,Unit
-32.0,Year,Apr,1.0,Dim 2,Another Dim,Dim 8,Another Dim 2,NI County 1,Northern Ireland,Unit
-33.0,Year,Apr,1.0,Dim 3,Another Dim,Dim 9,Another Dim 2,NI County 1,Northern Ireland,Unit
-34.0,Year,Apr,1.0,Dim 4,Another Dim,Dim 10,Another Dim 2,NI County 1,Northern Ireland,Unit
-35.0,Year,Apr,1.0,Dim 5,Another Dim,Dim 11,Another Dim 2,NI County 1,Northern Ireland,Unit
-36.0,Year,Apr,1.0,Dim 6,Another Dim,Dim 12,Another Dim 2,NI County 1,Northern Ireland,Unit
-37.0,Year,Apr,8.0,Dim 1,Another Dim,Dim 7,Another Dim 2,NI County 2,Northern Ireland,Unit
-38.0,Year,Apr,8.0,Dim 2,Another Dim,Dim 8,Another Dim 2,NI County 2,Northern Ireland,Unit
-39.0,Year,Apr,8.0,Dim 3,Another Dim,Dim 9,Another Dim 2,NI County 2,Northern Ireland,Unit
-40.0,Year,Apr,8.0,Dim 4,Another Dim,Dim 10,Another Dim 2,NI County 2,Northern Ireland,Unit
-41.0,Year,Apr,8.0,Dim 5,Another Dim,Dim 11,Another Dim 2,NI County 2,Northern Ireland,Unit
-42.0,Year,Apr,8.0,Dim 6,Another Dim,Dim 12,Another Dim 2,NI County 2,Northern Ireland,Unit
-43.0,Year,Apr,15.0,Dim 1,Another Dim,Dim 7,Another Dim 2,NI County 3,Northern Ireland,Unit
-44.0,Year,Apr,15.0,Dim 2,Another Dim,Dim 8,Another Dim 2,NI County 3,Northern Ireland,Unit
-45.0,Year,Apr,15.0,Dim 3,Another Dim,Dim 9,Another Dim 2,NI County 3,Northern Ireland,Unit
-46.0,Year,Apr,15.0,Dim 4,Another Dim,Dim 10,Another Dim 2,NI County 3,Northern Ireland,Unit
-47.0,Year,Apr,15.0,Dim 5,Another Dim,Dim 11,Another Dim 2,NI County 3,Northern Ireland,Unit
-48.0,Year,Apr,15.0,Dim 6,Another Dim,Dim 12,Another Dim 2,NI County 3,Northern Ireland,Unit
-49.0,Year,Apr,22.0,Dim 1,Another Dim,Dim 7,Another Dim 2,NI County 4,Northern Ireland,Unit
-50.0,Year,Apr,22.0,Dim 2,Another Dim,Dim 8,Another Dim 2,NI County 4,Northern Ireland,Unit
-51.0,Year,Apr,22.0,Dim 3,Another Dim,Dim 9,Another Dim 2,NI County 4,Northern Ireland,Unit
-52.0,Year,Apr,22.0,Dim 4,Another Dim,Dim 10,Another Dim 2,NI County 4,Northern Ireland,Unit
-53.0,Year,Apr,22.0,Dim 5,Another Dim,Dim 11,Another Dim 2,NI County 4,Northern Ireland,Unit
-54.0,Year,Apr,22.0,Dim 6,Another Dim,Dim 12,Another Dim 2,NI County 4,Northern Ireland,Unit
-55.0,Year,Apr,29.0,Dim 1,Another Dim,Dim 7,Another Dim 2,NI County 5,Northern Ireland,Unit
-56.0,Year,Apr,29.0,Dim 2,Another Dim,Dim 8,Another Dim 2,NI County 5,Northern Ireland,Unit
-57.0,Year,Apr,29.0,Dim 3,Another Dim,Dim 9,Another Dim 2,NI County 5,Northern Ireland,Unit
-58.0,Year,Apr,29.0,Dim 4,Another Dim,Dim 10,Another Dim 2,NI County 5,Northern Ireland,Unit
-59.0,Year,Apr,29.0,Dim 5,Another Dim,Dim 11,Another Dim 2,NI County 5,Northern Ireland,Unit
-60.0,Year,Apr,29.0,Dim 6,Another Dim,Dim 12,Another Dim 2,NI County 5,Northern Ireland,Unit
-61.0,Year,Jul,1.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Sco County 1,Scotland,Unit
-62.0,Year,Jul,1.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Sco County 1,Scotland,Unit
-63.0,Year,Jul,1.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Sco County 1,Scotland,Unit
-64.0,Year,Jul,1.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Sco County 1,Scotland,Unit
-65.0,Year,Jul,1.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Sco County 1,Scotland,Unit
-66.0,Year,Jul,1.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Sco County 1,Scotland,Unit
-67.0,Year,Jul,8.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Sco County 2,Scotland,Unit
-68.0,Year,Jul,8.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Sco County 2,Scotland,Unit
-69.0,Year,Jul,8.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Sco County 2,Scotland,Unit
-70.0,Year,Jul,8.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Sco County 2,Scotland,Unit
-71.0,Year,Jul,8.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Sco County 2,Scotland,Unit
-72.0,Year,Jul,8.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Sco County 2,Scotland,Unit
-73.0,Year,Jul,15.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Sco County 3,Scotland,Unit
-74.0,Year,Jul,15.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Sco County 3,Scotland,Unit
-75.0,Year,Jul,15.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Sco County 3,Scotland,Unit
-76.0,Year,Jul,15.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Sco County 3,Scotland,Unit
-77.0,Year,Jul,15.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Sco County 3,Scotland,Unit
-78.0,Year,Jul,15.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Sco County 3,Scotland,Unit
-79.0,Year,Jul,22.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Sco County 4,Scotland,Unit
-80.0,Year,Jul,22.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Sco County 4,Scotland,Unit
-81.0,Year,Jul,22.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Sco County 4,Scotland,Unit
-82.0,Year,Jul,22.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Sco County 4,Scotland,Unit
-83.0,Year,Jul,22.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Sco County 4,Scotland,Unit
-84.0,Year,Jul,22.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Sco County 4,Scotland,Unit
-85.0,Year,Jul,29.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Sco County 5,Scotland,Unit
-86.0,Year,Jul,29.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Sco County 5,Scotland,Unit
-87.0,Year,Jul,29.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Sco County 5,Scotland,Unit
-88.0,Year,Jul,29.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Sco County 5,Scotland,Unit
-89.0,Year,Jul,29.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Sco County 5,Scotland,Unit
-90.0,Year,Jul,29.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Sco County 5,Scotland,Unit
-91.0,Year,Oct,1.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Wal County 1,Wales,Unit
-92.0,Year,Oct,1.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Wal County 1,Wales,Unit
-93.0,Year,Oct,1.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Wal County 1,Wales,Unit
-94.0,Year,Oct,1.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Wal County 1,Wales,Unit
-95.0,Year,Oct,1.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Wal County 1,Wales,Unit
-96.0,Year,Oct,1.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Wal County 1,Wales,Unit
-97.0,Year,Oct,8.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Wal County 2,Wales,Unit
-98.0,Year,Oct,8.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Wal County 2,Wales,Unit
-99.0,Year,Oct,8.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Wal County 2,Wales,Unit
-100.0,Year,Oct,8.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Wal County 2,Wales,Unit
-101.0,Year,Oct,8.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Wal County 2,Wales,Unit
-102.0,Year,Oct,8.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Wal County 2,Wales,Unit
-103.0,Year,Oct,15.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Wal County 3,Wales,Unit
-104.0,Year,Oct,15.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Wal County 3,Wales,Unit
-105.0,Year,Oct,15.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Wal County 3,Wales,Unit
-106.0,Year,Oct,15.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Wal County 3,Wales,Unit
-107.0,Year,Oct,15.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Wal County 3,Wales,Unit
-108.0,Year,Oct,15.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Wal County 3,Wales,Unit
-109.0,Year,Oct,22.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Wal County 4,Wales,Unit
-110.0,Year,Oct,22.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Wal County 4,Wales,Unit
-111.0,Year,Oct,22.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Wal County 4,Wales,Unit
-112.0,Year,Oct,22.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Wal County 4,Wales,Unit
-113.0,Year,Oct,22.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Wal County 4,Wales,Unit
-114.0,Year,Oct,22.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Wal County 4,Wales,Unit
-115.0,Year,Oct,29.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Wal County 5,Wales,Unit
-116.0,Year,Oct,29.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Wal County 5,Wales,Unit
-117.0,Year,Oct,29.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Wal County 5,Wales,Unit
-118.0,Year,Oct,29.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Wal County 5,Wales,Unit
-119.0,Year,Oct,29.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Wal County 5,Wales,Unit
-120.0,Year,Oct,29.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Wal County 5,Wales,Unit
+OBS,Year,Month,Day,Top Dims,Over Dim,Bottom Dims,Under Dim,County,Country,Unit,Constant
+1.0,Year,Jan,1.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Eng County 1,England,Unit,Thing
+2.0,Year,Jan,1.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Eng County 1,England,Unit,Thing
+3.0,Year,Jan,1.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Eng County 1,England,Unit,Thing
+4.0,Year,Jan,1.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Eng County 1,England,Unit,Thing
+5.0,Year,Jan,1.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Eng County 1,England,Unit,Thing
+6.0,Year,Jan,1.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Eng County 1,England,Unit,Thing
+7.0,Year,Jan,8.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Eng County 2,England,Unit,Thing
+8.0,Year,Jan,8.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Eng County 2,England,Unit,Thing
+9.0,Year,Jan,8.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Eng County 2,England,Unit,Thing
+10.0,Year,Jan,8.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Eng County 2,England,Unit,Thing
+11.0,Year,Jan,8.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Eng County 2,England,Unit,Thing
+12.0,Year,Jan,8.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Eng County 2,England,Unit,Thing
+13.0,Year,Jan,15.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Eng County 3,England,Unit,Thing
+14.0,Year,Jan,15.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Eng County 3,England,Unit,Thing
+15.0,Year,Jan,15.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Eng County 3,England,Unit,Thing
+16.0,Year,Jan,15.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Eng County 3,England,Unit,Thing
+17.0,Year,Jan,15.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Eng County 3,England,Unit,Thing
+18.0,Year,Jan,15.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Eng County 3,England,Unit,Thing
+19.0,Year,Jan,22.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Eng County 4,England,Unit,Thing
+20.0,Year,Jan,22.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Eng County 4,England,Unit,Thing
+21.0,Year,Jan,22.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Eng County 4,England,Unit,Thing
+22.0,Year,Jan,22.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Eng County 4,England,Unit,Thing
+23.0,Year,Jan,22.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Eng County 4,England,Unit,Thing
+24.0,Year,Jan,22.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Eng County 4,England,Unit,Thing
+25.0,Year,Jan,29.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Eng County 5,England,Unit,Thing
+26.0,Year,Jan,29.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Eng County 5,England,Unit,Thing
+27.0,Year,Jan,29.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Eng County 5,England,Unit,Thing
+28.0,Year,Jan,29.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Eng County 5,England,Unit,Thing
+29.0,Year,Jan,29.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Eng County 5,England,Unit,Thing
+30.0,Year,Jan,29.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Eng County 5,England,Unit,Thing
+31.0,Year,Apr,1.0,Dim 1,Another Dim,Dim 7,Another Dim 2,NI County 1,Northern Ireland,Unit,Thing
+32.0,Year,Apr,1.0,Dim 2,Another Dim,Dim 8,Another Dim 2,NI County 1,Northern Ireland,Unit,Thing
+33.0,Year,Apr,1.0,Dim 3,Another Dim,Dim 9,Another Dim 2,NI County 1,Northern Ireland,Unit,Thing
+34.0,Year,Apr,1.0,Dim 4,Another Dim,Dim 10,Another Dim 2,NI County 1,Northern Ireland,Unit,Thing
+35.0,Year,Apr,1.0,Dim 5,Another Dim,Dim 11,Another Dim 2,NI County 1,Northern Ireland,Unit,Thing
+36.0,Year,Apr,1.0,Dim 6,Another Dim,Dim 12,Another Dim 2,NI County 1,Northern Ireland,Unit,Thing
+37.0,Year,Apr,8.0,Dim 1,Another Dim,Dim 7,Another Dim 2,NI County 2,Northern Ireland,Unit,Thing
+38.0,Year,Apr,8.0,Dim 2,Another Dim,Dim 8,Another Dim 2,NI County 2,Northern Ireland,Unit,Thing
+39.0,Year,Apr,8.0,Dim 3,Another Dim,Dim 9,Another Dim 2,NI County 2,Northern Ireland,Unit,Thing
+40.0,Year,Apr,8.0,Dim 4,Another Dim,Dim 10,Another Dim 2,NI County 2,Northern Ireland,Unit,Thing
+41.0,Year,Apr,8.0,Dim 5,Another Dim,Dim 11,Another Dim 2,NI County 2,Northern Ireland,Unit,Thing
+42.0,Year,Apr,8.0,Dim 6,Another Dim,Dim 12,Another Dim 2,NI County 2,Northern Ireland,Unit,Thing
+43.0,Year,Apr,15.0,Dim 1,Another Dim,Dim 7,Another Dim 2,NI County 3,Northern Ireland,Unit,Thing
+44.0,Year,Apr,15.0,Dim 2,Another Dim,Dim 8,Another Dim 2,NI County 3,Northern Ireland,Unit,Thing
+45.0,Year,Apr,15.0,Dim 3,Another Dim,Dim 9,Another Dim 2,NI County 3,Northern Ireland,Unit,Thing
+46.0,Year,Apr,15.0,Dim 4,Another Dim,Dim 10,Another Dim 2,NI County 3,Northern Ireland,Unit,Thing
+47.0,Year,Apr,15.0,Dim 5,Another Dim,Dim 11,Another Dim 2,NI County 3,Northern Ireland,Unit,Thing
+48.0,Year,Apr,15.0,Dim 6,Another Dim,Dim 12,Another Dim 2,NI County 3,Northern Ireland,Unit,Thing
+49.0,Year,Apr,22.0,Dim 1,Another Dim,Dim 7,Another Dim 2,NI County 4,Northern Ireland,Unit,Thing
+50.0,Year,Apr,22.0,Dim 2,Another Dim,Dim 8,Another Dim 2,NI County 4,Northern Ireland,Unit,Thing
+51.0,Year,Apr,22.0,Dim 3,Another Dim,Dim 9,Another Dim 2,NI County 4,Northern Ireland,Unit,Thing
+52.0,Year,Apr,22.0,Dim 4,Another Dim,Dim 10,Another Dim 2,NI County 4,Northern Ireland,Unit,Thing
+53.0,Year,Apr,22.0,Dim 5,Another Dim,Dim 11,Another Dim 2,NI County 4,Northern Ireland,Unit,Thing
+54.0,Year,Apr,22.0,Dim 6,Another Dim,Dim 12,Another Dim 2,NI County 4,Northern Ireland,Unit,Thing
+55.0,Year,Apr,29.0,Dim 1,Another Dim,Dim 7,Another Dim 2,NI County 5,Northern Ireland,Unit,Thing
+56.0,Year,Apr,29.0,Dim 2,Another Dim,Dim 8,Another Dim 2,NI County 5,Northern Ireland,Unit,Thing
+57.0,Year,Apr,29.0,Dim 3,Another Dim,Dim 9,Another Dim 2,NI County 5,Northern Ireland,Unit,Thing
+58.0,Year,Apr,29.0,Dim 4,Another Dim,Dim 10,Another Dim 2,NI County 5,Northern Ireland,Unit,Thing
+59.0,Year,Apr,29.0,Dim 5,Another Dim,Dim 11,Another Dim 2,NI County 5,Northern Ireland,Unit,Thing
+60.0,Year,Apr,29.0,Dim 6,Another Dim,Dim 12,Another Dim 2,NI County 5,Northern Ireland,Unit,Thing
+61.0,Year,Jul,1.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Sco County 1,Scotland,Unit,Thing
+62.0,Year,Jul,1.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Sco County 1,Scotland,Unit,Thing
+63.0,Year,Jul,1.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Sco County 1,Scotland,Unit,Thing
+64.0,Year,Jul,1.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Sco County 1,Scotland,Unit,Thing
+65.0,Year,Jul,1.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Sco County 1,Scotland,Unit,Thing
+66.0,Year,Jul,1.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Sco County 1,Scotland,Unit,Thing
+67.0,Year,Jul,8.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Sco County 2,Scotland,Unit,Thing
+68.0,Year,Jul,8.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Sco County 2,Scotland,Unit,Thing
+69.0,Year,Jul,8.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Sco County 2,Scotland,Unit,Thing
+70.0,Year,Jul,8.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Sco County 2,Scotland,Unit,Thing
+71.0,Year,Jul,8.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Sco County 2,Scotland,Unit,Thing
+72.0,Year,Jul,8.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Sco County 2,Scotland,Unit,Thing
+73.0,Year,Jul,15.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Sco County 3,Scotland,Unit,Thing
+74.0,Year,Jul,15.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Sco County 3,Scotland,Unit,Thing
+75.0,Year,Jul,15.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Sco County 3,Scotland,Unit,Thing
+76.0,Year,Jul,15.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Sco County 3,Scotland,Unit,Thing
+77.0,Year,Jul,15.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Sco County 3,Scotland,Unit,Thing
+78.0,Year,Jul,15.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Sco County 3,Scotland,Unit,Thing
+79.0,Year,Jul,22.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Sco County 4,Scotland,Unit,Thing
+80.0,Year,Jul,22.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Sco County 4,Scotland,Unit,Thing
+81.0,Year,Jul,22.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Sco County 4,Scotland,Unit,Thing
+82.0,Year,Jul,22.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Sco County 4,Scotland,Unit,Thing
+83.0,Year,Jul,22.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Sco County 4,Scotland,Unit,Thing
+84.0,Year,Jul,22.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Sco County 4,Scotland,Unit,Thing
+85.0,Year,Jul,29.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Sco County 5,Scotland,Unit,Thing
+86.0,Year,Jul,29.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Sco County 5,Scotland,Unit,Thing
+87.0,Year,Jul,29.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Sco County 5,Scotland,Unit,Thing
+88.0,Year,Jul,29.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Sco County 5,Scotland,Unit,Thing
+89.0,Year,Jul,29.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Sco County 5,Scotland,Unit,Thing
+90.0,Year,Jul,29.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Sco County 5,Scotland,Unit,Thing
+91.0,Year,Oct,1.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Wal County 1,Wales,Unit,Thing
+92.0,Year,Oct,1.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Wal County 1,Wales,Unit,Thing
+93.0,Year,Oct,1.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Wal County 1,Wales,Unit,Thing
+94.0,Year,Oct,1.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Wal County 1,Wales,Unit,Thing
+95.0,Year,Oct,1.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Wal County 1,Wales,Unit,Thing
+96.0,Year,Oct,1.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Wal County 1,Wales,Unit,Thing
+97.0,Year,Oct,8.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Wal County 2,Wales,Unit,Thing
+98.0,Year,Oct,8.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Wal County 2,Wales,Unit,Thing
+99.0,Year,Oct,8.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Wal County 2,Wales,Unit,Thing
+100.0,Year,Oct,8.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Wal County 2,Wales,Unit,Thing
+101.0,Year,Oct,8.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Wal County 2,Wales,Unit,Thing
+102.0,Year,Oct,8.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Wal County 2,Wales,Unit,Thing
+103.0,Year,Oct,15.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Wal County 3,Wales,Unit,Thing
+104.0,Year,Oct,15.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Wal County 3,Wales,Unit,Thing
+105.0,Year,Oct,15.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Wal County 3,Wales,Unit,Thing
+106.0,Year,Oct,15.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Wal County 3,Wales,Unit,Thing
+107.0,Year,Oct,15.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Wal County 3,Wales,Unit,Thing
+108.0,Year,Oct,15.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Wal County 3,Wales,Unit,Thing
+109.0,Year,Oct,22.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Wal County 4,Wales,Unit,Thing
+110.0,Year,Oct,22.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Wal County 4,Wales,Unit,Thing
+111.0,Year,Oct,22.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Wal County 4,Wales,Unit,Thing
+112.0,Year,Oct,22.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Wal County 4,Wales,Unit,Thing
+113.0,Year,Oct,22.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Wal County 4,Wales,Unit,Thing
+114.0,Year,Oct,22.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Wal County 4,Wales,Unit,Thing
+115.0,Year,Oct,29.0,Dim 1,Another Dim,Dim 7,Another Dim 2,Wal County 5,Wales,Unit,Thing
+116.0,Year,Oct,29.0,Dim 2,Another Dim,Dim 8,Another Dim 2,Wal County 5,Wales,Unit,Thing
+117.0,Year,Oct,29.0,Dim 3,Another Dim,Dim 9,Another Dim 2,Wal County 5,Wales,Unit,Thing
+118.0,Year,Oct,29.0,Dim 4,Another Dim,Dim 10,Another Dim 2,Wal County 5,Wales,Unit,Thing
+119.0,Year,Oct,29.0,Dim 5,Another Dim,Dim 11,Another Dim 2,Wal County 5,Wales,Unit,Thing
+120.0,Year,Oct,29.0,Dim 6,Another Dim,Dim 12,Another Dim 2,Wal County 5,Wales,Unit,Thing

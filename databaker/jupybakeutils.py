@@ -11,6 +11,7 @@ from databaker.constants import ABOVE, BELOW, LEFT, RIGHT
 
 from .lookupengines.closest import ClosestEngine
 from .lookupengines.directly import DirectlyEngine
+from .lookupengines.constant import ConstantEngine
 
 
 try:   import pandas
@@ -33,12 +34,17 @@ def svalue(cell):
 
 class HDim:
     "Dimension object which defines the lookup between an observation cell and a bag of header cells"
-    def __init__(self, hbagset, label, strict=None, direction=None, cellvalueoverride=None):
+    def __init__(self, hbagset, label, strict=None, direction=None, cellvalueoverride=None, constant=False):
         self.label = label
         self.name = label
+        self.constant = constant
+        self.strict = strict
+        self.direction = direction
 
         # For every dimension, create an appropriate lookup engine
-        if strict: 
+        if constant:
+            self.engine = ConstantEngine(cellvalueoverride)
+        elif strict:
             self.engine = DirectlyEngine(hbagset, direction, label)
         elif not strict:
             self.engine = ClosestEngine(hbagset, direction, label)
@@ -46,23 +52,20 @@ class HDim:
             raise ValueError("Aborting. Unable to find appropriate lookup engine.")
             
         self.cellvalueoverride = cellvalueoverride or {} # do not put {} into default value otherwise there is only one static one for everything
-        assert not isinstance(hbagset, str), "Use empty set and default value for single value dimension"
+        assert not isinstance(hbagset, str), "Use HDimConst for a single value dimension"
         self.hbagset = hbagset
         self.bhbagsetCopied = False
         
-        if self.hbagset is None:   # single value type
+        if self.hbagset is None:
+            # Sanity checks for HDimConst
             assert direction is None and strict is None
             assert len(cellvalueoverride) == 1 and None in cellvalueoverride, "single value type should have cellvalueoverride={None:defaultvalue}"
             return
-        
-        assert isinstance(self.hbagset, xypath.xypath.Bag), "dimension should be made from xypath.Bag type, not %s" % type(self.hbagset)
-        self.strict = strict
-        self.direction = direction
-        assert direction is not None and strict is not None
+        else:
+            # Sanity checks for HDim
+            assert direction is not None and strict is not None
+            assert isinstance(self.hbagset, xypath.xypath.Bag), "dimension should be made from xypath.Bag type, not %s" % type(self.hbagset)
 
-        self.bxtype = (self.direction[1] == 0)
-        self.samerowlookup = None
-    
             
     def celllookup(self, scell):
         "Lookup function from a given cell to the matching header cell"
@@ -82,12 +85,7 @@ class HDim:
             assert isinstance(val, str), "Override from obs should go directly to a string-value"
             return None, val
             
-        if self.hbagset is not None:
-            hcell = self.celllookup(ob)
-        else:
-            hcell = None
-            
-        return hcell, hcell.value
+        return self.celllookup(ob)  # note - returns two values
         
     def AddCellValueOverride(self, overridecell, overridevalue):
         "Override the value of a header cell (and insert it if not present in the bag)" 
@@ -108,7 +106,6 @@ class HDim:
                 self.hbagset = self.hbagset | (self.hbagset.by_index(1) if len(self.hbagset) else self.hbagset)  # force copy by adding element from itself
                 self.bhbagsetCopied = True  # avoid inefficient copying every single time
             self.hbagset.add(overridecell)
-            self.samerowlookup = None  # abolish any caching
         else:
             if overridecell in self.cellvalueoverride:
                 if self.cellvalueoverride[overridecell] != overridevalue:
@@ -145,7 +142,7 @@ class HDim:
 
 def HDimConst(name, val):
     "Define a constant value dimension across the whole segment"
-    return HDim(None, name, cellvalueoverride={None:val})
+    return HDim(None, name, cellvalueoverride={None:val}, constant=True)
 
 
 def Ldatetimeunitloose(date):
