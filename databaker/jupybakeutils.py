@@ -45,9 +45,9 @@ class HDim:
         if constant:
             self.engine = ConstantEngine(cellvalueoverride)
         elif strict:
-            self.engine = DirectlyEngine(hbagset, direction, label)
+            self.engine = DirectlyEngine(hbagset, direction, label, cellvalueoverride)
         elif not strict:
-            self.engine = ClosestEngine(hbagset, direction, label)
+            self.engine = ClosestEngine(hbagset, direction, label, cellvalueoverride)
         else:
             raise ValueError("Aborting. Unable to find appropriate lookup engine.")
             

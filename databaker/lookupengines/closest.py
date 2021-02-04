@@ -10,7 +10,7 @@ class BoundaryError(Exception):
 
 class ClosestEngine(object):
 
-    def __init__(self, cell_bag, direction, label):
+    def __init__(self, cell_bag, direction, label, cellvalueoverride):
         """
         Creates a lookup engine for dimensions defined with the CLOSEST relationship.
 
@@ -44,6 +44,7 @@ class ClosestEngine(object):
 
         self.direction = direction
         self.label = label
+        self.cellvalueoverride = cellvalueoverride if cellvalueoverride is not None else {}
 
         break_points = {}
         for cell in cell_bag:
@@ -212,4 +213,10 @@ Break points": {ordered_break_point_list}
             self.bumped = False
             self.index = None
 
-            return r["dimension_cell"], r["dimension_cell"].value
+            # Apply str level cell value override if applicable
+            if r["dimension_cell"].value in self.cellvalueoverride.keys():
+                value = self.cellvalueoverride[r["dimension_cell"].value]
+            else:
+                value = r["dimension_cell"].value
+
+            return r["dimension_cell"], value

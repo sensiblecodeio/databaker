@@ -5,7 +5,7 @@ from databaker.constants import ABOVE, BELOW, LEFT, RIGHT, DIRECTION_DICT
 
 class DirectlyEngine(object):
 
-    def __init__(self, cell_bag, DIRECTION, label):
+    def __init__(self, cell_bag, DIRECTION, label, cellvalueoverride):
         """
         We're going to write the cell_bag into a tiered dictionary (you
         could use a flat dictionary, but this'll be quicker).
@@ -33,6 +33,7 @@ class DirectlyEngine(object):
         """
         self.direction = DIRECTION
         self.label = label
+        self.cellvalueoverride = cellvalueoverride if cellvalueoverride is not None else {}
 
         self.tiered_dict = {}
 
@@ -132,7 +133,14 @@ class DirectlyEngine(object):
                                             " x:{}, y{}.".format(self.direction,cell.x, cell.y))
 
                     if self.last_cell_found is not None:
-                        return self.last_cell_found, self.last_cell_found.value
+
+                        # Apply str level cell value override if applicable
+                        if self.last_cell_found.value in self.cellvalueoverride.keys():
+                            value = self.cellvalueoverride[self.last_cell_found.value]
+                        else:
+                            value = self.last_cell_found.value
+
+                        return self.last_cell_found, value
 
         # It's not neat but upon hitting an exception output the engine contents before the message (in case
         # there's thousands of entries which'll bury the message)

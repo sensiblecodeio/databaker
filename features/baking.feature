@@ -23,7 +23,7 @@ single observation per row.
         And we define the dimensions as
         """
         HDim(year, "Year", CLOSEST, LEFT)
-        HDim(month, "Month", CLOSEST, ABOVE, cellvalueoverride={"July":"Cheese"})
+        HDim(month, "Month", CLOSEST, ABOVE)
         HDim(day, "Day", DIRECTLY, LEFT)
         HDim(top_dims, "Top Dims", DIRECTLY, ABOVE)
         HDim(over_dim, "Over Dim", CLOSEST, ABOVE)
