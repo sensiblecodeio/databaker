@@ -215,7 +215,7 @@ class ConversionSegment:
 
         for dimension in self.dimensions:
             assert isinstance(dimension, HDim), ("Dimensions must have type HDim()")
-            assert dimension.hbagset is None or dimension.hbagset.table is tab, "dimension %s from different tab" % dimension.name
+            assert dimension.hbagset is None or dimension.hbagset.table is tab, f"dimension {dimension.name} from different tab"
             
         self.numheaderadditionals = sum(1  for dimension in self.dimensions  if dimension.label not in template.headermeasurementnamesSet)
 
@@ -302,8 +302,6 @@ class ConversionSegment:
         return None
         
     def topandas(self):
-
-        print("We've called topandas")
 
         if pandas is None:
             warnings.warn("Sorry, you do not have pandas installed in this environment")
