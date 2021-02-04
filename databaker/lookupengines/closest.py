@@ -18,9 +18,9 @@ class ClosestEngine(object):
         as the index. The ranges defined against each index are ordered by their low/high
         offsets.
 
-        So for example, min(i)["lowest_offset"] will be the absolute lowest y offset being considered.
-        And max(i)["highest_offset"] will be the absolute highest y offset being considered.
-        The others will run the gamut between (in order).
+        So for example, for a CLOSEST ABOVE or BELOW dimensionx, min(i)["lowest_offset"] will be the 
+        absolute lowest y offset being considered andnd max(i)["highest_offset"] will be the absolute 
+        highest y offset being considered. The others will run the gamut between (in order).
 
         example_range_dict = {i:
                             {
@@ -40,12 +40,17 @@ class ClosestEngine(object):
         appropriate range_dict (and the _XYCell representing a dimension
         item) based on the .y (substitute .x for horizontal relationships) value of a given 
         observation cell.
+
+        So the cell being "looked up" to find the right range, use the range "dimension_cell"
+        key to get the xyCell to be returned.
         """
 
         self.direction = direction
         self.label = label
         self.cellvalueoverride = cellvalueoverride if cellvalueoverride is not None else {}
 
+        # the break-point is the start/end of a range. Effectively the index of the cell
+        # along the relevant axis.
         break_points = {}
         for cell in cell_bag:
 
@@ -62,9 +67,6 @@ class ClosestEngine(object):
         ordered_break_point_list.sort()
 
         ranges = {}
-
-        # TODO - singleton selections
-
         try:
             if direction in [ABOVE, LEFT]:
                 x = 0
@@ -77,7 +79,7 @@ class ClosestEngine(object):
                             "dimension_cell": break_points[ordered_break_point_list.copy()[0]]}
                             })
                 else:
-                    # If there's many, iterate to create the ranged
+                    # If there's many, iterate to create the ranges
                     for i in range(0, len(ordered_break_point_list)-1):
                         ranges.update({x:
                             {"lowest_offset": ordered_break_point_list.copy()[i],
@@ -109,7 +111,7 @@ class ClosestEngine(object):
                 self.out_of_bounds = max([x["highest_offset"] for x in ranges.values()])
         
         except Exception as err:
-            report = f"""An issue was encountered while generating cell ranges for the CLOSEST {DIRECTION_DICT[self.direction]} looup engine for {self.label}.\n`
+            report = f"""An issue was encountered while generating cell ranges for the CLOSEST {DIRECTION_DICT[self.direction]} lookup engine for {self.label}.\n`
 
 Dimensions selection was: \n{cell_bag}\n
 Direction was: {DIRECTION_DICT[direction]}
@@ -147,8 +149,14 @@ Break points": {ordered_break_point_list}
             if index > self.range_count: index = self.range_count
         return self.lookup(cell, index=index)
 
-    # recursive bi-section search of ranges
     def lookup(self, cell, index=None):
+        """
+        Given the cell we want to lookup the dimension value for, use a bisection search to
+        identify the correct range in our ordered list of ranges.
+
+        Note - this method is called recursively, using the index kwarg to start
+        again at a different point in the list of ranges.
+        """
 
         found_it = False
 

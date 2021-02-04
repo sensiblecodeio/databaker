@@ -5,14 +5,18 @@ from databaker.constants import ABOVE, BELOW, LEFT, RIGHT, DIRECTION_DICT
 
 class DirectlyEngine(object):
 
-    def __init__(self, cell_bag, DIRECTION, label, cellvalueoverride):
+    def __init__(self, cell_bag, direction, label, cellvalueoverride):
         """
         We're going to write the cell_bag into a tiered dictionary (you
         could use a flat dictionary, but this'll be quicker).
 
-        The tiers will be grouped around base 10 indexes, so to get the
+        The tiers will be grouped around base 10 indexes, so to store the
         dimension_cell for (for example) y position 123456 we store the
         cells at tiered_dict[1][2][3][4][5][6]["get"].
+
+        As our starting point is a cell that knows it's own x or y offset,
+        this'll let us jump straight to the relevant row/column cells when
+        we do the lookup.
 
         The ["get"] key is included in each level to differentiate from
         the integer keys for further out children.
@@ -26,12 +30,8 @@ class DirectlyEngine(object):
         This makes lookups explicit where you want to (for example) get the
         dimension cell for .y position 10, when you also have a dimension
         cell for 100, 10000 and 100000.
-
-        EXAMPLE:
-        You want to know whats directly left from cell C167 ?
-        it'll be in tiered_dict[1][6][[7]["get"]
         """
-        self.direction = DIRECTION
+        self.direction = direction
         self.label = label
         self.cellvalueoverride = cellvalueoverride if cellvalueoverride is not None else {}
 
@@ -50,14 +50,14 @@ class DirectlyEngine(object):
 
             viewed_layer = 0
 
-            for numString in [char for char in string_i]:
+            for num_string in [char for char in string_i]:
 
-                if numString in dict_pointer.keys():
-                    pass # life is good
+                if num_string in dict_pointer.keys():
+                    pass # we have the key we need already
                 else:
-                    dict_pointer.update({numString:{}})
+                    dict_pointer.update({num_string:{}})
 
-                dict_pointer = dict_pointer[numString]
+                dict_pointer = dict_pointer[num_string]
                 viewed_layer += 1
 
                 if viewed_layer == len(string_i):

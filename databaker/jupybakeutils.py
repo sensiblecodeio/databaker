@@ -63,6 +63,30 @@ class HDim:
         "Lookup function from a given cell to the matching header cell"
         return self.engine.lookup(scell)
 
+    def headcellval(self, hcell):
+        "Extract the string value of a member header cell (including any value overrides)"
+        if hcell is not None:
+            assert isinstance(hcell, xypath.xypath._XYCell), "celllookups should only go to an _XYCell"
+            if hcell in self.cellvalueoverride:
+                val = self.cellvalueoverride[hcell]
+                assert isinstance(val, (str, float, int)), "Override from hcell value should go directly to a str,float,int,None-value (%s)" % type(val)
+                return val
+            val = svalue(hcell)
+            #assert val is None or isinstance(val, (str, float, int)), "cell value should only be str,float,int,None (%s)" % type(val)
+        else:
+            val = None
+         
+        # It's allowed to have {None:defaultvalue} to set the NoLookupValue
+        if val in self.cellvalueoverride:
+            val = self.cellvalueoverride[val]
+            assert val is None or isinstance(val, (str, float, int)), "Override from value should only be str,float,int,None (%s)" % type(val)
+
+        # type call if no other things match
+        elif type(val) in self.cellvalueoverride:
+             val = self.cellvalueoverride[type(val)](val)
+            
+        return val
+        
     def cellvalobs(self, ob):
         "Full lookup from a observation cell to its dimensional value (which can apply before lookup)"
         if isinstance(ob, xypath.xypath.Bag):
