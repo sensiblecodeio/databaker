@@ -144,23 +144,6 @@ def step_impl(context):
     #temp_actual = []
     actual = set()
 
-    #Function which builds a set made from a given string
-    #where each cell is the string between the two "<, >"
-    #def cell_builder(cell_list):
-    #    for char in range(0, len(str(cell_list))):
-    #        cell = ""
-    #        if str(cell_list)[char] == "<":
-    #            cell = cell + str(cell_list)[char]
-    #            current = char
-    #            next_char = str(cell_list)[current + 1]
-    #            while next_char != ">":
-    #                cell = cell + next_char
-    #                current += 1
-    #                next_char = str(cell_list)[current + 1]
-    #            cell = cell + ">"
-    #            expected.add(cell)
-    #    return(expected)
-
     #Build a set of cells from the expected output.
     expected = cell_builder(context.text)
 
@@ -184,3 +167,34 @@ def step_impl(context):
 @then(u'we confirm the cell selection contains no value storing cells.')
 def step_impl(context):
     assert "." not in str(cell_builder(str([str(v) for v in context.selections.values()][0]))), "{} \n\ncontains blank cells \n\n".format(str(cell_builder(str([str(v) for v in context.selections.values()][0]))))
+
+@then('the "{lookup_type}" dimension "{dimension_label}" has stored lookup information equal to')
+def step_impl(context, lookup_type, dimension_label):
+
+    # Get the dimension in question
+    hdims = [x for x in context.dimensions if x.label == dimension_label]
+    assert len(hdims) == 1, f'Aborting. Must have exactly one dimension with the label {dimension_label}. Got {len(hdims)}.'
+    hdim = hdims[0]
+
+    # Get the stored information based on the type of lookup
+    if lookup_type == "DIRECTLY":
+        info_got = hdim.engine.tiered_dict
+    elif lookup_type == "CLOSEST":
+        info_got = hdim.engine.ranges
+    else:
+        raise ValueError(f'This test does not recognise a lookup type of type: {lookup_type}')
+
+    # For the classes to comparable strings for both
+    info_expected = json.dumps(json.loads(context.text), default=lambda x: str(x))
+    info_got = json.dumps(info_got, default=lambda x: str(x))
+
+    msg = f"""Lookup information does not match what was expected.
+
+Got:
+{info_got}
+
+Expected:
+{info_expected}
+    
+    """
+    assert info_expected == info_got, msg
