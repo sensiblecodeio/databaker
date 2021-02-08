@@ -95,7 +95,6 @@ def step_impl(context):
 #We use the list to instanciate a conversion segment object.
 @given(u'we create a ConversionSegment object.')
 def step_impl(context):
-    #raise NotImplementedError(u'STEP: Given we create a ConversionSegment object.')
     context.tidy_sheet = ConversionSegment(context.tab_selected, context.dimensions, context.selections["observations"])
 
 
@@ -103,7 +102,6 @@ def step_impl(context):
 #This is the function which takes ages because it now loops for all dims and obs.
 @given(u'we convert the ConversionSegment object into a pandas dataframe.')
 def step_impl(context):
-    #raise NotImplementedError(u'STEP: Given we convert the ConversionSegment object into a pandas dataframe.')
     context.df = context.tidy_sheet.topandas()
 
 
@@ -224,3 +222,20 @@ Expected:
     
     """
     assert values_got == values_expected, msg
+
+@given('we attempt to extract the dimensions, capturing the first exception as')
+def step_impl(context):
+    try:
+        context.tidy_sheet.topandas()
+    except Exception as err:
+        got_err_str = str(err)
+        expected_err_str = str(context.text)
+        msg = f"""Unexpected exception
+
+Got:
+{got_err_str}
+
+Expected:
+{expected_err_str}
+        """
+        assert got_err_str == expected_err_str, msg

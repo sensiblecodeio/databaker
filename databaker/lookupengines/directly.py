@@ -3,6 +3,12 @@ import pprint as pp
 
 from databaker.constants import ABOVE, BELOW, LEFT, RIGHT, DIRECTION_DICT
 
+class DirectLookupException(Exception):
+    """Raised when a DIRECT lookup fails"""
+
+    def __init__(self, message):
+        self.message = message
+
 class DirectlyEngine(object):
 
     def __init__(self, cell_bag, direction, label, cellvalueoverride):
@@ -142,8 +148,13 @@ class DirectlyEngine(object):
 
                         return self.last_cell_found, value
 
-        # It's not neat but upon hitting an exception output the engine contents before the message (in case
-        # there's thousands of entries which'll bury the message)
-        raise ValueError("\n{}\nLookup Engine Failure for direction: {} and cell {} with xy {}.\n" 
-                        .format(pp.pformat(self.tiered_dict), DIRECTION_DICT[self.direction], 
-                        cell, {cell.x, cell.y}))
+        # If we fall through to here the lookup has failed, raise an exception
+        axis = "veritical" if DIRECTION_DICT[self.direction] in  ["ABOVE", "BELOW"] else "horizontal"
+        
+        # Sanitise the english
+        of = "of " if axis == "horizontal" else ""
+
+        message = f'DIRECT lookup for cell {cell} failed. The dimension "{self.label}" has no cells' \
+                + f' directly {DIRECTION_DICT[self.direction]} {of}{cell} on the {axis} axis.'
+
+        raise DirectLookupException(message)

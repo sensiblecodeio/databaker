@@ -110,6 +110,7 @@ class ClosestEngine(object):
                     x+=1 
                 self.out_of_bounds = max([x["highest_offset"] for x in ranges.values()])
         
+        # Note: for debugging while developing. A user shouldn't ever see this
         except Exception as err:
             report = f"""An issue was encountered while generating cell ranges for the CLOSEST {DIRECTION_DICT[self.direction]} lookup engine for {self.label}.\n`
 
@@ -165,8 +166,8 @@ Break points": {ordered_break_point_list}
 
         # Blowup early if the cell is out of bounds 
         # (eg to the left of the leftmost left lookup - no viable lookup)
-        msg = "Lookup for cell '{}' is impossible. No selected values exist within " \
-                "the '{}' direction from this cell".format(cell, DIRECTION_DICT[self.direction]) 
+        msg = f'Lookup for cell "{cell}" is impossible. No selected values for dimension "{self.label}" ' \
+                + f'exist in the {DIRECTION_DICT[self.direction]} direction from this cell'
         switch = [
             self.direction == ABOVE and cell.y < self.out_of_bounds,
             self.direction == LEFT and cell.x < self.out_of_bounds,
