@@ -1,5 +1,5 @@
 Feature: Create lookup engines
-  I want databaker to stor accurate lookup information for a given dimension, given the direction and type of lookup.
+  I want databaker to store accurate lookup information for a given dimension, given the direction and type of lookup.
 
     Scenario: Create a DIRECTLY dimensionsional lookup
     Given we load an xls file named "bakingtestdataset.xls"
