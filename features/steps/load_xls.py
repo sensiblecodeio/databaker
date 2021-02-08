@@ -198,3 +198,17 @@ Expected:
     
     """
     assert info_expected == info_got, msg
+
+@then(u'all lookups to dimension "{dimension_label}" should return the value "{expected_value}"')
+def step_impl(context, dimension_label, expected_value):
+
+   # Get the dimension in question
+    hdims = [x for x in context.dimensions if x.label == dimension_label]
+    assert len(hdims) == 1, f'Aborting. Must have exactly one dimension with the label {dimension_label}. Got {len(hdims)}.'
+    hdim = hdims[0]
+
+    obs = context.selections["observations"]
+    for ob in obs:
+        cell, cell_value = hdim.engine.lookup(ob)
+        assert cell is None, f'A constant lookup should be returning type:None for the cell looked up, not {type(cell)}'
+        assert cell_value == expected_value, f'Expecting {expected_value}, got {cell_value}'

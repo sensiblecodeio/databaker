@@ -33,3 +33,52 @@ Feature: Create lookup engines
         """
         {"3": {"get": ["{<D26 'Dim 7'>}"]}, "4": {"get": ["{<E26 'Dim 8'>}"]}}
         """ 
+
+
+    Scenario: Create a CLOSEST dimensionsional lookup
+    Given we load an xls file named "bakingtestdataset.xls"
+    And select the sheet "Sheet1"
+    And we define cell selections as
+        | key             | value                                   |  
+        | year            | tab.excel_ref("A13")                    |
+        | unit            | tab.excel_ref("M13")                    |
+        | month           | tab.excel_ref("B6:B15").is_not_blank()  |
+        | under_dim       | tab.excel_ref("D27")                    |
+    And we define the dimensions as
+        """
+        HDim(year, "Year", CLOSEST, LEFT)
+        HDim(unit, "Unit", CLOSEST, RIGHT)
+        HDim(month, "Month", CLOSEST, ABOVE)
+        HDim(under_dim, "Under Dim", CLOSEST, BELOW)
+        """
+    Then the "CLOSEST" dimension "Year" has stored lookup information equal to
+        """
+        {"0": {"lowest_offset": 0, "highest_offset": 99999999999, "dimension_cell": "{<A13 'Year'>}"}}
+        """
+    Then the "CLOSEST" dimension "Unit" has stored lookup information equal to
+        """
+        {"0": {"lowest_offset": 0, "highest_offset": 12, "dimension_cell": "{<M13 'Unit'>}"}}
+        """
+    Then the "CLOSEST" dimension "Month" has stored lookup information equal to
+        """
+        {"0": {"lowest_offset": 5, "highest_offset": 9, "dimension_cell": "{<B6 'Jan'>}"}, "1": {"lowest_offset": 10, "highest_offset": 99999999999, "dimension_cell": "{<B11 'Apr'>}"}}
+        """
+    Then the "CLOSEST" dimension "Under Dim" has stored lookup information equal to
+        """
+        {"0": {"lowest_offset": 0, "highest_offset": 26, "dimension_cell": "{<D27 'Another Dim 2'>}"}}
+        """
+
+Scenario: Create a CONSTANT dimension
+    Given we load an xls file named "bakingtestdataset.xls"
+        And select the sheet "Sheet1"
+        And we define cell selections as
+        | key             | value                                   | 
+        | observations    | tab.excel_ref("D6:I25")                 |
+    And we define the dimensions as
+        """
+        HDimConst("Constant1", "foo")
+        HDimConst("Constant2", "bar")
+        """
+    Then all lookups to dimension "Constant1" should return the value "foo"
+    And all lookups to dimension "Constant2" should return the value "bar"
+    

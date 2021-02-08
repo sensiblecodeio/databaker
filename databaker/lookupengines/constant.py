@@ -10,5 +10,4 @@ class ConstantEngine(object):
         self.constant = overrides[None]
 
     def lookup(self, cell):
-        # TODO - rework this? We don't need the cell, we already know it's None 
         return None, self.constant
