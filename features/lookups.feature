@@ -34,7 +34,6 @@ Feature: Create lookup engines
         {"3": {"get": ["{<D26 'Dim 7'>}"]}, "4": {"get": ["{<E26 'Dim 8'>}"]}}
         """ 
 
-
     Scenario: Create a CLOSEST dimensionsional lookup
     Given we load an xls file named "bakingtestdataset.xls"
     And select the sheet "Sheet1"
@@ -82,3 +81,38 @@ Scenario: Create a CONSTANT dimension
     Then all lookups to dimension "Constant1" should return the value "foo"
     And all lookups to dimension "Constant2" should return the value "bar"
     
+Scenario: Apply cellvalueoverrides with a DIRECTLY lookup
+    Given we load an xls file named "bakingtestdataset.xls"
+    And select the sheet "Sheet1"
+    And we define cell selections as
+        | key             | value                                   |
+        | observations    | tab.excel_ref("D6:I10")                 | 
+        | county          | tab.excel_ref("J6:J10").is_not_blank()  |
+    And we define the dimensions as
+        """
+        HDim(county, "County", DIRECTLY, RIGHT, cellvalueoverride={"Eng County 2": "Mongolia County 1"})
+        """
+    And we create a ConversionSegment object.
+    And we convert the ConversionSegment object into a pandas dataframe.
+    Then the unique contents of the "County" column should be equal to
+        """
+        ['Eng County 1', 'Eng County 3', 'Eng County 4', 'Eng County 5', 'Mongolia County 1']
+        """
+
+Scenario: Apply cellvalueoverrides with a CLOSEST lookup
+    Given we load an xls file named "bakingtestdataset.xls"
+    And select the sheet "Sheet1"
+    And we define cell selections as
+        | key             | value                                   |
+        | observations    | tab.excel_ref("D6:D26")                 | 
+        | month           | tab.excel_ref("B6:B25").is_not_blank()  |
+    And we define the dimensions as
+        """
+        HDim(month, "Month", CLOSEST, ABOVE, cellvalueoverride={"Oct": "Of Sundays"})
+        """
+    And we create a ConversionSegment object.
+    And we convert the ConversionSegment object into a pandas dataframe.
+    Then the unique contents of the "Month" column should be equal to
+        """
+        ['Apr', 'Jan', 'Jul', 'Of Sundays']
+        """

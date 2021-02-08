@@ -135,13 +135,7 @@ def step_impl(context):
 
 @then(u'we confirm the cell selection is equal to')
 def step_impl(context):
-    #expected = str(context.text).strip()
-    #values = [v for v in context.selections.values()]
-    #actual = str(values[0])
-
-    #assert expected == actual, "{} \n\ndoes not match the expected output \n\n {}\n".format(str(actual), str(expected))
     expected = set()
-    #temp_actual = []
     actual = set()
 
     #Build a set of cells from the expected output.
@@ -212,3 +206,21 @@ def step_impl(context, dimension_label, expected_value):
         cell, cell_value = hdim.engine.lookup(ob)
         assert cell is None, f'A constant lookup should be returning type:None for the cell looked up, not {type(cell)}'
         assert cell_value == expected_value, f'Expecting {expected_value}, got {cell_value}'
+
+@then('the unique contents of the "{column_name}" column should be equal to')
+def step_impl(context, column_name):
+    assert column_name in context.df.columns.values, 'No column named "{column_name}" present in dataframe'
+
+    values_got = str(sorted(context.df[column_name].unique()))
+    values_expected = str(context.text)
+
+    msg = f"""Values extracted do not match what was expected.
+
+Got:
+{values_got}
+
+Expected: 
+{values_expected}
+    
+    """
+    assert values_got == values_expected, msg
