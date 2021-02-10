@@ -8,11 +8,9 @@ from databaker import richxlrd
 template = databaker.constants.template
 
 from databaker.constants import ABOVE, BELOW, LEFT, RIGHT
-
 from databaker.lookupengines.closest import ClosestEngine
 from databaker.lookupengines.directly import DirectlyEngine
 from databaker.lookupengines.constant import ConstantEngine
-
 
 try:   
     import pandas
@@ -38,6 +36,7 @@ class HDim:
     "Dimension object which defines the lookup between an observation cell and a bag of header cells"
     def __init__(self, hbagset, label, strict=None, direction=None, cellvalueoverride=None, constant=False):
         self.label = label
+        self.name = label
         self.hbagset = hbagset
 
         # For every dimension, create an appropriate lookup engine
