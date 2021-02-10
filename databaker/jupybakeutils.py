@@ -296,7 +296,26 @@ class ConversionSegment:
 
         # TODO - this but nicer
         # force it to be float and split off anything not float into the datamarker
-        dval = {databaker.constants.OBS: ob.value}
+        if not isinstance(ob.value, float):
+            if ob.properties['richtext']:  # should this case be implemented into the svalue() function?
+                sval = richxlrd.RichCell(ob.properties.cell.sheet, ob.y, ob.x).fragments.not_script.value
+            else:
+                sval = svalue(ob)
+
+            if template.SH_Split_OBS:
+                assert template.SH_Split_OBS == databaker.constants.DATAMARKER, (template.SH_Split_OBS, databaker.constants.DATAMARKER)
+                ob_value, dm_value = re.match(r"([-+]?[0-9]+\.?[0-9]*)?(.*)", sval).groups()
+                dval = { }
+                if dm_value:
+                    dval[template.SH_Split_OBS] = dm_value
+                if ob_value:
+                    dval[databaker.constants.OBS] = float(ob_value)
+                else:
+                    dval[databaker.constants.OBS] = ""
+            else:
+                dval = { databaker.constants.OBS:sval }
+        else:
+            dval = { databaker.constants.OBS:ob.value }
 
         for hdim in self.dimensions:
             hcell, val = hdim.cellvalobs(ob)
