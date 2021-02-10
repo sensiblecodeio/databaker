@@ -9,13 +9,15 @@ template = databaker.constants.template
 
 from databaker.constants import ABOVE, BELOW, LEFT, RIGHT
 
-from .lookupengines.closest import ClosestEngine
-from .lookupengines.directly import DirectlyEngine
-from .lookupengines.constant import ConstantEngine
+from databaker.lookupengines.closest import ClosestEngine
+from databaker.lookupengines.directly import DirectlyEngine
+from databaker.lookupengines.constant import ConstantEngine
 
 
-try:   import pandas
-except ImportError:  pandas = None  # no pandas in pypy
+try:   
+    import pandas
+except ImportError:  
+    pandas = None  # no pandas in pypy
 
 def svalue(cell):
     if not isinstance(cell.value, datetime.datetime):
