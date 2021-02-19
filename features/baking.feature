@@ -32,6 +32,7 @@ single observation per row.
         HDim(county, "County", DIRECTLY, RIGHT)
         HDim(country, "Country", CLOSEST, ABOVE)
         HDim(unit, "Unit", CLOSEST, RIGHT)
+        HDimConst("Constant", "Thing")
         """
         And we create a ConversionSegment object.
         And we convert the ConversionSegment object into a pandas dataframe.

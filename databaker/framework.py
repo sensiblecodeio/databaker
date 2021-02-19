@@ -10,10 +10,6 @@ from databaker.jupybakeutils import HDim, HDimConst, ConversionSegment, Ldatetim
 from databaker.jupybakecsv import writetechnicalCSV, readtechnicalCSV
 from databaker.jupybakehtml import savepreviewhtml
 
-# this lot should be deprecated
-from databaker.jupybakecsv import headersfromwdasegment, extraheaderscheck, checktheconstantdimensions, checksegmentobsvalues
-from databaker.jupybakecsv import wdamsgstrings, CompareConversionSegments
-
 def loadxlstabs(inputfile, sheetids="*", verbose=True):
     if verbose:
         print("Loading %s which has size %d bytes" % (inputfile, os.path.getsize(inputfile)))

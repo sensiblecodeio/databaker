@@ -81,20 +81,20 @@ def step_impl(context):
     context.dimensions = []
     for ds in dimension_statments:
 
-        # Modify the statment to get the selection from context, so
-        # HDim(year, "Year", CLOSEST, LEFT)
-        # becomes
-        # HDim(context.selections["year"], "Year", CLOSEST, LEFT)
-        ds_tokens = ds.split(",")
-        ds0 = ds_tokens[0]
-        ds0 = ds0.split("(")[0]+f'(context.selections[\'{ds0.split("(")[1]}\'],'
-        ds = ds0 + ",".join(ds_tokens[1:])
+        if "HDimConst" not in ds:
+            # Modify the statment to get the selection from context, so
+            # HDim(year, "Year", CLOSEST, LEFT)
+            # becomes
+            # HDim(context.selections["year"], "Year", CLOSEST, LEFT)
+            ds_tokens = ds.split(",")
+            ds0 = ds_tokens[0]
+            ds0 = ds0.split("(")[0]+f'(context.selections[\'{ds0.split("(")[1]}\'],'
+            ds = ds0 + ",".join(ds_tokens[1:])
         context.dimensions.append(eval(ds))
 
 #We use the list to instanciate a conversion segment object.
 @given(u'we create a ConversionSegment object.')
 def step_impl(context):
-    #raise NotImplementedError(u'STEP: Given we create a ConversionSegment object.')
     context.tidy_sheet = ConversionSegment(context.tab_selected, context.dimensions, context.selections["observations"])
 
 
@@ -102,7 +102,6 @@ def step_impl(context):
 #This is the function which takes ages because it now loops for all dims and obs.
 @given(u'we convert the ConversionSegment object into a pandas dataframe.')
 def step_impl(context):
-    #raise NotImplementedError(u'STEP: Given we convert the ConversionSegment object into a pandas dataframe.')
     context.df = context.tidy_sheet.topandas()
 
 
@@ -117,7 +116,10 @@ def step_impl(context, expected_csv):
 #Use the x.equals(y) function to test both dataframes are identical.
 @then(u'the two dataframes should be identical.')
 def step_impl(context):
-    assert context.df.equals(context.expected_df), "{} \n\ntransform dataframe is not identcial to expected CSV dataframe \n\n {}\n".format((context.df), (context.expected_df))
+    # Note - forcing to str as under the hood precision differences n float types make this unreliable otherwise
+    df1 = context.df.astype(str)
+    df2 = context.expected_df.astype(str)
+    assert df1.equals(df2), "\n{} \n\ntransform dataframe is not identcial to expected CSV dataframe \n\n {}\n".format((df1), (df2))
 
 
 @then(u'we confirm the cell selection is the correct type.')
@@ -131,31 +133,8 @@ def step_impl(context):
 
 @then(u'we confirm the cell selection is equal to')
 def step_impl(context):
-    #expected = str(context.text).strip()
-    #values = [v for v in context.selections.values()]
-    #actual = str(values[0])
-
-    #assert expected == actual, "{} \n\ndoes not match the expected output \n\n {}\n".format(str(actual), str(expected))
     expected = set()
-    #temp_actual = []
     actual = set()
-
-    #Function which builds a set made from a given string
-    #where each cell is the string between the two "<, >"
-    #def cell_builder(cell_list):
-    #    for char in range(0, len(str(cell_list))):
-    #        cell = ""
-    #        if str(cell_list)[char] == "<":
-    #            cell = cell + str(cell_list)[char]
-    #            current = char
-    #            next_char = str(cell_list)[current + 1]
-    #            while next_char != ">":
-    #                cell = cell + next_char
-    #                current += 1
-    #                next_char = str(cell_list)[current + 1]
-    #            cell = cell + ">"
-    #            expected.add(cell)
-    #    return(expected)
 
     #Build a set of cells from the expected output.
     expected = cell_builder(context.text)
@@ -180,3 +159,83 @@ def step_impl(context):
 @then(u'we confirm the cell selection contains no value storing cells.')
 def step_impl(context):
     assert "." not in str(cell_builder(str([str(v) for v in context.selections.values()][0]))), "{} \n\ncontains blank cells \n\n".format(str(cell_builder(str([str(v) for v in context.selections.values()][0]))))
+
+@then('the "{lookup_type}" dimension "{dimension_label}" has stored lookup information equal to')
+def step_impl(context, lookup_type, dimension_label):
+
+    # Get the dimension in question
+    hdims = [x for x in context.dimensions if x.label == dimension_label]
+    assert len(hdims) == 1, f'Aborting. Must have exactly one dimension with the label {dimension_label}. Got {len(hdims)}.'
+    hdim = hdims[0]
+
+    # Get the stored information based on the type of lookup
+    if lookup_type == "DIRECTLY":
+        info_got = hdim.engine.tiered_dict
+    elif lookup_type == "CLOSEST":
+        info_got = hdim.engine.ranges
+    else:
+        raise ValueError(f'This test does not recognise a lookup type of type: {lookup_type}')
+
+    # For the classes to comparable strings for both
+    info_expected = json.dumps(json.loads(context.text), default=lambda x: str(x))
+    info_got = json.dumps(info_got, default=lambda x: str(x))
+
+    msg = f"""Lookup information does not match what was expected.
+
+Got:
+{info_got}
+
+Expected:
+{info_expected}
+    
+    """
+    assert info_expected == info_got, msg
+
+@then(u'all lookups to dimension "{dimension_label}" should return the value "{expected_value}"')
+def step_impl(context, dimension_label, expected_value):
+
+   # Get the dimension in question
+    hdims = [x for x in context.dimensions if x.label == dimension_label]
+    assert len(hdims) == 1, f'Aborting. Must have exactly one dimension with the label {dimension_label}. Got {len(hdims)}.'
+    hdim = hdims[0]
+
+    obs = context.selections["observations"]
+    for ob in obs:
+        cell, cell_value = hdim.engine.lookup(ob)
+        assert cell is None, f'A constant lookup should be returning type:None for the cell looked up, not {type(cell)}'
+        assert cell_value == expected_value, f'Expecting {expected_value}, got {cell_value}'
+
+@then('the unique contents of the "{column_name}" column should be equal to')
+def step_impl(context, column_name):
+    assert column_name in context.df.columns.values, 'No column named "{column_name}" present in dataframe'
+
+    values_got = str(sorted(context.df[column_name].unique()))
+    values_expected = str(context.text)
+
+    msg = f"""Values extracted do not match what was expected.
+
+Got:
+{values_got}
+
+Expected: 
+{values_expected}
+    
+    """
+    assert values_got == values_expected, msg
+
+@given('we attempt to extract the dimensions, capturing the first exception as')
+def step_impl(context):
+    try:
+        context.tidy_sheet.topandas()
+    except Exception as err:
+        got_err_str = str(err)
+        expected_err_str = str(context.text)
+        msg = f"""Unexpected exception
+
+Got:
+{got_err_str}
+
+Expected:
+{expected_err_str}
+        """
+        assert got_err_str == expected_err_str, msg
