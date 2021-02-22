@@ -1,4 +1,5 @@
 import pprint as pp
+import json
 
 from databaker.constants import ABOVE, BELOW, LEFT, RIGHT, DIRECTION_DICT
 
@@ -130,27 +131,33 @@ Break points": {ordered_break_point_list}
         # track the correct one
         self.found_cell = None
 
-    def _bump_as_too_low(self, index, cell):
+    def _bump_as_too_low(self, index, cell, ceiling, floor):
         "move the index up as we're looking too low"
+        assert index == ceiling, 'If we`re specified the index needs to be higher, floow should be set to last index'
         if self.bumped == False and index != 0:
             index = index-1
             self.bumped = True
         else:
-            index = int(index /2)
+            potential_range = ceiling - floor
+            new_index = index - int(potential_range / 2)
+            index = new_index if new_index != index else new_index-1
             if index < 0 : index = 0
-        return self.lookup(cell, index=index)
+        return self.lookup(cell, index=index, ceiling=ceiling, floor=floor)
 
-    def _bump_as_too_high(self, index, cell):
+    def _bump_as_too_high(self, index, cell, ceiling, floor):
         "move the index down as we're looking too high"
+        assert index == floor, 'If we`re specified the index needs to be lower, ceiling should be set to last index'
         if self.bumped == False and index != self.range_count:
             index = index+1
             self.bumped = True
         else:
-            index = int(index*2)
+            potential_range = ceiling - floor
+            new_index = index + int(potential_range / 2)
+            index = new_index if new_index != index else new_index+1
             if index > self.range_count: index = self.range_count
-        return self.lookup(cell, index=index)
+        return self.lookup(cell, index=index, ceiling=ceiling, floor=floor)
 
-    def lookup(self, cell, index=None):
+    def lookup(self, cell, index=None, ceiling=None, floor=0):
         """
         Given the cell we want to lookup the dimension value for, use a bisection search to
         identify the correct range in our ordered list of ranges.
@@ -158,6 +165,7 @@ Break points": {ordered_break_point_list}
         Note - this method is called recursively, using the index kwarg to start
         again at a different point in the list of ranges.
         """
+        ceiling = len(self.ranges) if ceiling is None else ceiling
 
         found_it = False
 
@@ -180,33 +188,33 @@ Break points": {ordered_break_point_list}
 
         if self.direction == ABOVE:
             if cell.y < r["lowest_offset"]:
-                return self._bump_as_too_low(index, cell)
+                return self._bump_as_too_low(index, cell, ceiling=index, floor=floor)
             elif cell.y > r["highest_offset"]:
-                return self._bump_as_too_high(index, cell)
+                return self._bump_as_too_high(index, cell, ceiling=ceiling, floor=index)
             else:
                 found_it = True
 
         if self.direction == BELOW:
             if cell.y > r["highest_offset"]:
-                return self._bump_as_too_high(index, cell)
+                return self._bump_as_too_high(index, cell, ceiling=ceiling, floor=index)
             elif cell.y < r["lowest_offset"]:
-                return self._bump_as_too_low(index, cell)
+                return self._bump_as_too_low(index, cell, ceiling=index, floor=floor)
             else:
                 found_it = True
 
         if self.direction == LEFT:
             if cell.x < r["lowest_offset"]:
-                return self._bump_as_too_low(index, cell)
+                return self._bump_as_too_low(index, cell, ceiling=index, floor=floor)
             elif cell.x > r["highest_offset"]:
-                return self._bump_as_too_high(index, cell)
+                return self._bump_as_too_high(index, cell, ceiling=ceiling, floor=index)
             else:
                 found_it = True
 
         if self.direction == RIGHT:
             if cell.x > r["highest_offset"]:
-                return self._bump_as_too_high(index, cell)
+                return self._bump_as_too_high(index, cell, ceiling=ceiling, floor=index)
             elif cell.x < r["lowest_offset"]:
-                return self._bump_as_too_low(index, cell)
+                return self._bump_as_too_low(index, cell, ceiling=index, floor=floor)
             else:
                 found_it = True
 

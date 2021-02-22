@@ -102,7 +102,12 @@ class HDim:
             assert isinstance(val, str), "Override from obs should go directly to a string-value"
             return None, val
             
-        return self.celllookup(ob)  # note - returns two values
+        # handle types before returning
+        cell, cell_value = self.celllookup(ob)
+        if cell is None:
+            return None, cell_value
+        else:
+            return cell, svalue(cell) if isinstance(cell.value, datetime.datetime) else str(cell_value)
         
     def AddCellValueOverride(self, overridecell, overridevalue):
         "Override the value of a header cell (and insert it if not present in the bag)" 
