@@ -205,6 +205,24 @@ def step_impl(context, dimension_label, expected_value):
         assert cell is None, f'A constant lookup should be returning type:None for the cell looked up, not {type(cell)}'
         assert cell_value == expected_value, f'Expecting {expected_value}, got {cell_value}'
 
+
+@then(u'the dimension \'{dim_constructor}\' will fail with the exception')
+def step_impl(context, dim_constructor):
+
+    if "HDimConst" in dim_constructor:
+        raise NotImplementedError(u'The step is not currently designed to accomodate a HDimConst dimension')
+
+    dc_tokens = dim_constructor.split(",")
+    dc0 = dc_tokens[0]
+    dc0 = dc0.split("(")[0]+f'(context.selections[\'{dc0.split("(")[1]}\'],'
+    ds = dc0 + ",".join(dc_tokens[1:])
+
+    try:
+        dimension = eval(ds)
+    except Exception as dim_err:
+        assert str(dim_err) == context.text, f'Expecting: \n"{context.text}\'\nGot:\n{str(dim_err)}'
+
+
 @then('the unique contents of the "{column_name}" column should be equal to')
 def step_impl(context, column_name):
     assert column_name in context.df.columns.values, 'No column named "{column_name}" present in dataframe'
