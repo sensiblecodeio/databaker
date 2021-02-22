@@ -1,6 +1,3 @@
-import json
-import pprint as pp
-
 from databaker.constants import ABOVE, BELOW, LEFT, RIGHT, DIRECTION_DICT
 
 class DirectLookupException(Exception):

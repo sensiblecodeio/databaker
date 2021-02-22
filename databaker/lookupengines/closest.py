@@ -1,8 +1,4 @@
-import pprint as pp
-import json
-
 from databaker.constants import ABOVE, BELOW, LEFT, RIGHT, DIRECTION_DICT
-
 
 class BoundaryError(Exception):
     """ Raised when attempting to lookup outside the bounds of where a lookup can exist"""
