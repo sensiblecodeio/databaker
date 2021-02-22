@@ -41,7 +41,7 @@ class DirectlyEngine(object):
         self.tiered_dict = {}
 
         assert len(cell_bag) > 0, f'Aborting. The dimension {self.label} is defined as DIRECTLY ' \
-                    + '{DIRECTION_DICT[self.direction]} but an empty selection of cells has been ' \
+                    + f'{DIRECTION_DICT[self.direction]} but an empty selection of cells has been ' \
                     + 'passed in as the first argument.'
 
         for cell in cell_bag:
