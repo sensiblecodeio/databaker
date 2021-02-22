@@ -50,6 +50,10 @@ class ClosestEngine(object):
         self.label = label
         self.cellvalueoverride = cellvalueoverride if cellvalueoverride is not None else {}
 
+        assert len(cell_bag) > 0, f'Aborting. The dimension {self.label} is defined as CLOSEST ' \
+                    + '{DIRECTION_DICT[self.direction]} but an empty selection of cells has been ' \
+                    + 'passed in as the first argument.'
+
         # the break-point is the start/end of a range. Effectively the index of the cell
         # along the relevant axis.
         break_points = {}
