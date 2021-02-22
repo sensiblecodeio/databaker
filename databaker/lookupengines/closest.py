@@ -1,3 +1,5 @@
+import json
+
 from databaker.constants import ABOVE, BELOW, LEFT, RIGHT, DIRECTION_DICT
 
 class BoundaryError(Exception):
@@ -38,7 +40,7 @@ class ClosestEngine(object):
         item) based on the .y (substitute .x for horizontal relationships) value of a given 
         observation cell.
 
-        So the cell being "looked up" to find the right range, use the range "dimension_cell"
+        So use the cell being "looked up" to find the right range, use the range "dimension_cell"
         key to get the xyCell to be returned.
         """
 
@@ -55,9 +57,11 @@ class ClosestEngine(object):
         break_points = {}
         for cell in cell_bag:
 
-            if cell.value in break_points.keys():
-                raise Exception("Aborting. You have defined two or more equally valid "
-                                "CLOSEST relationships")
+            axis_offset = cell.y if direction in  [ABOVE, BELOW] else cell.x 
+            if axis_offset in break_points.keys():
+                break_points_as_str = json.dumps(break_points, default=lambda x: str(x))
+                raise Exception(f"Aborting. You have defined two or more equally valid CLOSEST {DIRECTION_DICT[self.direction]}" 
+                        f" relationships. Trying to add {axis_offset}:{cell} but we already have: {break_points_as_str}")
 
             if direction in [ABOVE, BELOW]:
                 break_points.update({cell.y: cell})
@@ -132,8 +136,8 @@ Break points": {ordered_break_point_list}
         self.found_cell = None
 
     def _bump_as_too_low(self, index, cell, ceiling, floor):
-        "move the index up as we're looking too low"
-        assert index == ceiling, 'If we`re specified the index needs to be higher, floow should be set to last index'
+        "move the index down as as the cell was beneath/less-than the last ranged we looked at"
+        assert index == ceiling, 'If we`re specified the cell is in a lower range, ceiling should be set to last index'
         if self.bumped == False and index != 0:
             index = index-1
             self.bumped = True
@@ -145,8 +149,8 @@ Break points": {ordered_break_point_list}
         return self.lookup(cell, index=index, ceiling=ceiling, floor=floor)
 
     def _bump_as_too_high(self, index, cell, ceiling, floor):
-        "move the index down as we're looking too high"
-        assert index == floor, 'If we`re specified the index needs to be lower, ceiling should be set to last index'
+        "move the index up as as the cell was aoove/greater-than the last ranged we looked at"
+        assert index == floor, 'If we`re specified the cell is in a higher range, floor should be set to last index'
         if self.bumped == False and index != self.range_count:
             index = index+1
             self.bumped = True
