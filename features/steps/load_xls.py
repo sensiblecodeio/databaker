@@ -217,10 +217,14 @@ def step_impl(context, dim_constructor):
     dc0 = dc0.split("(")[0]+f'(context.selections[\'{dc0.split("(")[1]}\'],'
     ds = dc0 + ",".join(dc_tokens[1:])
 
+    err_caught = None
     try:
         dimension = eval(ds)
     except Exception as dim_err:
+        err_caught = dim_err
         assert str(dim_err) == context.text, f'Expecting: \n"{context.text}\'\nGot:\n{str(dim_err)}'
+
+    assert err_caught is not None, 'Step should be generating an exception'
 
 
 @then('the unique contents of the "{column_name}" column should be equal to')
