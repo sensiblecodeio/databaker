@@ -1,6 +1,3 @@
-import json
-import pprint as pp
-
 from databaker.constants import ABOVE, BELOW, LEFT, RIGHT, DIRECTION_DICT
 
 class DirectLookupException(Exception):
@@ -42,6 +39,10 @@ class DirectlyEngine(object):
         self.cellvalueoverride = cellvalueoverride if cellvalueoverride is not None else {}
 
         self.tiered_dict = {}
+
+        assert len(cell_bag) > 0, f'Aborting. The dimension {self.label} is defined as DIRECTLY ' \
+                    + f'{DIRECTION_DICT[self.direction]} but an empty selection of cells has been ' \
+                    + 'passed in as the first argument.'
 
         for cell in cell_bag:
 
